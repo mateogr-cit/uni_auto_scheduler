@@ -1,6 +1,20 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import users_router, courses_router, professors_router, students_router, professor_availability_router, rooms_router
+from routes import (
+    users_router,
+    courses_router,
+    professors_router,
+    students_router,
+    professor_availability_router,
+    rooms_router,
+    student_groups_router,
+    semesters_router,
+    faculty_router,
+    degrees_router,
+    student_degrees_router,
+    course_curriculum_router,
+    enrollments_router,
+)
 from database import engine
 from models import Base
 
@@ -23,6 +37,13 @@ app.include_router(professors_router)
 app.include_router(students_router)
 app.include_router(professor_availability_router)
 app.include_router(rooms_router)
+app.include_router(student_groups_router)
+app.include_router(semesters_router)
+app.include_router(faculty_router)
+app.include_router(degrees_router)
+app.include_router(student_degrees_router)
+app.include_router(course_curriculum_router)
+app.include_router(enrollments_router)
 
 @app.get("/")
 def read_root():

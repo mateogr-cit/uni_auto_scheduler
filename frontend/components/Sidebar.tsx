@@ -17,13 +17,33 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', href: '/' },
-    { icon: Users, label: 'Professors', href: '/professors' },
-    { icon: User, label: 'Student', href: '/students' },
-    { icon: History, label: 'Schedule History', href: '/history' },
-    { icon: BookOpen, label: 'Course', href: '/courses' },
-    { icon: Building, label: 'Rooms', href: '/rooms' },
+const menuGroups = [
+    {
+        label: 'Main',
+        items: [
+            { icon: LayoutDashboard, label: 'Dashboard', href: '/' },
+        ],
+    },
+    {
+        label: 'User Management',
+        items: [
+            { icon: Users, label: 'Professors', href: '/professors' },
+            { icon: User, label: 'Student', href: '/students' },
+        ],
+    },
+    {
+        label: 'Schedule Creation',
+        items: [
+            { icon: History, label: 'Schedule History', href: '/history' },
+        ],
+    },
+    {
+        label: 'Resource Management',
+        items: [
+            { icon: BookOpen, label: 'Course', href: '/courses' },
+            { icon: Building, label: 'Rooms', href: '/rooms' },
+        ],
+    },
 ];
 
 interface SidebarProps {
@@ -71,49 +91,60 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
             </button>
 
             {/* Navigation Items */}
-            <nav className="flex-1 mt-8 px-3 space-y-1">
-                {menuItems.map((item) => {
-                    const isActive = pathname === item.href;
-                    return (
-                        <Link key={item.label} href={item.href}>
-                            <motion.div
-                                whileHover={{ x: 4 }}
-                                whileTap={{ scale: 0.98 }}
-                                className={`flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 group relative
+            <nav className="flex-1 mt-8 px-3 space-y-6">
+                {menuGroups.map((group) => (
+                    <div key={group.label} className="space-y-2">
+                        {!isCollapsed && (
+                            <div className="px-3 text-xs uppercase tracking-[0.24em] text-slate-500">
+                                {group.label}
+                            </div>
+                        )}
+                        <div className="space-y-1">
+                            {group.items.map((item) => {
+                                const isActive = pathname === item.href;
+                                return (
+                                    <Link key={item.label} href={item.href}>
+                                        <motion.div
+                                            whileHover={{ x: 4 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            className={`flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 group relative
                   ${isActive
-                                        ? 'bg-indigo-600/10 text-indigo-400'
-                                        : 'hover:bg-slate-800/50 hover:text-white'
-                                    }`}
-                            >
-                                <item.icon
-                                    size={22}
-                                    className={`${isActive ? 'text-indigo-400' : 'group-hover:text-white'} transition-colors`}
-                                />
-
-                                <AnimatePresence>
-                                    {!isCollapsed && (
-                                        <motion.span
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: -10 }}
-                                            className="font-medium whitespace-nowrap"
+                                            ? 'bg-indigo-600/10 text-indigo-400'
+                                            : 'hover:bg-slate-800/50 hover:text-white'
+                                        }`}
                                         >
-                                            {item.label}
-                                        </motion.span>
-                                    )}
-                                </AnimatePresence>
+                                            <item.icon
+                                                size={22}
+                                                className={`${isActive ? 'text-indigo-400' : 'group-hover:text-white'} transition-colors`}
+                                            />
 
-                                {isActive && (
-                                    <motion.div
-                                        layoutId="active-pill"
-                                        className="absolute left-0 w-1 h-6 bg-indigo-500 rounded-r-full"
-                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                    />
-                                )}
-                            </motion.div>
-                        </Link>
-                    );
-                })}
+                                            <AnimatePresence>
+                                                {!isCollapsed && (
+                                                    <motion.span
+                                                        initial={{ opacity: 0, x: -10 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        exit={{ opacity: 0, x: -10 }}
+                                                        className="font-medium whitespace-nowrap"
+                                                    >
+                                                        {item.label}
+                                                    </motion.span>
+                                                )}
+                                            </AnimatePresence>
+
+                                            {isActive && (
+                                                <motion.div
+                                                    layoutId="active-pill"
+                                                    className="absolute left-0 w-1 h-6 bg-indigo-500 rounded-r-full"
+                                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                                />
+                                            )}
+                                        </motion.div>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ))}
             </nav>
 
             {/* Footer Section */}

@@ -327,5 +327,4 @@ course_curriculum{
     semester_number: 2
     is_active: true
     createdAt: 2025-01-01
-
 }
