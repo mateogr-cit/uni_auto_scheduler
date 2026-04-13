@@ -1,10 +1,14 @@
 import { type Dispatch, type SetStateAction } from "react";
 import { SectionCard } from "./ScheduleSection";
-import { type StudentDegree, type CourseCurriculum, type FormState } from "./schedule-types";
+import { type Student, type StudentGroup, type Degree, type Faculty, type StudentDegree, type CourseCurriculum, type FormState } from "./schedule-types";
 
 type CurriculumPanelProps = {
   studentDegrees: StudentDegree[];
   courseCurriculum: CourseCurriculum[];
+  students: Student[];
+  studentGroups: StudentGroup[];
+  degrees: Degree[];
+  faculty: Faculty[];
   studentDegreeForm: FormState<StudentDegree>;
   setStudentDegreeForm: Dispatch<SetStateAction<FormState<StudentDegree>>>;
   editStudentDegreeId: number | null;
@@ -42,6 +46,10 @@ export default function CurriculumPanel({
   editCourseCurriculumId,
   setEditCourseCurriculumId,
   loadCourseCurriculum,
+  students,
+  studentGroups,
+  degrees,
+  faculty,
   setFormValue,
   handleSave,
   handleDelete,
@@ -53,22 +61,40 @@ export default function CurriculumPanel({
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-3">
               <div className="grid gap-3 sm:grid-cols-2">
-                <label className="text-sm text-slate-500 dark:text-slate-400">Student ID</label>
-                <input
-                  type="number"
+                <label className="text-sm text-slate-500 dark:text-slate-400">Student</label>
+                <select
                   className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500/80 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                  value={studentDegreeForm.u_id}
+                  value={studentDegreeForm.u_id ?? 0}
                   onChange={(event) => setFormValue(setStudentDegreeForm, "u_id", Number(event.target.value))}
-                />
+                >
+                  <option value={0}>Select a student</option>
+                  {students.map((student) => {
+                    const groupName = studentGroups.find((group) => group.group_id === student.group_id)?.group_name;
+                    return (
+                      <option key={student.u_id} value={student.u_id}>
+                        {student.u_id}{groupName ? ` — ${groupName}` : ""}
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <label className="text-sm text-slate-500 dark:text-slate-400">Degree ID</label>
-                <input
-                  type="number"
+                <label className="text-sm text-slate-500 dark:text-slate-400">Degree</label>
+                <select
                   className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500/80 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                  value={studentDegreeForm.deg_id}
+                  value={studentDegreeForm.deg_id ?? 0}
                   onChange={(event) => setFormValue(setStudentDegreeForm, "deg_id", Number(event.target.value))}
-                />
+                >
+                  <option value={0}>Select a degree</option>
+                  {degrees.map((degree) => {
+                    const facultyName = faculty.find((item) => item.f_id === degree.f_id)?.f_abbr || faculty.find((item) => item.f_id === degree.f_id)?.f_name;
+                    return (
+                      <option key={degree.d_id} value={degree.d_id}>
+                        {degree.d_name} {degree.degree_abbr ? `(${degree.degree_abbr})` : ""}{facultyName ? ` — ${facultyName}` : ""}
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="text-sm text-slate-500 dark:text-slate-400">Year Level</label>
@@ -164,13 +190,22 @@ export default function CurriculumPanel({
                 />
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <label className="text-sm text-slate-500 dark:text-slate-400">Degree ID</label>
-                <input
-                  type="number"
+                <label className="text-sm text-slate-500 dark:text-slate-400">Degree</label>
+                <select
                   className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500/80 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                  value={courseCurriculumForm.degree_id}
+                  value={courseCurriculumForm.degree_id ?? 0}
                   onChange={(event) => setFormValue(setCourseCurriculumForm, "degree_id", Number(event.target.value))}
-                />
+                >
+                  <option value={0}>Select a degree</option>
+                  {degrees.map((degree) => {
+                    const facultyName = faculty.find((item) => item.f_id === degree.f_id)?.f_abbr || faculty.find((item) => item.f_id === degree.f_id)?.f_name;
+                    return (
+                      <option key={degree.d_id} value={degree.d_id}>
+                        {degree.d_name} {degree.degree_abbr ? `(${degree.degree_abbr})` : ""}{facultyName ? ` — ${facultyName}` : ""}
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="text-sm text-slate-500 dark:text-slate-400">Year Level</label>

@@ -234,6 +234,7 @@ export default function RoomsPage() {
                                         transition={{ delay: 0.1 }}
                                     >
                                         <label className="block text-sm font-medium text-slate-300 mb-2">Room ID</label>
+                                        {editingRoom && <p className="text-xs text-slate-500 mb-1">Room ID cannot be changed.</p>}
                                         <input
                                             type="text"
                                             value={formData.room_id}

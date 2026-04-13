@@ -24,7 +24,7 @@ export default function UserFormFields({ formData, onChange, editing }: UserForm
                         placeholder="John"
                         value={formData.fname}
                         onChange={(e) => onChange('fname', e.target.value)}
-                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all"
+                        className="capitalize w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all"
                         required
                     />
                 </div>
@@ -38,7 +38,7 @@ export default function UserFormFields({ formData, onChange, editing }: UserForm
                         placeholder="Doe"
                         value={formData.lname}
                         onChange={(e) => onChange('lname', e.target.value)}
-                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all"
+                        className="capitalize w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all"
                         required
                     />
                 </div>

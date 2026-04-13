@@ -31,6 +31,12 @@ export type Degree = {
   degree_abbr: string;
 };
 
+export type Student = {
+  u_id: number;
+  s_status: string;
+  group_id: number | null;
+};
+
 export type StudentDegree = {
   student_degree_id: number;
   u_id: number;
@@ -45,6 +51,15 @@ export type CourseCurriculum = {
   year_level: number;
   is_active: boolean;
   semester_number: number;
+};
+
+export type CourseOffering = {
+  offering_id: number;
+  c_id: number;
+  sem_id: number;
+  max_students: number;
+  group_id: number;
+  hrs_per_week?: number;
 };
 
 export type Enrollment = {

@@ -1,11 +1,14 @@
 import { type Dispatch, type SetStateAction } from "react";
 import { SectionCard } from "./ScheduleSection";
-import { type Enrollment, type FormState } from "./schedule-types";
+import { type Enrollment, type FormState, type Student, type StudentGroup, type CourseOffering } from "./schedule-types";
 
 type EnrollmentsPanelProps = {
   enrollments: Enrollment[];
   enrollmentForm: FormState<Enrollment>;
   setEnrollmentForm: Dispatch<SetStateAction<FormState<Enrollment>>>;
+  students: Student[];
+  studentGroups: StudentGroup[];
+  offerings: CourseOffering[];
   editEnrollmentId: number | null;
   setEditEnrollmentId: Dispatch<SetStateAction<number | null>>;
   loadEnrollments: () => void;
@@ -31,6 +34,9 @@ export default function EnrollmentsPanel({
   editEnrollmentId,
   setEditEnrollmentId,
   loadEnrollments,
+  students,
+  studentGroups,
+  offerings,
   autoEnrollmentEnabled,
   handleSave,
   handleDelete,
@@ -42,22 +48,37 @@ export default function EnrollmentsPanel({
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-3">
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="text-sm text-slate-500 dark:text-slate-400">Offering ID</label>
-              <input
-                type="number"
+              <label className="text-sm text-slate-500 dark:text-slate-400">Offering</label>
+              <select
                 className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500/80 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                value={enrollmentForm.offering_id}
+                value={enrollmentForm.offering_id ?? 0}
                 onChange={(event) => setEnrollmentForm((prev) => ({ ...prev, offering_id: Number(event.target.value) }))}
-              />
+              >
+                <option value={0}>Select an offering</option>
+                {offerings.map((offering) => (
+                  <option key={offering.offering_id} value={offering.offering_id}>
+                    {offering.offering_id} — course {offering.c_id} / sem {offering.sem_id}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="text-sm text-slate-500 dark:text-slate-400">Student ID</label>
-              <input
-                type="number"
+              <label className="text-sm text-slate-500 dark:text-slate-400">Student</label>
+              <select
                 className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500/80 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                value={enrollmentForm.u_id}
+                value={enrollmentForm.u_id ?? 0}
                 onChange={(event) => setEnrollmentForm((prev) => ({ ...prev, u_id: Number(event.target.value) }))}
-              />
+              >
+                <option value={0}>Select a student</option>
+                {students.map((student) => {
+                  const groupName = studentGroups.find((group) => group.group_id === student.group_id)?.group_name;
+                  return (
+                    <option key={student.u_id} value={student.u_id}>
+                      {student.u_id}{groupName ? ` — ${groupName}` : ""}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
             <div className="flex items-center gap-3">
               <button

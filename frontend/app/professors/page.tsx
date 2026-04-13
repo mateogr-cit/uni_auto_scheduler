@@ -16,6 +16,13 @@ interface User {
     updatedAt: string;
 }
 
+interface Course {
+    c_id: number;
+    c_name: string;
+    c_abbr: string;
+    c_difficulty_weight: number;
+}
+
 interface ProfessorAvailability {
     id?: number;
     u_id: number;
@@ -28,7 +35,12 @@ interface ProfessorAvailability {
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] as const;
 
 export default function ProfessorsPage() {
-    const [professors, setProfessors] = useState<(User & { availability?: ProfessorAvailability[] })[]>([]);
+    const [professors, setProfessors] = useState<(User & { availability?: ProfessorAvailability[]; courses?: Course[] })[]>([]);
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [selectedCourseIds, setSelectedCourseIds] = useState<number[]>([]);
+    const [courseSearchQuery, setCourseSearchQuery] = useState("");
+    const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
+    const [showAllCourses, setShowAllCourses] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [editingProfessor, setEditingProfessor] = useState<User | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
@@ -45,9 +57,30 @@ export default function ProfessorsPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        fetchCourses();
         fetchProfessors();
     }, []);
 
+   const fetchCourses = async () => {
+    try {
+        const url = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/courses/`;
+        console.log("Fetching from:", url);
+        
+        const response = await fetch(url);
+        console.log("Response status:", response.status);
+        console.log("Response headers:", response.headers);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data: Course[] = await response.json();
+        console.log("Courses fetched:", data);
+        setCourses(data);
+    } catch (error) {
+        console.error("Failed to fetch courses:", error);
+    }
+};
     const fetchProfessors = async () => {
         setLoading(true);
         try {
@@ -55,19 +88,43 @@ export default function ProfessorsPage() {
             const data: User[] = await response.json();
             const professorsData = data.filter(u => u.u_role === "professor");
             
-            // Fetch availability for each professor to show in tooltips
-            const professorsWithAvail = await Promise.all(professorsData.map(async (prof) => {
-                const availResp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professor-availability?u_id=${prof.u_id}`);
-                const availData = await availResp.json();
-                return { ...prof, availability: availData };
+            // Fetch availability and courses for each professor
+            const professorsWithDetails = await Promise.all(professorsData.map(async (prof) => {
+                try {
+                    const availResp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professor-availability?u_id=${prof.u_id}`);
+                    const availData = availResp.ok ? await availResp.json() : [];
+                    
+                    const courseResp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professors/${prof.u_id}`);
+                    const profData = courseResp.ok ? await courseResp.json() : { courses: [] };
+                    
+                    return { ...prof, availability: availData, courses: profData.courses ?? [] };
+                } catch (err) {
+                    console.error(`Error fetching details for professor ${prof.u_id}:`, err);
+                    return { ...prof, availability: [], courses: [] };
+                }
             }));
             
-            setProfessors(professorsWithAvail);
+            setProfessors(professorsWithDetails);
         } catch (error) {
             console.error("Failed to fetch professors:", error);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleFormChange = (field: string, value: string) => {
+        setFormData(prev => {
+            const newData = { ...prev, [field]: value };
+            if (field === 'fname' || field === 'lname') {
+                const fname = field === 'fname' ? value : prev.fname;
+                const lname = field === 'lname' ? value : prev.lname;
+                if (fname && lname) {
+                    newData.username = `${fname.toLowerCase()}.${lname.toLowerCase()}`;
+                    newData.email = `${fname.toLowerCase()}.${lname.toLowerCase()}@cit.edu.al`;
+                }
+            }
+            return newData;
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -77,18 +134,28 @@ export default function ProfessorsPage() {
             userData.password = formData.password;
         }
 
-        const url = editingProfessor ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/${editingProfessor.u_id}` : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/`;
-        const method = editingProfessor ? "PUT" : "POST";
+        const userUrl = editingProfessor ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/${editingProfessor.u_id}` : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/`;
+        const userMethod = editingProfessor ? "PUT" : "POST";
         
         try {
-            const userResponse = await fetch(url, {
-                method,
+            const userResponse = await fetch(userUrl, {
+                method: userMethod,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(userData),
             });
 
             const user = await userResponse.json();
             const u_id = user.u_id;
+
+            const professorPayload = { u_id, course_ids: selectedCourseIds };
+            const professorUrl = editingProfessor ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professors/${u_id}` : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professors/`;
+            const professorMethod = editingProfessor ? "PUT" : "POST";
+
+            await fetch(professorUrl, {
+                method: professorMethod,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(professorPayload),
+            });
 
             // Batch update availability
             const availabilityList = Object.values(availabilities).map(a => ({
@@ -111,10 +178,16 @@ export default function ProfessorsPage() {
         }
     };
 
+    const handleCourseSelection = (selectedValues: string[]) => {
+        setSelectedCourseIds(selectedValues.map((value) => Number(value)));
+    };
+
     const resetForm = () => {
         setShowForm(false);
         setEditingProfessor(null);
         setFormData({ fname: "", lname: "", email: "", username: "", password: "" });
+        setSelectedCourseIds([]);
+        setCourseSearchQuery("");
         setAvailabilities(DAYS.reduce((acc, day) => ({
             ...acc,
             [day]: { u_id: 0, day_of_week: day, start_time: "08:00", end_time: "16:00", is_available: true }
@@ -128,6 +201,10 @@ export default function ProfessorsPage() {
         try {
             const availResp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professor-availability?u_id=${prof.u_id}`);
             const availData: ProfessorAvailability[] = await availResp.json();
+
+            const profResp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professors/${prof.u_id}`);
+            const profData = await profResp.json();
+            setSelectedCourseIds(profData.courses?.map((course: Course) => course.c_id) || []);
             
             const newAvail: Record<string, ProfessorAvailability> = DAYS.reduce((acc, day) => ({
                 ...acc,
@@ -204,7 +281,7 @@ export default function ProfessorsPage() {
                                 <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                                     {editingProfessor ? <Settings size={24} /> : <Plus size={24} />}
                                 </div>
-                                <h2 className="text-2xl font-bold">{editingProfessor ? "Update Faculty Profile" : "Create Faculty Profile"}</h2>
+                                <h2 className="text-2xl font-bold">{editingProfessor ? "Update Professor Data" : "Add Professor"}</h2>
                             </div>
                             <button onClick={resetForm} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400">
                                 <X size={24} />
@@ -212,11 +289,130 @@ export default function ProfessorsPage() {
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-8">
-                            <UserFormFields
-                                formData={formData}
-                                onChange={(field, value) => setFormData({ ...formData, [field]: value })}
-                                editing={!!editingProfessor}
-                            />
+                            {/* User Fields and Courses in Grid */}
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div className="lg:col-span-3">
+                                    <UserFormFields
+                                        formData={formData}
+                                        onChange={handleFormChange}
+                                        editing={!!editingProfessor}
+                                    />
+                                    <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-600 dark:text-slate-400 ml-1">Courses Taught</label>
+
+                                    {/* Dropdown Trigger – Search Input */}
+                                    <div className="relative">
+                                        <div className="relative">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                                            <input
+                                                type="text"
+                                                placeholder={selectedCourseIds.length > 0 ? `${selectedCourseIds.length} course${selectedCourseIds.length !== 1 ? 's' : ''} selected – search to refine` : "Click to select courses..."}
+                                                value={courseSearchQuery}
+                                                onFocus={() => { setCourseDropdownOpen(true); setShowAllCourses(false); }}
+                                                onBlur={() => setTimeout(() => setCourseDropdownOpen(false), 150)}
+                                                onChange={(e) => { setCourseSearchQuery(e.target.value); setCourseDropdownOpen(true); setShowAllCourses(false); }}
+                                                className="w-full pl-10 pr-10 py-2.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 text-sm transition-all cursor-pointer"
+                                                readOnly={false}
+                                            />
+                                            {/* Chevron indicator */}
+                                            <div className={`absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-transform duration-200 pointer-events-none ${courseDropdownOpen ? 'rotate-180' : ''}`}>
+                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                            </div>
+                                        </div>
+
+                                        {/* Floating Dropdown */}
+                                        <AnimatePresence>
+                                            {courseDropdownOpen && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                    exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                                                    transition={{ duration: 0.15 }}
+                                                    className="absolute z-50 w-full mt-1.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl shadow-slate-900/15 overflow-hidden"
+                                                >
+                                                    <div className="p-2 space-y-1">
+                                                        {(() => {
+                                                            const filtered = courses.filter(course =>
+                                                                course.c_name.toLowerCase().includes(courseSearchQuery.toLowerCase()) ||
+                                                                course.c_abbr.toLowerCase().includes(courseSearchQuery.toLowerCase())
+                                                            );
+                                                            const isSearching = courseSearchQuery.length > 0;
+                                                            const visible = (isSearching || showAllCourses) ? filtered : filtered.slice(0, 3);
+                                                            const hidden = filtered.length - 3;
+
+                                                            return (
+                                                                <>
+                                                                    {visible.map(course => (
+                                                                        <label
+                                                                            key={course.c_id}
+                                                                            onMouseDown={(e) => e.preventDefault()}
+                                                                            className="flex items-center gap-3 p-3 bg-white dark:bg-slate-700/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg cursor-pointer transition-all duration-200 group border border-transparent hover:border-indigo-200 dark:hover:border-indigo-800"
+                                                                        >
+                                                                            <div className="relative flex items-center justify-center flex-shrink-0">
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    checked={selectedCourseIds.includes(course.c_id)}
+                                                                                    onChange={(e) => {
+                                                                                        if (e.target.checked) {
+                                                                                            handleCourseSelection([...selectedCourseIds, course.c_id].map(String));
+                                                                                        } else {
+                                                                                            handleCourseSelection(selectedCourseIds.filter(id => id !== course.c_id).map(String));
+                                                                                        }
+                                                                                    }}
+                                                                                    className="w-5 h-5 rounded-md accent-indigo-600 cursor-pointer appearance-none bg-white dark:bg-slate-600 border-2 border-slate-300 dark:border-slate-500 checked:bg-indigo-600 checked:border-indigo-600 transition-all duration-200"
+                                                                                />
+                                                                                {selectedCourseIds.includes(course.c_id) && (
+                                                                                    <Check size={14} className="absolute text-white pointer-events-none" />
+                                                                                )}
+                                                                            </div>
+                                                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                                                                {course.c_name} <span className="text-xs text-slate-400 dark:text-slate-500 font-normal">({course.c_abbr})</span>
+                                                                            </span>
+                                                                        </label>
+                                                                    ))}
+
+                                                                    {filtered.length === 0 && (
+                                                                        <div className="p-6 text-center text-slate-400 dark:text-slate-500 text-sm">
+                                                                            <div className="text-2xl mb-2">○</div>
+                                                                            No courses found
+                                                                        </div>
+                                                                    )}
+
+                                                                    {!isSearching && hidden > 0 && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onMouseDown={(e) => e.preventDefault()}
+                                                                            onClick={() => setShowAllCourses(prev => !prev)}
+                                                                            className="w-full mt-1 py-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                                                                        >
+                                                                            {showAllCourses ? (
+                                                                                <><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 10l4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg> Show less</>
+                                                                            ) : (
+                                                                                <><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg> Show all {filtered.length} courses</>
+                                                                            )}
+                                                                        </button>
+                                                                    )}
+                                                                </>
+                                                            );
+                                                        })()}
+                                                    </div>
+
+                                                    {selectedCourseIds.length > 0 && (
+                                                        <div className="px-3 py-2 border-t border-slate-100 dark:border-slate-700 flex items-center gap-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50/60 dark:bg-indigo-900/10">
+                                                            <Check size={12} />
+                                                            {selectedCourseIds.length} course{selectedCourseIds.length !== 1 ? 's' : ''} selected
+                                                        </div>
+                                                    )}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                </div>
+                                </div>
+                                
+                                {/* Courses Section - Right Side */}
+                                
+                            </div>
 
                             <div className="space-y-4">
                                 <div className="flex items-center gap-2 mb-2">
@@ -283,7 +479,7 @@ export default function ProfessorsPage() {
                                     type="submit" 
                                     className="px-10 py-3 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-slate-900/10 dark:shadow-white/5"
                                 >
-                                    {editingProfessor ? "Save Changes" : "Create Account"}
+                                    {editingProfessor ? "Save Changes" : "Add Professor"}
                                 </button>
                             </div>
                         </form>
@@ -367,6 +563,12 @@ export default function ProfessorsPage() {
                                         <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
                                             <UserIcon size={14} />
                                             <span>@{prof.username}</span>
+                                        </div>
+                                        <div className="mt-3 text-sm text-slate-600 dark:text-slate-300">
+                                            <span className="font-semibold">Courses:</span>{' '}
+                                            {prof.courses && prof.courses.length > 0
+                                                ? prof.courses.map((course) => course.c_name).join(', ')
+                                                : 'None selected'}
                                         </div>
                                     </div>
 

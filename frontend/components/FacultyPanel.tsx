@@ -110,13 +110,19 @@ export default function FacultyPanel({
             />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="text-sm text-slate-500 dark:text-slate-400">Faculty ID</label>
-            <input
-              type="number"
+            <label className="text-sm text-slate-500 dark:text-slate-400">Faculty</label>
+            <select
               className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500/80 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-              value={degreeForm.f_id}
+              value={degreeForm.f_id ?? 0}
               onChange={(event) => setFormValue(setDegreeForm, "f_id", Number(event.target.value))}
-            />
+            >
+              <option value={0}>Select a faculty</option>
+              {faculty.map((item) => (
+                <option key={item.f_id} value={item.f_id}>
+                  {item.f_name} {item.f_abbr ? `(${item.f_abbr})` : ""}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="grid gap-3">
             <label className="text-sm text-slate-500 dark:text-slate-400">Abbreviation</label>
@@ -196,13 +202,18 @@ export default function FacultyPanel({
                 </td>
               </tr>
             ))}
-            {degrees.map((item) => (
-              <tr key={`degree-${item.d_id}`} className="border-t border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-950">
-                <td className="px-4 py-3">Degree</td>
-                <td className="px-4 py-3">{item.d_name}</td>
-                <td className="px-4 py-3">{item.f_id}</td>
-                <td className="px-4 py-3">{item.degree_abbr}</td>
-                <td className="px-4 py-3 space-x-2">
+            {degrees.map((item) => {
+              const facultyItem = faculty.find((f) => f.f_id === item.f_id);
+              return (
+                <tr key={`degree-${item.d_id}`} className="border-t border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-950">
+                  <td className="px-4 py-3">Degree</td>
+                  <td className="px-4 py-3">{item.d_name}</td>
+                  <td className="px-4 py-3">
+                    {item.f_id}
+                    {facultyItem ? ` — ${facultyItem.f_abbr || facultyItem.f_name}` : ""}
+                  </td>
+                  <td className="px-4 py-3">{item.degree_abbr}</td>
+                  <td className="px-4 py-3 space-x-2">
                   <button
                     onClick={() => {
                       setEditDegreeId(item.d_id);
@@ -220,7 +231,7 @@ export default function FacultyPanel({
                   </button>
                 </td>
               </tr>
-            ))}
+            )})}
           </tbody>
         </table>
       </div>

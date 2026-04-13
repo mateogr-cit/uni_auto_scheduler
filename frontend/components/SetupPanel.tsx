@@ -1,4 +1,4 @@
-import { type Dispatch, type SetStateAction } from "react";
+import { type Dispatch, type SetStateAction, useEffect } from "react";
 import {
   Users,
   Calendar,
@@ -67,6 +67,16 @@ export default function SetupPanel({
   handleDelete,
   degrees,
 }: SetupPanelProps) {
+  useEffect(() => {
+    if (semesterForm.start_date && typeof semesterForm.week_count === 'number' && semesterForm.week_count > 0) {
+      const start = new Date(semesterForm.start_date);
+      const end = new Date(start);
+      end.setDate(start.getDate() + semesterForm.week_count * 7);
+      const endDateStr = end.toISOString().split('T')[0];
+      setFormValue(setSemesterForm, "end_date", endDateStr);
+    }
+  }, [semesterForm.start_date, semesterForm.week_count, setFormValue, setSemesterForm]);
+
   return (
     <div className="grid gap-8 xl:grid-cols-2">
       <style>{`
@@ -347,33 +357,6 @@ export default function SetupPanel({
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <label className="flex items-center gap-2 text-xs font-medium text-slate-500 uppercase tracking-wider dark:text-slate-400">
-                  <Calendar size={12} /> Start Date
-                </label>
-                <DatePicker
-                  selected={semesterForm.start_date ? new Date(semesterForm.start_date) : null}
-                  onChange={(date:any) => setFormValue(setSemesterForm, "start_date", date ? date.toISOString().split('T')[0] : "")}
-                  dateFormat="yyyy-MM-dd"
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500/80 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                  placeholderText="Select start date"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="flex items-center gap-2 text-xs font-medium text-slate-500 uppercase tracking-wider dark:text-slate-400">
-                  <Calendar size={12} /> End Date
-                </label>
-                <DatePicker
-                  selected={semesterForm.end_date ? new Date(semesterForm.end_date) : null}
-                  onChange={(date:any) => setFormValue(setSemesterForm, "end_date", date ? date.toISOString().split('T')[0] : "")}
-                  dateFormat="yyyy-MM-dd"
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500/80 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                  placeholderText="Select end date"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <label className="flex items-center gap-2 text-xs font-medium text-slate-500 uppercase tracking-wider dark:text-slate-400">
                   <Zap size={12} /> Special Semester?
                 </label>
                 <select
@@ -396,6 +379,33 @@ export default function SetupPanel({
                   className="w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500/80 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                   value={semesterForm.week_count}
                   onChange={(event) => setFormValue(setSemesterForm, "week_count", Math.max(1, Number(event.target.value)))}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="flex items-center gap-2 text-xs font-medium text-slate-500 uppercase tracking-wider dark:text-slate-400">
+                  <Calendar size={12} /> Start Date
+                </label>
+                <DatePicker
+                  selected={semesterForm.start_date ? new Date(semesterForm.start_date) : null}
+                  onChange={(date:any) => setFormValue(setSemesterForm, "start_date", date ? date.toISOString().split('T')[0] : "")}
+                  dateFormat="yyyy-MM-dd"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500/80 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                  placeholderText="Select start date"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="flex items-center gap-2 text-xs font-medium text-slate-500 uppercase tracking-wider dark:text-slate-400">
+                  <Calendar size={12} /> End Date
+                </label>
+                <DatePicker
+                  selected={semesterForm.end_date ? new Date(semesterForm.end_date) : null}
+                  onChange={(date:any) => setFormValue(setSemesterForm, "end_date", date ? date.toISOString().split('T')[0] : "")}
+                  dateFormat="yyyy-MM-dd"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500/80 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                  placeholderText="Select end date"
                 />
               </div>
             </div>

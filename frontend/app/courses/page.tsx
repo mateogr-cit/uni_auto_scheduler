@@ -15,15 +15,22 @@ export default function CoursesPage() {
     const [showForm, setShowForm] = useState(false);
     const [editingCourse, setEditingCourse] = useState<Course | null>(null);
     const [formData, setFormData] = useState({ c_name: "", c_abbr: "", c_difficulty_weight: "" });
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetchCourses();
     }, []);
 
     const fetchCourses = async () => {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/courses/`);
-        const data = await response.json();
-        setCourses(data);
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/courses/`);
+            if (!response.ok) throw new Error(`Server error: ${response.status}`);
+            const data = await response.json();
+            setCourses(data);
+            setError(null);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to fetch courses");
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -70,6 +77,12 @@ export default function CoursesPage() {
                     </button>
                 </div>
             </div>
+
+            {error && (
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-5 py-4 rounded-2xl text-sm font-medium">
+                    ⚠️ {error}
+                </div>
+            )}
 
             {showForm && (
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">

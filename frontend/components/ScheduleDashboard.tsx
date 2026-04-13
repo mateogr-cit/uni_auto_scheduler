@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useState, useCallback, type Dispatch, type SetStateAction } from "react";
 import { Zap, RefreshCcw } from "lucide-react";
 import ScheduleTabs from "./ScheduleTabs";
 import OverviewPanel from "./OverviewPanel";
@@ -14,8 +14,10 @@ import {
   type Semester,
   type Faculty,
   type Degree,
+  type Student,
   type StudentDegree,
   type CourseCurriculum,
+  type CourseOffering,
   type Enrollment,
   type FormState,
 } from "./schedule-types";
@@ -35,6 +37,8 @@ const ScheduleDashboard = () => {
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [faculty, setFaculty] = useState<Faculty[]>([]);
   const [degrees, setDegrees] = useState<Degree[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [offerings, setOfferings] = useState<CourseOffering[]>([]);
   const [studentDegrees, setStudentDegrees] = useState<StudentDegree[]>([]);
   const [courseCurriculum, setCourseCurriculum] = useState<CourseCurriculum[]>([]);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
@@ -79,6 +83,8 @@ const ScheduleDashboard = () => {
     loadSemesters();
     loadFaculty();
     loadDegrees();
+    loadStudents();
+    loadOfferings();
     loadStudentDegrees();
     loadCourseCurriculum();
     loadEnrollments();
@@ -116,6 +122,22 @@ const ScheduleDashboard = () => {
     }
   };
 
+  const loadStudents = async () => {
+    try {
+      setStudents((await apiFetch("/students/")) || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const loadOfferings = async () => {
+    try {
+      setOfferings((await apiFetch("/course-offerings/")) || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const loadStudentDegrees = async () => {
     try {
       setStudentDegrees((await apiFetch("/student-degrees/")) || []);
@@ -144,9 +166,9 @@ const ScheduleDashboard = () => {
     loadAll();
   }, []);
 
-  const setFormValue = <T extends object>(setter: Dispatch<SetStateAction<T>>, key: string, value: string | number | boolean) => {
+  const setFormValue = useCallback(<T extends object>(setter: Dispatch<SetStateAction<T>>, key: string, value: string | number | boolean) => {
     setter((current: any) => ({ ...current, [key]: value }));
-  };
+  }, []);
 
   const handleSave = async (
     section: string,
@@ -289,6 +311,10 @@ const ScheduleDashboard = () => {
           editCourseCurriculumId={editCourseCurriculumId}
           setEditCourseCurriculumId={setEditCourseCurriculumId}
           loadCourseCurriculum={loadCourseCurriculum}
+          students={students}
+          studentGroups={studentGroups}
+          degrees={degrees}
+          faculty={faculty}
           setFormValue={setFormValue}
           handleSave={handleSave}
           handleDelete={handleDelete}
@@ -303,6 +329,9 @@ const ScheduleDashboard = () => {
           editEnrollmentId={editEnrollmentId}
           setEditEnrollmentId={setEditEnrollmentId}
           loadEnrollments={loadEnrollments}
+          students={students}
+          studentGroups={studentGroups}
+          offerings={offerings}
           autoEnrollmentEnabled={autoEnrollmentEnabled}
           handleSave={handleSave}
           handleDelete={handleDelete}
