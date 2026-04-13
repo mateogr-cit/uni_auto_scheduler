@@ -9,7 +9,8 @@ router = APIRouter()
 
 @router.post("/students/", response_model=Student)
 def create_student(student: StudentCreate, db: Session = Depends(get_db)):
-    db_student = DBStudent(**student.dict())
+    student_data = {k: v for k, v in student.dict().items() if v is not None}
+    db_student = DBStudent(**student_data)
     db.add(db_student)
     db.commit()
     db.refresh(db_student)
@@ -32,7 +33,8 @@ def update_student(student_id: int, student: StudentCreate, db: Session = Depend
     db_student = db.query(DBStudent).filter(DBStudent.u_id == student_id).first()
     if db_student is None:
         raise HTTPException(status_code=404, detail="Student not found")
-    for key, value in student.dict().items():
+    student_data = {k: v for k, v in student.dict().items() if v is not None}
+    for key, value in student_data.items():
         setattr(db_student, key, value)
     db.commit()
     db.refresh(db_student)

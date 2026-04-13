@@ -10,6 +10,7 @@ from .faculty import router as faculty_router
 from .degrees import router as degrees_router
 from .student_degrees import router as student_degrees_router
 from .course_curriculum import router as course_curriculum_router
+from .course_offerings import router as course_offerings_router
 from .enrollments import router as enrollments_router
 
 __all__ = [
@@ -25,5 +26,6 @@ __all__ = [
     "degrees_router",
     "student_degrees_router",
     "course_curriculum_router",
+    "course_offerings_router",
     "enrollments_router",
 ]

@@ -1,5 +1,6 @@
+from __future__ import annotations
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime, date, time
 import enum
 
@@ -47,12 +48,22 @@ class User(UserBase):
 
 # Prof schemas
 class ProfBase(BaseModel):
-    u_id: int
+    u_id: Optional[int] = None
 
 class ProfCreate(ProfBase):
-    pass
+    fname: Optional[str] = None
+    lname: Optional[str] = None
+    email: Optional[str] = None
+    username: Optional[str] = None
+    password: Optional[str] = None
+    course_ids: Optional[List[int]] = None
+
+class ProfUpdate(BaseModel):
+    course_ids: Optional[List[int]] = None
 
 class Prof(ProfBase):
+    courses: List["Course"] = []
+
     class Config:
         from_attributes = True
 
@@ -146,6 +157,8 @@ class Course(CourseBase):
 
     class Config:
         from_attributes = True
+
+Prof.update_forward_refs()
 
 # Semester schemas
 class SemesterBase(BaseModel):

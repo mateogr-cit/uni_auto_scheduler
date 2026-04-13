@@ -13,6 +13,7 @@ from routes import (
     degrees_router,
     student_degrees_router,
     course_curriculum_router,
+    course_offerings_router,
     enrollments_router,
 )
 from database import engine
@@ -20,12 +21,12 @@ from models import Base
 
 Base.metadata.create_all(bind=engine)
 
-
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    # allow_origins=["http://localhost:3000"],  # No trailing slash
+    allow_origins=["*"],  # No trailing slash
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -43,6 +44,7 @@ app.include_router(faculty_router)
 app.include_router(degrees_router)
 app.include_router(student_degrees_router)
 app.include_router(course_curriculum_router)
+app.include_router(course_offerings_router)
 app.include_router(enrollments_router)
 
 @app.get("/")
