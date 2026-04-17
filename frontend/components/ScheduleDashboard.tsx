@@ -5,9 +5,9 @@ import { Zap, RefreshCcw } from "lucide-react";
 import ScheduleTabs from "./ScheduleTabs";
 import OverviewPanel from "./OverviewPanel";
 import SetupPanel from "./SetupPanel";
-import FacultyPanel from "./FacultyPanel";
 import CurriculumPanel from "./CurriculumPanel";
 import EnrollmentsPanel from "./EnrollmentsPanel";
+import AutoSchedulePanel from "./AutoSchedulePanel";
 import {
   type TabId,
   type StudentGroup,
@@ -15,6 +15,7 @@ import {
   type Faculty,
   type Degree,
   type Student,
+  type Course,
   type StudentDegree,
   type CourseCurriculum,
   type CourseOffering,
@@ -28,7 +29,7 @@ const emptyStudentGroup = { group_name: "", deg_id: 0, year_level: 1, semester_n
 const emptySemester = { sem_name: "", start_date: "", end_date: "", is_special_semester: false, week_count: 15 };
 const emptyFaculty = { f_name: "", f_abbr: "" };
 const emptyDegree = { d_name: "", f_id: 0, degree_abbr: "" };
-const emptyStudentDegree = { u_id: 0, deg_id: 0, yr_lvl: 1 };
+const emptyStudentDegree = { group_id: 0, deg_id: 0, yr_lvl: 1 };
 const emptyCourseCurriculum = { c_id: 0, degree_id: 0, year_level: 1, is_active: true, semester_number: 1 };
 const emptyEnrollment = { offering_id: 0, u_id: 0 };
 
@@ -38,6 +39,7 @@ const ScheduleDashboard = () => {
   const [faculty, setFaculty] = useState<Faculty[]>([]);
   const [degrees, setDegrees] = useState<Degree[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [offerings, setOfferings] = useState<CourseOffering[]>([]);
   const [studentDegrees, setStudentDegrees] = useState<StudentDegree[]>([]);
   const [courseCurriculum, setCourseCurriculum] = useState<CourseCurriculum[]>([]);
@@ -48,16 +50,12 @@ const ScheduleDashboard = () => {
 
   const [editStudentGroupId, setEditStudentGroupId] = useState<number | null>(null);
   const [editSemesterId, setEditSemesterId] = useState<number | null>(null);
-  const [editFacultyId, setEditFacultyId] = useState<number | null>(null);
-  const [editDegreeId, setEditDegreeId] = useState<number | null>(null);
   const [editStudentDegreeId, setEditStudentDegreeId] = useState<number | null>(null);
   const [editCourseCurriculumId, setEditCourseCurriculumId] = useState<number | null>(null);
   const [editEnrollmentId, setEditEnrollmentId] = useState<number | null>(null);
 
   const [studentGroupForm, setStudentGroupForm] = useState<FormState<typeof emptyStudentGroup>>(emptyStudentGroup);
   const [semesterForm, setSemesterForm] = useState<FormState<typeof emptySemester>>(emptySemester);
-  const [facultyForm, setFacultyForm] = useState<FormState<typeof emptyFaculty>>(emptyFaculty);
-  const [degreeForm, setDegreeForm] = useState<FormState<typeof emptyDegree>>(emptyDegree);
   const [studentDegreeForm, setStudentDegreeForm] = useState<FormState<typeof emptyStudentDegree>>(emptyStudentDegree);
   const [courseCurriculumForm, setCourseCurriculumForm] = useState<FormState<typeof emptyCourseCurriculum>>(emptyCourseCurriculum);
   const [enrollmentForm, setEnrollmentForm] = useState<FormState<typeof emptyEnrollment>>(emptyEnrollment);
@@ -84,6 +82,7 @@ const ScheduleDashboard = () => {
     loadFaculty();
     loadDegrees();
     loadStudents();
+    loadCourses();
     loadOfferings();
     loadStudentDegrees();
     loadCourseCurriculum();
@@ -125,6 +124,14 @@ const ScheduleDashboard = () => {
   const loadStudents = async () => {
     try {
       setStudents((await apiFetch("/students/")) || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const loadCourses = async () => {
+    try {
+      setCourses((await apiFetch("/courses/")) || []);
     } catch (error) {
       console.error(error);
     }
@@ -277,25 +284,6 @@ const ScheduleDashboard = () => {
         />
       )}
 
-      {activeTab === "faculty" && (
-        <FacultyPanel
-          faculty={faculty}
-          degrees={degrees}
-          facultyForm={facultyForm}
-          setFacultyForm={setFacultyForm}
-          editFacultyId={editFacultyId}
-          setEditFacultyId={setEditFacultyId}
-          loadFaculty={loadFaculty}
-          degreeForm={degreeForm}
-          setDegreeForm={setDegreeForm}
-          editDegreeId={editDegreeId}
-          setEditDegreeId={setEditDegreeId}
-          loadDegrees={loadDegrees}
-          setFormValue={setFormValue}
-          handleSave={handleSave}
-          handleDelete={handleDelete}
-        />
-      )}
 
       {activeTab === "curriculum" && (
         <CurriculumPanel
@@ -312,6 +300,7 @@ const ScheduleDashboard = () => {
           setEditCourseCurriculumId={setEditCourseCurriculumId}
           loadCourseCurriculum={loadCourseCurriculum}
           students={students}
+          courses={courses}
           studentGroups={studentGroups}
           degrees={degrees}
           faculty={faculty}
@@ -336,6 +325,13 @@ const ScheduleDashboard = () => {
           handleSave={handleSave}
           handleDelete={handleDelete}
           handleAutoEnroll={handleAutoEnroll}
+        />
+      )}
+
+      {activeTab === "schedule" && (
+        <AutoSchedulePanel
+          semesters={semesters}
+          onRefresh={loadAll}
         />
       )}
     </div>

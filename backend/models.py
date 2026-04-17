@@ -18,6 +18,10 @@ class DayOfWeek(enum.Enum):
     Thursday = "Thursday"
     Friday = "Friday"
 
+class SessionType(enum.Enum):
+    Lecture = "Lecture"
+    Seminar = "Seminar"
+
 professor_course_table = Table(
     "professor_course",
     Base.metadata,
@@ -31,7 +35,11 @@ class Course(Base):
     c_name = Column(String, nullable=False)
     c_abbr = Column(String, nullable=False)
     c_difficulty_weight = Column(Float, nullable=False)
+    c_year = Column(Integer, nullable=False)
+    c_semester = Column(Integer, nullable=False)
+    degree_id = Column(Integer, ForeignKey("degree.d_id", ondelete="CASCADE"), nullable=True)
     professors = relationship("Prof", secondary=professor_course_table, back_populates="courses")
+    degree = relationship("Degree")
     
 class User(Base):
     __tablename__ = "user"
@@ -54,13 +62,13 @@ class Student(Base):
     __tablename__ = "student"
     u_id = Column(Integer, ForeignKey("user.u_id", ondelete="CASCADE"), primary_key=True)
     s_status = Column(Enum(StudentStatus), nullable=False)
-    group_id = Column(Integer, ForeignKey("student_group.group_id"), nullable=True)
+    group_id = Column(Integer, ForeignKey("student_group.group_id", ondelete="CASCADE"), nullable=True)
 
 class StudentGroup(Base):
     __tablename__ = "student_group"
     group_id = Column(Integer, primary_key=True, index=True)
     group_name = Column(String, nullable=False)
-    deg_id = Column(Integer, ForeignKey("degree.d_id"))
+    deg_id = Column(Integer, ForeignKey("degree.d_id", ondelete="CASCADE"))
     year_level = Column(Integer, nullable=False)
     semester_number = Column(Integer, nullable=False)
     capacity = Column(Integer, nullable=False)
@@ -87,10 +95,10 @@ class Semester(Base):
 class CourseOffering(Base):
     __tablename__ = "course_offering"
     offering_id = Column(Integer, primary_key=True, index=True)
-    c_id = Column(Integer, ForeignKey("course.c_id"))
-    sem_id = Column(Integer, ForeignKey("semester.sem_id"))
+    c_id = Column(Integer, ForeignKey("course.c_id", ondelete="CASCADE"))
+    sem_id = Column(Integer, ForeignKey("semester.sem_id", ondelete="CASCADE"))
     max_students = Column(Integer, nullable=False)
-    group_id = Column(Integer, ForeignKey("student_group.group_id"))
+    group_id = Column(Integer, ForeignKey("student_group.group_id", ondelete="CASCADE"))
     hrs_per_week = Column(Integer, default=4)
 
 class Rooms(Base):
@@ -105,20 +113,27 @@ class TimeSlots(Base):
     start_time = Column(Time, nullable=False)
     end_time = Column(Time, nullable=False)
 
+class SessionTypeModel(Base):
+    __tablename__ = "session_type"
+    session_type_id = Column(Integer, primary_key=True, index=True)
+    type_name = Column(Enum(SessionType), nullable=False)
+    duration_hours = Column(Integer, default=2)
+
 class OfferingSchedule(Base):
     __tablename__ = "offering_schedule"
     schedule_id = Column(Integer, primary_key=True, index=True)
-    offering_id = Column(Integer, ForeignKey("course_offering.offering_id"))
-    room_id = Column(String, ForeignKey("rooms.room_id"))
-    slot_id = Column(Integer, ForeignKey("time_slots.slot_id"))
-    s_status = Column(String)  # Assuming string, not specified
+    offering_id = Column(Integer, ForeignKey("course_offering.offering_id", ondelete="CASCADE"))
+    room_id = Column(String, ForeignKey("rooms.room_id", ondelete="CASCADE"))
+    slot_id = Column(Integer, ForeignKey("time_slots.slot_id", ondelete="CASCADE"))
+    session_type_id = Column(Integer, ForeignKey("session_type.session_type_id", ondelete="CASCADE"))
+    s_status = Column(String)
     createdAt = Column(DateTime, nullable=False)
     updatedAt = Column(DateTime, nullable=False)
 
 class OfferingProfessors(Base):
     __tablename__ = "offering_professors"
     offering_prof_id = Column(Integer, primary_key=True, index=True)
-    offering_id = Column(Integer, ForeignKey("course_offering.offering_id"))
+    offering_id = Column(Integer, ForeignKey("course_offering.offering_id", ondelete="CASCADE"))
     u_id = Column(Integer, ForeignKey("user.u_id", ondelete="CASCADE"))
 
 class ProfessorAvailability(Base):
@@ -143,7 +158,7 @@ class ProfessorUnavailability(Base):
 class Enrollment(Base):
     __tablename__ = "enrollment"
     id = Column(Integer, primary_key=True, index=True)
-    offering_id = Column(Integer, ForeignKey("course_offering.offering_id"))
+    offering_id = Column(Integer, ForeignKey("course_offering.offering_id", ondelete="CASCADE"))
     u_id = Column(Integer, ForeignKey("user.u_id", ondelete="CASCADE"))
     enrolledAt = Column(DateTime, nullable=False)
 
@@ -158,15 +173,15 @@ class Degree(Base):
     __tablename__ = "degree"
     d_id = Column(Integer, primary_key=True, index=True)
     d_name = Column(String, nullable=False)
-    f_id = Column(Integer, ForeignKey("faculty.f_id"))
+    f_id = Column(Integer, ForeignKey("faculty.f_id", ondelete="CASCADE"))
     degree_abbr = Column(String, nullable=False)
     createdAt = Column(DateTime, nullable=False)
 
 class StudentDegree(Base):
     __tablename__ = "student_degree"
     student_degree_id = Column(Integer, primary_key=True, index=True)
-    u_id = Column(Integer, ForeignKey("user.u_id", ondelete="CASCADE"))
-    deg_id = Column(Integer, ForeignKey("degree.d_id"))
+    group_id = Column(Integer, ForeignKey("student_group.group_id", ondelete="CASCADE"))
+    deg_id = Column(Integer, ForeignKey("degree.d_id", ondelete="CASCADE"))
     yr_lvl = Column(Integer, nullable=False)
     createdAt = Column(DateTime, nullable=False)
     updatedAt = Column(DateTime, nullable=False)
@@ -174,8 +189,8 @@ class StudentDegree(Base):
 class CourseCurriculum(Base):
     __tablename__ = "course_curriculum"
     course_year_id = Column(Integer, primary_key=True, index=True)
-    c_id = Column(Integer, ForeignKey("course.c_id"))
-    degree_id = Column(Integer, ForeignKey("degree.d_id"))
+    c_id = Column(Integer, ForeignKey("course.c_id", ondelete="CASCADE"))
+    degree_id = Column(Integer, ForeignKey("degree.d_id", ondelete="CASCADE"))
     year_level = Column(Integer, nullable=False)
     is_active = Column(Boolean, nullable=False)
     semester_number = Column(Integer, nullable=False)

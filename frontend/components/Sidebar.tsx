@@ -11,7 +11,8 @@ import {
     ChevronRight,
     LogOut,
     Settings,
-    Building
+    Building,
+    School
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -42,6 +43,7 @@ const menuGroups = [
         items: [
             { icon: BookOpen, label: 'Course', href: '/courses' },
             { icon: Building, label: 'Rooms', href: '/rooms' },
+            { icon: School, label: 'Faculty & Degrees', href: '/faculties' },
         ],
     },
 ];

@@ -1,6 +1,6 @@
 'use client';
 
-import { Users, Plus, Search, Filter, Edit, Trash2, Mail, User as UserIcon, Calendar, Clock, X, Check, ArrowRight, Settings } from "lucide-react";
+import { Users, Plus, Search, Filter, Edit, Trash2, Mail, User as UserIcon, Calendar, Clock, X, Check, ArrowRight, Settings, Database } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import UserFormFields from "../../components/UserFormFields";
@@ -44,6 +44,7 @@ export default function ProfessorsPage() {
     const [showForm, setShowForm] = useState(false);
     const [editingProfessor, setEditingProfessor] = useState<User | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
+    const [useDummyData, setUseDummyData] = useState(false);
     
     // Multi-day availability state
     const [availabilities, setAvailabilities] = useState<Record<string, ProfessorAvailability>>(
@@ -59,7 +60,7 @@ export default function ProfessorsPage() {
     useEffect(() => {
         fetchCourses();
         fetchProfessors();
-    }, []);
+    }, [useDummyData]);
 
    const fetchCourses = async () => {
     try {
@@ -84,27 +85,37 @@ export default function ProfessorsPage() {
     const fetchProfessors = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/`);
-            const data: User[] = await response.json();
-            const professorsData = data.filter(u => u.u_role === "professor");
+            let professorsData: User[];
             
-            // Fetch availability and courses for each professor
-            const professorsWithDetails = await Promise.all(professorsData.map(async (prof) => {
-                try {
-                    const availResp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professor-availability?u_id=${prof.u_id}`);
-                    const availData = availResp.ok ? await availResp.json() : [];
-                    
-                    const courseResp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professors/${prof.u_id}`);
-                    const profData = courseResp.ok ? await courseResp.json() : { courses: [] };
-                    
-                    return { ...prof, availability: availData, courses: profData.courses ?? [] };
-                } catch (err) {
-                    console.error(`Error fetching details for professor ${prof.u_id}:`, err);
-                    return { ...prof, availability: [], courses: [] };
-                }
-            }));
-            
-            setProfessors(professorsWithDetails);
+            if (useDummyData) {
+                const response = await fetch('/professors-dummy.json');
+                if (!response.ok) throw new Error('Failed to load dummy data');
+                const data = await response.json();
+                professorsData = data;
+                setProfessors(data);
+            } else {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/`);
+                const data: User[] = await response.json();
+                professorsData = data.filter(u => u.u_role === "professor");
+                
+                // Fetch availability and courses for each professor
+                const professorsWithDetails = await Promise.all(professorsData.map(async (prof) => {
+                    try {
+                        const availResp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professor-availability?u_id=${prof.u_id}`);
+                        const availData = availResp.ok ? await availResp.json() : [];
+                        
+                        const courseResp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professors/${prof.u_id}`);
+                        const profData = courseResp.ok ? await courseResp.json() : { courses: [] };
+                        
+                        return { ...prof, availability: availData, courses: profData.courses ?? [] };
+                    } catch (err) {
+                        console.error(`Error fetching details for professor ${prof.u_id}:`, err);
+                        return { ...prof, availability: [], courses: [] };
+                    }
+                }));
+                
+                setProfessors(professorsWithDetails);
+            }
         } catch (error) {
             console.error("Failed to fetch professors:", error);
         } finally {
@@ -129,6 +140,10 @@ export default function ProfessorsPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (useDummyData) {
+            alert('Cannot modify professors while using dummy data. Switch to database mode.');
+            return;
+        }
         const userData: any = { fname: formData.fname, lname: formData.lname, email: formData.email, username: formData.username, u_role: "professor" };
         if (formData.password || !editingProfessor) {
             userData.password = formData.password;
@@ -195,6 +210,10 @@ export default function ProfessorsPage() {
     };
 
     const handleEdit = async (prof: User) => {
+        if (useDummyData) {
+            alert('Cannot edit professors while using dummy data. Switch to database mode.');
+            return;
+        }
         setEditingProfessor(prof);
         setFormData({ fname: prof.fname, lname: prof.lname, email: prof.email, username: prof.username, password: "" });
 
@@ -227,6 +246,10 @@ export default function ProfessorsPage() {
     };
 
     const handleDelete = async (id: number) => {
+        if (useDummyData) {
+            alert('Cannot delete professors while using dummy data. Switch to database mode.');
+            return;
+        }
         if (!confirm("Are you sure you want to delete this professor?")) return;
         
         try {
@@ -254,15 +277,34 @@ export default function ProfessorsPage() {
                             Manage faculty members and their weekly availability schedules.
                         </p>
                     </div>
-                    <motion.button 
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => setShowForm(true)} 
-                        className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-2xl font-semibold transition-all shadow-xl shadow-indigo-500/25 flex items-center justify-center gap-2 group"
-                    >
-                        <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
-                        Add New Professor
-                    </motion.button>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                            <Database size={16} className="text-slate-600 dark:text-slate-400" />
+                            <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{useDummyData ? "Dummy" : "Live"}</span>
+                            <button
+                                onClick={() => setUseDummyData(!useDummyData)}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                                    useDummyData ? "bg-indigo-600" : "bg-slate-300"
+                                }`}
+                            >
+                                <span
+                                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                        useDummyData ? "translate-x-6" : "translate-x-1"
+                                    }`}
+                                />
+                            </button>
+                        </div>
+                        <motion.button 
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => setShowForm(true)}
+                            disabled={useDummyData}
+                            className={`text-white px-6 py-3 rounded-2xl font-semibold transition-all flex items-center justify-center gap-2 group ${useDummyData ? 'bg-slate-400 cursor-not-allowed opacity-50' : 'bg-indigo-600 hover:bg-indigo-500 shadow-xl shadow-indigo-500/25'}`}
+                        >
+                            <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
+                            Add New Professor
+                        </motion.button>
+                    </div>
                 </div>
             </div>
 
@@ -543,10 +585,10 @@ export default function ProfessorsPage() {
                                             {prof.fname[0]}{prof.lname[0]}
                                         </div>
                                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => handleEdit(prof)} className="p-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-indigo-500 rounded-xl transition-colors">
+                                            <button onClick={() => handleEdit(prof)} disabled={useDummyData} className={`p-2 rounded-xl transition-colors ${useDummyData ? "text-slate-300 cursor-not-allowed opacity-50" : "hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-indigo-500"}`}>
                                                 <Edit size={18} />
                                             </button>
-                                            <button onClick={() => handleDelete(prof.u_id)} className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 rounded-xl transition-colors">
+                                            <button onClick={() => handleDelete(prof.u_id)} disabled={useDummyData} className={`p-2 rounded-xl transition-colors ${useDummyData ? "text-slate-300 cursor-not-allowed opacity-50" : "hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"}`}>
                                                 <Trash2 size={18} />
                                             </button>
                                         </div>

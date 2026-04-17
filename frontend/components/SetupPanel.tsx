@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import { SectionCard } from "./ScheduleSection";
 import { type StudentGroup, type Semester, type FormState, type Degree } from "./schedule-types";
 
@@ -283,7 +282,7 @@ export default function SetupPanel({
                         </td>
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-1">
-                            <span>Lvl {group.year_level}</span>
+                            <span>Yr {group.year_level}</span>
                             <span className="text-slate-300 dark:text-slate-700 mx-1">/</span>
                             <span>Sem {group.semester_number}</span>
                           </div>

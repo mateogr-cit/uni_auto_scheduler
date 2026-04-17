@@ -1,6 +1,6 @@
 'use client';
 
-import { Building, Plus, Search, Edit, Trash2 } from "lucide-react";
+import { Building, Plus, Search, Edit, Trash2, Database } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -16,18 +16,25 @@ export default function RoomsPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [formData, setFormData] = useState({ room_id: "", capacity: 0 });
     const [loading, setLoading] = useState(true);
+    const [useDummyData, setUseDummyData] = useState(false);
 
     useEffect(() => {
         fetchRooms();
-    }, []);
+    }, [useDummyData]);
 
     const fetchRooms = async () => {
         try {
-            const response = await fetch('http://localhost:8000/rooms/');
-            if (response.ok) {
-                const data = await response.json();
-                setRooms(data);
+            let data;
+            if (useDummyData) {
+                const response = await fetch('/rooms-dummy.json');
+                if (!response.ok) throw new Error('Failed to load dummy data');
+                data = await response.json();
+            } else {
+                const response = await fetch('http://localhost:8000/rooms/');
+                if (!response.ok) throw new Error('Failed to fetch rooms');
+                data = await response.json();
             }
+            setRooms(data);
         } catch (error) {
             console.error('Error fetching rooms:', error);
         } finally {
@@ -37,6 +44,10 @@ export default function RoomsPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (useDummyData) {
+            alert('Cannot modify rooms while using dummy data. Switch to database mode.');
+            return;
+        }
         try {
             const url = editingRoom ? `http://localhost:8000/rooms/${editingRoom.room_id}` : 'http://localhost:8000/rooms/';
             const method = editingRoom ? 'PUT' : 'POST';
@@ -57,12 +68,20 @@ export default function RoomsPage() {
     };
 
     const handleEdit = (room: Room) => {
+        if (useDummyData) {
+            alert('Cannot edit rooms while using dummy data. Switch to database mode.');
+            return;
+        }
         setEditingRoom(room);
         setFormData({ room_id: room.room_id, capacity: room.capacity });
         setShowForm(true);
     };
 
     const handleDelete = async (room_id: string) => {
+        if (useDummyData) {
+            alert('Cannot delete rooms while using dummy data. Switch to database mode.');
+            return;
+        }
         if (confirm('Are you sure you want to delete this room?')) {
             try {
                 const response = await fetch(`http://localhost:8000/rooms/${room_id}`, { method: 'DELETE' });
@@ -128,15 +147,36 @@ export default function RoomsPage() {
                             className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
                         />
                     </div>
+                    <div className="flex items-center gap-2 bg-slate-800 px-4 py-3 rounded-lg border border-slate-700">
+                        <Database size={18} className="text-slate-400" />
+                        <span className="text-sm font-medium text-slate-400">{useDummyData ? "Dummy" : "Live"}</span>
+                        <button
+                            onClick={() => setUseDummyData(!useDummyData)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                                useDummyData ? "bg-indigo-600" : "bg-slate-600"
+                            }`}
+                        >
+                            <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                    useDummyData ? "translate-x-6" : "translate-x-1"
+                                }`}
+                            />
+                        </button>
+                    </div>
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => {
+                            if (useDummyData) {
+                                alert('Cannot modify rooms while using dummy data. Switch to database mode.');
+                                return;
+                            }
                             setShowForm(true);
                             setEditingRoom(null);
                             setFormData({ room_id: "", capacity: 0 });
                         }}
-                        className="hover:cursor-pointer flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-500 transition-all duration-200 shadow-lg shadow-indigo-500/30"
+                        disabled={useDummyData}
+                        className={`hover:cursor-pointer flex items-center gap-2 px-6 py-3 rounded-lg transition-all duration-200 ${useDummyData ? 'bg-slate-600 text-slate-400 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/30'}`}
                     >
                         <Plus className="w-5 h-5" />
                         Add Room
@@ -175,18 +215,20 @@ export default function RoomsPage() {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <div className="flex gap-2">
                                                     <motion.button
-                                                        whileHover={{ scale: 1.1 }}
+                                                        whileHover={{ scale: useDummyData ? 1 : 1.1 }}
                                                         whileTap={{ scale: 0.9 }}
                                                         onClick={() => handleEdit(room)}
-                                                        className="hover:cursor-pointer text-indigo-400 hover:text-indigo-300 p-2 rounded-md hover:bg-slate-600 transition-all duration-200"
+                                                        disabled={useDummyData}
+                                                        className={`hover:cursor-pointer p-2 rounded-md transition-all duration-200 ${useDummyData ? "text-slate-500 opacity-50 cursor-not-allowed" : "text-indigo-400 hover:text-indigo-300 hover:bg-slate-600"}`}
                                                     >
                                                         <Edit className="w-4 h-4" />
                                                     </motion.button>
                                                     <motion.button
-                                                        whileHover={{ scale: 1.1 }}
+                                                        whileHover={{ scale: useDummyData ? 1 : 1.1 }}
                                                         whileTap={{ scale: 0.9 }}
                                                         onClick={() => handleDelete(room.room_id)}
-                                                        className="hover:cursor-pointer text-red-400 hover:text-red-300 p-2 rounded-md hover:bg-slate-600 transition-all duration-200"
+                                                        disabled={useDummyData}
+                                                        className={`hover:cursor-pointer p-2 rounded-md transition-all duration-200 ${useDummyData ? "text-slate-500 opacity-50 cursor-not-allowed" : "text-red-400 hover:text-red-300 hover:bg-slate-600"}`}
                                                     >
                                                         <Trash2 className="w-4 h-4" />
                                                     </motion.button>

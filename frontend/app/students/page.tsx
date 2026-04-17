@@ -1,6 +1,6 @@
 'use client';
 
-import { User, Plus, Search, Mail, Edit, Trash2, CheckCircle, Users } from "lucide-react";
+import { User, Plus, Search, Mail, Edit, Trash2, CheckCircle, Users, Database } from "lucide-react";
 import { useState, useEffect } from "react";
 import UserFormFields from "../../components/UserFormFields";
 
@@ -32,22 +32,34 @@ export default function StudentsPage() {
     const [showForm, setShowForm] = useState(false);
     const [editingStudent, setEditingStudent] = useState<User | null>(null);
     const [formData, setFormData] = useState({ fname: "", lname: "", email: "", username: "", password: "", s_status: "active", group_id: null as number | null });
+    const [useDummyData, setUseDummyData] = useState(false);
 
     useEffect(() => {
         fetchStudents();
         fetchGroups();
-    }, []);
+    }, [useDummyData]);
 
     const fetchStudents = async () => {
-        const usersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/`);
-        const users: User[] = await usersResponse.json();
-        const studentsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/students/`);
-        const studentsData: Student[] = await studentsResponse.json();
-        const studentUsers = users.filter(u => u.u_role === "student").map(u => {
-            const student = studentsData.find(s => s.u_id === u.u_id);
-            return student ? { ...u, ...student } : null;
-        }).filter(Boolean) as (User & Student)[];
-        setStudents(studentUsers);
+        try {
+            if (useDummyData) {
+                const response = await fetch('/students-dummy.json');
+                if (!response.ok) throw new Error('Failed to load dummy data');
+                const studentsData = await response.json();
+                setStudents(studentsData);
+            } else {
+                const usersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/`);
+                const users: User[] = await usersResponse.json();
+                const studentsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/students/`);
+                const studentsData: Student[] = await studentsResponse.json();
+                const studentUsers = users.filter(u => u.u_role === "student").map(u => {
+                    const student = studentsData.find(s => s.u_id === u.u_id);
+                    return student ? { ...u, ...student } : null;
+                }).filter(Boolean) as (User & Student)[];
+                setStudents(studentUsers);
+            }
+        } catch (error) {
+            console.error('Error fetching students:', error);
+        }
     };
 
     const fetchGroups = async () => {
@@ -73,6 +85,10 @@ export default function StudentsPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (useDummyData) {
+            alert('Cannot modify students while using dummy data. Switch to database mode.');
+            return;
+        }
         try {
             const userData: any = { fname: formData.fname, lname: formData.lname, email: formData.email, username: formData.username, u_role: "student" };
             if (formData.password || !editingStudent) {
@@ -129,15 +145,36 @@ export default function StudentsPage() {
     };
 
     const handleEdit = (student: User & Student) => {
+        if (useDummyData) {
+            alert('Cannot edit students while using dummy data. Switch to database mode.');
+            return;
+        }
         setEditingStudent(student);
         setFormData({ fname: student.fname, lname: student.lname, email: student.email, username: student.username, password: "", s_status: student.s_status, group_id: student.group_id });
         setShowForm(true);
     };
 
-    const handleDelete = async (id: number) => {
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/students/${id}`, { method: "DELETE" });
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/${id}`, { method: "DELETE" });
-        fetchStudents();
+    const handleDelete = async (u_id: number) => {
+        if (useDummyData) {
+            alert('Cannot delete students while using dummy data. Switch to database mode.');
+            return;
+        }
+        if (!confirm('Are you sure you want to delete this student?')) {
+            return;
+        }
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/${u_id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            if (!response.ok) {
+                throw new Error(`Delete failed: ${response.status} ${response.statusText}`);
+            }
+            await fetchStudents();
+        } catch (error: any) {
+            console.error('Error deleting student:', error);
+            alert(`Error deleting student: ${error.message}`);
+        }
     };
 
     return (
@@ -147,10 +184,28 @@ export default function StudentsPage() {
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Students</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">Track student enrollments, attendance, and academic progress.</p>
                 </div>
-                <button onClick={() => setShowForm(true)} className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-lg shadow-indigo-500/25 flex items-center gap-2">
-                    <Plus size={20} />
-                    Register Student
-                </button>
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <Database size={16} className="text-slate-600 dark:text-slate-400" />
+                        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{useDummyData ? "Dummy" : "Live"}</span>
+                        <button
+                            onClick={() => setUseDummyData(!useDummyData)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                                useDummyData ? "bg-indigo-600" : "bg-slate-300"
+                            }`}
+                        >
+                            <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                    useDummyData ? "translate-x-6" : "translate-x-1"
+                                }`}
+                            />
+                        </button>
+                    </div>
+                    <button onClick={() => setShowForm(true)} disabled={useDummyData} className={`${useDummyData ? "opacity-50 cursor-not-allowed bg-slate-400" : "bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-500/25"} text-white px-5 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2`}>
+                        <Plus size={20} />
+                        Register Student
+                    </button>
+                </div>
             </div>
 
             {showForm && (
@@ -253,8 +308,8 @@ export default function StudentsPage() {
                                         {group && <p className="text-sm text-gray-500">Group: {group.group_name}</p>}
                                     </div>
                                     <div className="flex gap-2">
-                                        <button onClick={() => handleEdit(student)} className="text-indigo-500"><Edit size={16} /></button>
-                                        <button onClick={() => handleDelete(student.u_id)} className="text-red-500"><Trash2 size={16} /></button>
+                                        <button onClick={() => handleEdit(student)} disabled={useDummyData} className={`${useDummyData ? "text-slate-300 cursor-not-allowed opacity-50" : "text-indigo-500 hover:text-indigo-600"}`}><Edit size={16} /></button>
+                                        <button onClick={() => handleDelete(student.u_id)} disabled={useDummyData} className={`${useDummyData ? "text-slate-300 cursor-not-allowed opacity-50" : "text-red-500 hover:text-red-600"}`}><Trash2 size={16} /></button>
                                     </div>
                                 </div>
                                 );

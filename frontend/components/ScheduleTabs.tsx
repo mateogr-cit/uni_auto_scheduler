@@ -1,13 +1,13 @@
 import React from "react";
-import { BookOpen, ClipboardList, LayoutDashboard, Settings, Users } from "lucide-react";
+import { BookOpen, ClipboardList, LayoutDashboard, Settings, Users, Zap } from "lucide-react";
 import { TabId } from "./schedule-types";
 
 const tabList: Array<{ id: TabId; label: string; icon: typeof LayoutDashboard }> = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "setup", label: "Groups & Semesters", icon: Settings },
-  { id: "faculty", label: "Faculty & Degrees", icon: Users },
   { id: "curriculum", label: "Curriculum", icon: BookOpen },
   { id: "enrollments", label: "Enrollments", icon: ClipboardList },
+  { id: "schedule", label: "Auto-Schedule", icon: Zap },
 ];
 
 type ScheduleTabsProps = {

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from database import get_db
 from models import Course as DBCourse
 from schemas import CourseCreate, Course
@@ -13,16 +13,19 @@ def create_course(course: CourseCreate, db: Session = Depends(get_db)):
     db.add(db_course)
     db.commit()
     db.refresh(db_course)
+    # Re-fetch with degree info if needed, or simply return as is
+    # Since refresh() works, and Pydantic will access .degree, it's fine.
+    # But for read queries, joinedload is better.
     return db_course
 
 @router.get("/courses/", response_model=List[Course])
 def read_courses(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    courses = db.query(DBCourse).offset(skip).limit(limit).all()
+    courses = db.query(DBCourse).options(joinedload(DBCourse.degree)).offset(skip).limit(limit).all()
     return courses
 
 @router.get("/courses/{course_id}", response_model=Course)
 def read_course(course_id: int, db: Session = Depends(get_db)):
-    db_course = db.query(DBCourse).filter(DBCourse.c_id == course_id).first()
+    db_course = db.query(DBCourse).options(joinedload(DBCourse.degree)).filter(DBCourse.c_id == course_id).first()
     if db_course is None:
         raise HTTPException(status_code=404, detail="Course not found")
     return db_course

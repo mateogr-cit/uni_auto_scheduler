@@ -1,0 +1,62 @@
+[
+  {
+    "u_id": 1,
+    "fname": "Ahmed",
+    "lname": "Hassan",
+    "email": "ahmed.hassan@university.edu",
+    "username": "ahassan",
+    "u_role": "student",
+    "s_status": "active",
+    "group_id": 1
+  },
+  {
+    "u_id": 2,
+    "fname": "Fatima",
+    "lname": "Ali",
+    "email": "fatima.ali@university.edu",
+    "username": "fali",
+    "u_role": "student",
+    "s_status": "active",
+    "group_id": 1
+  },
+  {
+    "u_id": 3,
+    "fname": "Mohamed",
+    "lname": "Ibrahim",
+    "email": "mohamed.ibrahim@university.edu",
+    "username": "mibrahim",
+    "u_role": "student",
+    "s_status": "active",
+    "group_id": 2
+  },
+  {
+    "u_id": 4,
+    "fname": "Leila",
+    "lname": "Karim",
+    "email": "leila.karim@university.edu",
+    "username": "lkarim",
+    "u_role": "student",
+    "s_status": "active",
+    "group_id": 2
+  },
+  {
+    "u_id": 5,
+    "fname": "Omar",
+    "lname": "Khalil",
+    "email": "omar.khalil@university.edu",
+    "username": "oklalil",
+    "u_role": "student",
+    "s_status": "active",
+    "group_id": 3
+  },
+  {
+    "u_id": 6,
+    "fname": "Amira",
+    "lname": "Noor",
+    "email": "amira.noor@university.edu",
+    "username": "anoor",
+    "u_role": "student",
+    "s_status": "active",
+    "group_id": 3
+  }
+]

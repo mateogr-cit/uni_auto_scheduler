@@ -1,0 +1,34 @@
+[
+  {
+    "room_id": "A101",
+    "capacity": 30
+  },
+  {
+    "room_id": "A102",
+    "capacity": 30
+  },
+  {
+    "room_id": "A201",
+    "capacity": 50
+  },
+  {
+    "room_id": "B101",
+    "capacity": 40
+  },
+  {
+    "room_id": "B102",
+    "capacity": 25
+  },
+  {
+    "room_id": "B201",
+    "capacity": 60
+  },
+  {
+    "room_id": "LAB1",
+    "capacity": 20
+  },
+  {
+    "room_id": "LAB2",
+    "capacity": 20
+  }
+]

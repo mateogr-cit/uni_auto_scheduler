@@ -166,15 +166,30 @@ time_slots{
     end_time: 11:30
 }
 
-<!-- Purpose: Assigns offering to a room + time slot.
-Used for: Generating timetables. -->
+<!-- Purpose: Defines session types for courses (e.g., Lecture, Seminar).
+Used for: Differentiating between course components. -->
+
+session_type:
+    session_type_id pk,
+    type_name enum("Lecture", "Seminar"),
+    duration_hours int default=2
+
+session_type{
+    session_type_id: 1
+    type_name: "Lecture"
+    duration_hours: 2
+}
+
+<!-- Purpose: Assigns offering sessions to a room + time slot.
+Used for: Generating timetables. Each course has mandatory 2hr lecture + 2hr seminar. -->
 
 offering_schedule:
     schedule_id pk,
     offering_id fk,
     room_id fk,
     slot_id fk,
-    s_status
+    session_type_id fk,   -- Links to session type (Lecture or Seminar)
+    s_status,
     createdAt,
     updatedAt
 
@@ -183,6 +198,19 @@ offering_schedule{
     offering_id: 12
     room_id: 2
     slot_id: 10
+    session_type_id: 1    -- Lecture session
+    s_status: "scheduled"
+    createdAt: 2026-09-01
+    updatedAt: 2026-09-01
+}
+
+offering_schedule{
+    schedule_id: 32
+    offering_id: 12
+    room_id: 3
+    slot_id: 11
+    session_type_id: 2    -- Seminar session (same offering)
+    s_status: "scheduled"
     createdAt: 2026-09-01
     updatedAt: 2026-09-01
 }
@@ -328,3 +356,80 @@ course_curriculum{
     is_active: true
     createdAt: 2025-01-01
 }
+
+---
+
+## AUTO-SCHEDULING SYSTEM
+
+### Overview
+The system now includes an **automated schedule generation engine** that creates timetables based on course curriculum, professor availability, and room allocation. Each course has mandatory 2-hour lecture + 2-hour seminar sessions.
+
+### Key Features
+- ✅ **Automatic Course Offering Creation**: Creates offerings for all courses in curriculum for a semester
+- ✅ **Session Type Management**: Distinguishes between Lecture and Seminar components
+- ✅ **Professor Availability Checking**: Respects working hours and unavailability periods
+- ✅ **Room Conflict Detection**: Prevents double-booking of rooms
+- ✅ **Intelligent Room Allocation**: Matches room capacity to group size
+- ✅ **Schedule Validation**: Identifies conflicts and missing components
+
+### New Components Added
+
+#### Models
+- **SessionTypeModel**: Represents course session types (Lecture, Seminar)
+- Updated **OfferingSchedule**: Now includes session_type_id to distinguish session types
+
+#### Routes
+- **session_types.py**: CRUD operations for session types
+- **auto_schedule.py**: Core auto-scheduling algorithms and endpoints
+
+#### Endpoints
+- `POST /auto-schedule/generate?semester_id={id}`: Generate schedule
+- `GET /auto-schedule/validate/{semester_id}`: Validate schedule
+- `DELETE /auto-schedule/clear/{semester_id}`: Clear schedule
+- `GET/POST/PUT/DELETE /session-types/`: Manage session types
+
+### Usage Workflow
+
+1. **Initialize Session Types**
+   ```bash
+   python init_db.py
+   ```
+
+2. **Prepare Data** (via API)
+   - Create semester
+   - Create time slots (at least 2 per day)
+   - Create rooms with varying capacities
+   - Create faculty, degrees, student groups
+   - Create professors with availability
+   - Create courses and curriculum entries (set `is_active=true`)
+
+3. **Generate Schedule**
+   ```bash
+   curl -X POST "http://localhost:8000/auto-schedule/generate?semester_id=4"
+   ```
+
+4. **Validate Results**
+   ```bash
+   curl "http://localhost:8000/auto-schedule/validate/4"
+   ```
+
+5. **Adjust if Needed**
+   - Clear and regenerate if conflicts detected
+   - Update professor availability
+   - Add more time slots or rooms
+
+### Key Constraints
+- Each course must have exactly 1 Lecture (2 hrs) + 1 Seminar (2 hrs)
+- Lectures scheduled: Monday, Wednesday, Friday (or available slots)
+- Seminars scheduled: Tuesday, Thursday (or available slots)
+- Professor must be available during scheduled times
+- Room capacity must ≥ group size
+
+### For Detailed Documentation
+See **AUTO_SCHEDULING_GUIDE.md** for:
+- Complete API reference
+- Setup instructions
+- Algorithm details
+- Troubleshooting guide
+- Testing procedures
+- Future enhancement roadmap

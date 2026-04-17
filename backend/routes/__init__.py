@@ -12,6 +12,8 @@ from .student_degrees import router as student_degrees_router
 from .course_curriculum import router as course_curriculum_router
 from .course_offerings import router as course_offerings_router
 from .enrollments import router as enrollments_router
+from .session_types import router as session_types_router
+from .migrations import router as migrations_router
 
 __all__ = [
     "users_router",
@@ -28,4 +30,6 @@ __all__ = [
     "course_curriculum_router",
     "course_offerings_router",
     "enrollments_router",
+    "session_types_router",
+    "migrations_router",
 ]

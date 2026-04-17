@@ -1,4 +1,4 @@
-import { type TabId } from "./schedule-types";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Users, Calendar, GraduationCap, CheckCircle, Settings, UserPlus, Grid2x2Plus, Building, BookOpen, UserCheck, Plus } from "lucide-react";
 
@@ -6,10 +6,11 @@ type OverviewPanelProps = {
   studentGroupsCount: number;
   semestersCount: number;
   degreesCount: number;
-  onGoto: (tab: TabId) => void;
+  onGoto: (tab: any) => void;
 };
 
 export default function OverviewPanel({ studentGroupsCount, semestersCount, degreesCount, onGoto }: OverviewPanelProps) {
+  const router = useRouter();
   const prerequisites = [
     "Student groups defined",
     "Semesters configured",
@@ -167,7 +168,7 @@ export default function OverviewPanel({ studentGroupsCount, semestersCount, degr
           <div className="flex flex-wrap items-center justify-center gap-4">
             {[
               { label: "Add New Groups", action: () => onGoto("setup"), icon: Plus, primary: true },
-              { label: "Add Faculty", action: () => onGoto("faculty"), icon: Grid2x2Plus, primary: false },
+              { label: "Add Faculty", action: () => router.push("/faculties"), icon: Grid2x2Plus, primary: false },
               { label: "Add Enrollments", action: () => onGoto("enrollments"), icon: UserPlus, primary: false }
             ].map((btn, i) => (
               <motion.button

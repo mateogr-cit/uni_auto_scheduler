@@ -1,0 +1,50 @@
+[
+  {
+    "c_id": 1,
+    "c_name": "Introduction to Programming",
+    "c_abbr": "PROG101",
+    "c_difficulty_weight": 2.5,
+    "c_year": 1,
+    "c_semester": 1
+  },
+  {
+    "c_id": 2,
+    "c_name": "Data Structures",
+    "c_abbr": "DSA201",
+    "c_difficulty_weight": 4.0,
+    "c_year": 1,
+    "c_semester": 2
+  },
+  {
+    "c_id": 3,
+    "c_name": "Database System",
+    "c_abbr": "DBSYS301",
+    "c_difficulty_weight": 5.0,
+    "c_year": 2,
+    "c_semester": 1
+  },
+  {
+    "c_id": 4,
+    "c_name": "Web Development",
+    "c_abbr": "WEB302",
+    "c_difficulty_weight": 4.5,
+    "c_year": 2,
+    "c_semester": 2
+  },
+  {
+    "c_id": 5,
+    "c_name": "Machine Learning",
+    "c_abbr": "ML401",
+    "c_difficulty_weight": 5.5,
+    "c_year": 3,
+    "c_semester": 1
+  },
+  {
+    "c_id": 6,
+    "c_name": "Cloud Computing",
+    "c_abbr": "CLOUD402",
+    "c_difficulty_weight": 4.8,
+    "c_year": 3,
+    "c_semester": 2
+  }
+]

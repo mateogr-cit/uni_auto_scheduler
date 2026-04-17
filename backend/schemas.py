@@ -19,6 +19,10 @@ class DayOfWeek(str, enum.Enum):
     Thursday = "Thursday"
     Friday = "Friday"
 
+class SessionType(str, enum.Enum):
+    Lecture = "Lecture"
+    Seminar = "Seminar"
+
 # User schemas
 class UserBase(BaseModel):
     fname: str
@@ -106,6 +110,9 @@ class StudentUpdate(BaseModel):
     group_id: Optional[int] = None
 
 class Student(StudentBase):
+    fname: str
+    lname: str
+
     class Config:
         from_attributes = True
 
@@ -148,17 +155,19 @@ class CourseBase(BaseModel):
     c_name: str
     c_abbr: str
     c_difficulty_weight: float
+    c_year: int
+    c_semester: int
+    degree_id: Optional[int] = None
 
 class CourseCreate(CourseBase):
     pass
 
 class Course(CourseBase):
     c_id: int
+    degree: Optional["Degree"] = None
 
     class Config:
         from_attributes = True
-
-Prof.update_forward_refs()
 
 # Semester schemas
 class SemesterBase(BaseModel):
@@ -206,6 +215,20 @@ class Rooms(RoomsBase):
     class Config:
         from_attributes = True
 
+# SessionType schemas
+class SessionTypeModelBase(BaseModel):
+    type_name: SessionType
+    duration_hours: Optional[int] = 2
+
+class SessionTypeModelCreate(SessionTypeModelBase):
+    pass
+
+class SessionTypeModel(SessionTypeModelBase):
+    session_type_id: int
+
+    class Config:
+        from_attributes = True
+
 # TimeSlots schemas
 class TimeSlotsBase(BaseModel):
     day_of_week: DayOfWeek
@@ -226,6 +249,7 @@ class OfferingScheduleBase(BaseModel):
     offering_id: int
     room_id: str
     slot_id: int
+    session_type_id: Optional[int] = None
     s_status: Optional[str] = None
 
 class OfferingScheduleCreate(OfferingScheduleBase):
@@ -368,3 +392,5 @@ class CourseCurriculum(CourseCurriculumBase):
 
     class Config:
         from_attributes = True
+Prof.update_forward_refs()
+Course.update_forward_refs()
