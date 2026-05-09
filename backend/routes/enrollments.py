@@ -5,6 +5,7 @@ from database import get_db
 from models import Enrollment as DBEnrollment, Student as DBStudent, CourseOffering as DBCourseOffering
 from schemas import EnrollmentCreate, Enrollment
 from typing import List
+from utils import validate_pagination
 
 router = APIRouter()
 
@@ -18,19 +19,20 @@ def create_enrollment(item: EnrollmentCreate, db: Session = Depends(get_db)):
 
 @router.get("/enrollments/", response_model=List[Enrollment])
 def read_enrollments(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    skip, limit = validate_pagination(skip, limit)
     return db.query(DBEnrollment).offset(skip).limit(limit).all()
 
 @router.get("/enrollments/{enrollment_id}", response_model=Enrollment)
 def read_enrollment(enrollment_id: int, db: Session = Depends(get_db)):
     db_item = db.query(DBEnrollment).filter(DBEnrollment.id == enrollment_id).first()
-    if not db_item:
+    if db_item is None:
         raise HTTPException(status_code=404, detail="Enrollment not found")
     return db_item
 
 @router.put("/enrollments/{enrollment_id}", response_model=Enrollment)
 def update_enrollment(enrollment_id: int, item: EnrollmentCreate, db: Session = Depends(get_db)):
     db_item = db.query(DBEnrollment).filter(DBEnrollment.id == enrollment_id).first()
-    if not db_item:
+    if db_item is None:
         raise HTTPException(status_code=404, detail="Enrollment not found")
     db_item.offering_id = item.offering_id
     db_item.u_id = item.u_id
@@ -41,7 +43,7 @@ def update_enrollment(enrollment_id: int, item: EnrollmentCreate, db: Session = 
 @router.delete("/enrollments/{enrollment_id}")
 def delete_enrollment(enrollment_id: int, db: Session = Depends(get_db)):
     db_item = db.query(DBEnrollment).filter(DBEnrollment.id == enrollment_id).first()
-    if not db_item:
+    if db_item is None:
         raise HTTPException(status_code=404, detail="Enrollment not found")
     db.delete(db_item)
     db.commit()

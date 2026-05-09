@@ -17,8 +17,10 @@ from routes import (
     enrollments_router,
     session_types_router,
 )
+from routes.student_group_availability import router as student_group_availability_router
 from routes.auto_schedule import router as auto_schedule_router
 from routes.migrations import router as migrations_router
+from routes.dashboard import router as dashboard_router
 from database import engine
 from models import Base
 
@@ -42,6 +44,7 @@ app.include_router(students_router)
 app.include_router(professor_availability_router)
 app.include_router(rooms_router)
 app.include_router(student_groups_router)
+app.include_router(student_group_availability_router)
 app.include_router(semesters_router)
 app.include_router(faculty_router)
 app.include_router(degrees_router)
@@ -52,6 +55,7 @@ app.include_router(enrollments_router)
 app.include_router(session_types_router)
 app.include_router(auto_schedule_router)
 app.include_router(migrations_router)
+app.include_router(dashboard_router)
 
 @app.get("/")
 def read_root():

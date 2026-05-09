@@ -5,7 +5,7 @@ import { Zap, RefreshCcw } from "lucide-react";
 import ScheduleTabs from "./ScheduleTabs";
 import OverviewPanel from "./OverviewPanel";
 import SetupPanel from "./SetupPanel";
-import CurriculumPanel from "./CurriculumPanel";
+import CourseOfferingsPanel from "./CourseOfferingsPanel";
 import EnrollmentsPanel from "./EnrollmentsPanel";
 import AutoSchedulePanel from "./AutoSchedulePanel";
 import {
@@ -265,12 +265,6 @@ const ScheduleDashboard = () => {
 
       {activeTab === "setup" && (
         <SetupPanel
-          studentGroups={studentGroups}
-          studentGroupForm={studentGroupForm}
-          setStudentGroupForm={setStudentGroupForm}
-          editStudentGroupId={editStudentGroupId}
-          setEditStudentGroupId={setEditStudentGroupId}
-          loadStudentGroups={loadStudentGroups}
           semesters={semesters}
           semesterForm={semesterForm}
           setSemesterForm={setSemesterForm}
@@ -280,33 +274,13 @@ const ScheduleDashboard = () => {
           setFormValue={setFormValue}
           handleSave={handleSave}
           handleDelete={handleDelete}
-          degrees={degrees}
         />
       )}
 
-
-      {activeTab === "curriculum" && (
-        <CurriculumPanel
-          studentDegrees={studentDegrees}
-          courseCurriculum={courseCurriculum}
-          studentDegreeForm={studentDegreeForm}
-          setStudentDegreeForm={setStudentDegreeForm}
-          editStudentDegreeId={editStudentDegreeId}
-          setEditStudentDegreeId={setEditStudentDegreeId}
-          loadStudentDegrees={loadStudentDegrees}
-          courseCurriculumForm={courseCurriculumForm}
-          setCourseCurriculumForm={setCourseCurriculumForm}
-          editCourseCurriculumId={editCourseCurriculumId}
-          setEditCourseCurriculumId={setEditCourseCurriculumId}
-          loadCourseCurriculum={loadCourseCurriculum}
-          students={students}
-          courses={courses}
-          studentGroups={studentGroups}
-          degrees={degrees}
-          faculty={faculty}
-          setFormValue={setFormValue}
-          handleSave={handleSave}
-          handleDelete={handleDelete}
+      {activeTab === "offerings" && (
+        <CourseOfferingsPanel
+          semesters={semesters}
+          onRefresh={loadAll}
         />
       )}
 
@@ -321,6 +295,7 @@ const ScheduleDashboard = () => {
           students={students}
           studentGroups={studentGroups}
           offerings={offerings}
+          courses={courses}
           autoEnrollmentEnabled={autoEnrollmentEnabled}
           handleSave={handleSave}
           handleDelete={handleDelete}

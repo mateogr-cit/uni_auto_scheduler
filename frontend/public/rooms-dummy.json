@@ -1,34 +1,54 @@
 [
   {
-    "room_id": "A101",
-    "capacity": 30
+    "room_id": "A1",
+    "capacity": 120
   },
   {
-    "room_id": "A102",
-    "capacity": 30
+    "room_id": "Auditorium",
+    "capacity": 150
   },
   {
-    "room_id": "A201",
-    "capacity": 50
-  },
-  {
-    "room_id": "B101",
-    "capacity": 40
-  },
-  {
-    "room_id": "B102",
+    "room_id": "A2",
     "capacity": 25
   },
   {
-    "room_id": "B201",
-    "capacity": 60
+    "room_id": "B2",
+    "capacity": 30
+  },
+  {
+    "room_id": "C2",
+    "capacity": 30
+  },
+  {
+    "room_id": "D2",
+    "capacity": 30
+  },
+  { 
+    "room_id": "E2",
+    "capacity": 80
   },
   {
     "room_id": "LAB1",
-    "capacity": 20
+    "capacity": 40
   },
   {
     "room_id": "LAB2",
-    "capacity": 20
+    "capacity": 30
+  },
+  {
+    "room_id": "LAB3",
+    "capacity": 30
+  },
+  {
+    "room_id": "LAB4",
+    "capacity": 40
+  },
+  {
+    "room_id": "LAB5",
+    "capacity": 30
+  },
+  {
+    "room_id": "LAB6",
+    "capacity": 10
   }
 ]

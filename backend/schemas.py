@@ -157,10 +157,22 @@ class CourseBase(BaseModel):
     c_difficulty_weight: float
     c_year: int
     c_semester: int
+    is_active: bool = True
     degree_id: Optional[int] = None
+    semester_id: Optional[int] = None
 
 class CourseCreate(CourseBase):
     pass
+
+class CourseUpdate(BaseModel):
+    c_name: Optional[str] = None
+    c_abbr: Optional[str] = None
+    c_difficulty_weight: Optional[float] = None
+    c_year: Optional[int] = None
+    c_semester: Optional[int] = None
+    is_active: Optional[bool] = None
+    degree_id: Optional[int] = None
+    semester_id: Optional[int] = None
 
 class Course(CourseBase):
     c_id: int
@@ -277,23 +289,6 @@ class OfferingProfessors(OfferingProfessorsBase):
     class Config:
         from_attributes = True
 
-# ProfessorAvailability schemas
-class ProfessorAvailabilityBase(BaseModel):
-    u_id: int
-    day_of_week: DayOfWeek
-    start_time: time
-    end_time: time
-    is_available: bool
-
-class ProfessorAvailabilityCreate(ProfessorAvailabilityBase):
-    pass
-
-class ProfessorAvailability(ProfessorAvailabilityBase):
-    id: int
-
-    class Config:
-        from_attributes = True
-
 # ProfessorUnavailability schemas
 class ProfessorUnavailabilityBase(BaseModel):
     u_id: int
@@ -308,6 +303,29 @@ class ProfessorUnavailabilityCreate(ProfessorUnavailabilityBase):
 class ProfessorUnavailability(ProfessorUnavailabilityBase):
     id: int
     createdAt: datetime
+
+    class Config:
+        from_attributes = True
+
+# StudentGroupAvailability schemas
+class StudentGroupAvailabilityBase(BaseModel):
+    group_id: int
+    day_of_week: DayOfWeek
+    start_time: time
+    end_time: time
+    is_available: bool
+
+class StudentGroupAvailabilityCreate(StudentGroupAvailabilityBase):
+    pass
+
+class StudentGroupAvailabilityUpdate(BaseModel):
+    day_of_week: Optional[DayOfWeek] = None
+    start_time: Optional[time] = None
+    end_time: Optional[time] = None
+    is_available: Optional[bool] = None
+
+class StudentGroupAvailability(StudentGroupAvailabilityBase):
+    id: int
 
     class Config:
         from_attributes = True
@@ -392,5 +410,6 @@ class CourseCurriculum(CourseCurriculumBase):
 
     class Config:
         from_attributes = True
+
 Prof.update_forward_refs()
 Course.update_forward_refs()

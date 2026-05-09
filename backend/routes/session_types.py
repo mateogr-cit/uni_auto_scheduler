@@ -4,12 +4,14 @@ from database import get_db
 from models import SessionTypeModel, SessionType
 from schemas import SessionTypeModel as SessionTypeModelSchema, SessionTypeModelCreate
 from typing import List
+from utils import validate_pagination
 
 router = APIRouter()
 
 @router.get("/session-types/", response_model=List[SessionTypeModelSchema])
 def read_session_types(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Get all session types."""
+    skip, limit = validate_pagination(skip, limit)
     return db.query(SessionTypeModel).offset(skip).limit(limit).all()
 
 @router.post("/session-types/", response_model=SessionTypeModelSchema)
@@ -30,7 +32,7 @@ def read_session_type(session_type_id: int, db: Session = Depends(get_db)):
     db_session_type = db.query(SessionTypeModel).filter(
         SessionTypeModel.session_type_id == session_type_id
     ).first()
-    if not db_session_type:
+    if db_session_type is None:
         raise HTTPException(status_code=404, detail="Session type not found")
     return db_session_type
 
@@ -40,9 +42,9 @@ def update_session_type(session_type_id: int, session_type: SessionTypeModelCrea
     db_session_type = db.query(SessionTypeModel).filter(
         SessionTypeModel.session_type_id == session_type_id
     ).first()
-    if not db_session_type:
+    if db_session_type is None:
         raise HTTPException(status_code=404, detail="Session type not found")
-    
+
     db_session_type.type_name = session_type.type_name
     db_session_type.duration_hours = session_type.duration_hours or 2
     db.commit()
@@ -55,9 +57,9 @@ def delete_session_type(session_type_id: int, db: Session = Depends(get_db)):
     db_session_type = db.query(SessionTypeModel).filter(
         SessionTypeModel.session_type_id == session_type_id
     ).first()
-    if not db_session_type:
+    if db_session_type is None:
         raise HTTPException(status_code=404, detail="Session type not found")
-    
+
     db.delete(db_session_type)
     db.commit()
     return {"message": "Session type deleted successfully"}

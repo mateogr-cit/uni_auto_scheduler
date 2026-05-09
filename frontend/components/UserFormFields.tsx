@@ -1,4 +1,5 @@
-import { User as UserIcon, Mail } from "lucide-react";
+import { User as UserIcon, Mail, Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 
 interface UserFormFieldsProps {
     formData: {
@@ -13,6 +14,8 @@ interface UserFormFieldsProps {
 }
 
 export default function UserFormFields({ formData, onChange, editing }: UserFormFieldsProps) {
+    const [showPassword, setShowPassword] = useState(false);
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="space-y-2">
@@ -75,14 +78,23 @@ export default function UserFormFields({ formData, onChange, editing }: UserForm
                 <label className="text-sm font-semibold text-slate-600 dark:text-slate-400 ml-1">
                     {editing ? "New Password (Optional)" : "Password"}
                 </label>
-                <input
-                    type="password"
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={(e) => onChange('password', e.target.value)}
-                    className="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all"
-                    required={!editing}
-                />
+                <div className="relative group">
+                    <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={formData.password}
+                        onChange={(e) => onChange('password', e.target.value)}
+                        className="w-full px-5 pr-12 py-3.5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all"
+                        required={!editing}
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                    >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                </div>
             </div>
         </div>
     );

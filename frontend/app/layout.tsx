@@ -21,6 +21,7 @@ export const metadata: Metadata = {
 };
 
 import MainLayout from "@/components/MainLayout";
+import { DataSourceProvider } from "@/contexts/DataSourceContext";
 
 export default function RootLayout({
   children,
@@ -32,7 +33,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-indigo-500/30`}
       >
-        <MainLayout>{children}</MainLayout>
+        <DataSourceProvider>
+          <MainLayout>{children}</MainLayout>
+        </DataSourceProvider>
       </body>
     </html>
   );

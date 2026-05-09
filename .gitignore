@@ -19,6 +19,9 @@ frontend/*.tsbuildinfo
 frontend/next-env.d.ts
 
 # Backend (FastAPI/Python)
+__pycache__/
+*.py[cod]
+*$py.class
 backend/__pycache__/
 backend/*.py[cod]
 backend/*$py.class

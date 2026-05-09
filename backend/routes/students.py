@@ -4,6 +4,7 @@ from database import get_db
 from models import Student as DBStudent, User as DBUser
 from schemas import StudentCreate, Student
 from typing import List
+from utils import validate_pagination
 
 router = APIRouter()
 
@@ -26,6 +27,7 @@ def create_student(student: StudentCreate, db: Session = Depends(get_db)):
 
 @router.get("/students/", response_model=List[Student])
 def read_students(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    skip, limit = validate_pagination(skip, limit)
     students = db.query(DBStudent, DBUser).join(DBUser, DBStudent.u_id == DBUser.u_id).offset(skip).limit(limit).all()
     result = []
     for student, user in students:

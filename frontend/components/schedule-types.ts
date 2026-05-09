@@ -1,4 +1,4 @@
-export type TabId = "overview" | "setup" | "curriculum" | "enrollments" | "schedule";
+export type TabId = "overview" | "setup" | "offerings" | "enrollments" | "schedule";
 
 export type StudentGroup = {
   group_id: number;

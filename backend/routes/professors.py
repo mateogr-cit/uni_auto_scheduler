@@ -5,6 +5,7 @@ from database import get_db
 from models import Prof as DBProf, User as DBUser, Course as DBCourse, professor_course_table
 from schemas import ProfCreate, ProfUpdate, Prof
 from typing import Optional, List
+from utils import validate_pagination
 
 router = APIRouter()
 
@@ -16,7 +17,7 @@ def _assign_professor_courses(db: Session, u_id: int, course_ids: Optional[List[
     db.execute(professor_course_table.delete().where(professor_course_table.c.u_id == u_id))
     for c_id in course_ids:
         db_course = db.query(DBCourse).filter(DBCourse.c_id == c_id).first()
-        if not db_course:
+        if db_course is None:
             raise HTTPException(status_code=404, detail=f"Course not found: {c_id}")
         db.execute(professor_course_table.insert().values(u_id=u_id, c_id=c_id))
 
@@ -67,6 +68,7 @@ def create_professor(prof: ProfCreate, db: Session = Depends(get_db)):
 
 @router.get("/professors/", response_model=List[Prof])
 def read_professors(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    skip, limit = validate_pagination(skip, limit)
     professors = db.query(DBProf).options(joinedload(DBProf.courses)).offset(skip).limit(limit).all()
     return professors
 

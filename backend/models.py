@@ -37,7 +37,9 @@ class Course(Base):
     c_difficulty_weight = Column(Float, nullable=False)
     c_year = Column(Integer, nullable=False)
     c_semester = Column(Integer, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
     degree_id = Column(Integer, ForeignKey("degree.d_id", ondelete="CASCADE"), nullable=True)
+    semester_id = Column(Integer, ForeignKey("semester.sem_id", ondelete="SET NULL"), nullable=True)
     professors = relationship("Prof", secondary=professor_course_table, back_populates="courses")
     degree = relationship("Degree")
     
@@ -154,6 +156,15 @@ class ProfessorUnavailability(Base):
     end_time = Column(Time, nullable=False)
     reason = Column(String)
     createdAt = Column(DateTime, nullable=False)
+
+class StudentGroupAvailability(Base):
+    __tablename__ = "student_group_availability"
+    id = Column(Integer, primary_key=True, index=True)
+    group_id = Column(Integer, ForeignKey("student_group.group_id", ondelete="CASCADE"))
+    day_of_week = Column(Enum(DayOfWeek), nullable=False)
+    start_time = Column(Time, nullable=False)
+    end_time = Column(Time, nullable=False)
+    is_available = Column(Boolean, nullable=False)
 
 class Enrollment(Base):
     __tablename__ = "enrollment"

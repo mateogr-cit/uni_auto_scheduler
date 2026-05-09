@@ -1,17 +1,11 @@
 import { LayoutDashboard, TrendingUp, Users, Calendar } from "lucide-react";
+import DashboardStats from "./DashboardStats";
 
 export const metadata = {
   title: 'Dashboard',
 };
 
 export default function Home() {
-  const stats = [
-    { label: "Total Students", value: "1,234", icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
-    { label: "Active Courses", value: "42", icon: LayoutDashboard, color: "text-indigo-500", bg: "bg-indigo-500/10" },
-    { label: "Scheduled Classes", value: "156", icon: Calendar, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-    { label: "Completion Rate", value: "94%", icon: TrendingUp, color: "text-amber-500", bg: "bg-amber-500/10" },
-  ];
-
   return (
     <div className="space-y-8">
       <div>
@@ -19,21 +13,7 @@ export default function Home() {
         <p className="text-slate-500 dark:text-slate-400 mt-1">Here's what's happening today in your scheduler.</p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, i) => (
-          <div key={i} className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
-                <stat.icon size={24} />
-              </div>
-              <span className="text-xs font-medium text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full">+12%</span>
-            </div>
-            <h3 className="text-slate-500 dark:text-slate-400 text-sm font-medium">{stat.label}</h3>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{stat.value}</p>
-          </div>
-        ))}
-      </div>
+      <DashboardStats />
 
       {/* Main Content Area Placeholder */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

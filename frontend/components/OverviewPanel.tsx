@@ -29,7 +29,7 @@ export default function OverviewPanel({ studentGroupsCount, semestersCount, degr
         transition={{ duration: 0.5 }}
         className="col-span-2 row-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all relative overflow-hidden flex flex-col"
       >
-        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full -translate-y-16 translate-x-16 blur-2xl" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full -translate-y-16 translate-x-16 blur-2xl" />
         <div className="flex items-center gap-4 mb-8">
           <div className="p-3 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-500/20">
             <Users className="w-6 h-6 text-white" />
@@ -42,9 +42,9 @@ export default function OverviewPanel({ studentGroupsCount, semestersCount, degr
 
         <div className="grid gap-4 flex-1">
           {[
-            { label: "Student groups", value: studentGroupsCount, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50 dark:bg-indigo-900/20" },
+            { label: "Student groups", value: studentGroupsCount, icon: Users, color: "text-red-600", bg: "bg-red-50 dark:bg-red-900/20" },
             { label: "Semesters", value: semestersCount, icon: Calendar, color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-900/20" },
-            { label: "Degrees", value: degreesCount, icon: GraduationCap, color: "text-purple-600", bg: "bg-purple-50 dark:bg-purple-900/20" }
+            { label: "Degrees", value: degreesCount, icon: GraduationCap, color: "text-red-600", bg: "bg-red-50 dark:bg-red-900/20" }
           ].map((item, i) => (
             <motion.div
               key={item.label}
@@ -119,7 +119,7 @@ export default function OverviewPanel({ studentGroupsCount, semestersCount, degr
           {[
             { step: 1, title: "Infrastructure", desc: "Groups & academic cycles", color: "text-blue-500", icon: Building },
             { step: 2, title: "Curriculum", desc: "Course & degree mapping", color: "text-indigo-500", icon: BookOpen },
-            { step: 3, title: "Assignment", desc: "Student enrollment phase", color: "text-purple-500", icon: Users }
+            { step: 3, title: "Assignment", desc: "Student enrollment phase", color: "text-red-500", icon: Users }
           ].map((w, i) => (
             <motion.div
               key={w.step}
@@ -155,7 +155,7 @@ export default function OverviewPanel({ studentGroupsCount, semestersCount, degr
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-indigo-600/10 to-purple-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
         <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="flex items-center gap-5">
-            <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-indigo-500/40 relative">
+            <div className="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-red-500/40 relative">
               <UserCheck className="w-8 h-8 text-white" />
               <div className="absolute inset-0 bg-white/20 rounded-2xl animate-pulse" />
             </div>

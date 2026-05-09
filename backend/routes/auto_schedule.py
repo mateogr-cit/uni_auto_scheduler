@@ -115,7 +115,7 @@ def generate_schedule(semester_id: int, db: Session = Depends(get_db)):
 
     # Verify semester exists
     semester = db.query(Semester).filter(Semester.sem_id == semester_id).first()
-    if not semester:
+    if semester is None:
         raise HTTPException(status_code=404, detail="Semester not found")
 
     # Get all active course curriculum entries for this semester
@@ -139,7 +139,7 @@ def generate_schedule(semester_id: int, db: Session = Depends(get_db)):
         SessionTypeModel.type_name == SessionType.Seminar
     ).first()
 
-    if not lecture_type or not seminar_type:
+    if lecture_type is None or seminar_type is None:
         raise HTTPException(
             status_code=500, detail="Session types not properly configured"
         )
@@ -150,7 +150,7 @@ def generate_schedule(semester_id: int, db: Session = Depends(get_db)):
     try:
         for curriculum in curriculum_entries:
             course = db.query(Course).filter(Course.c_id == curriculum.c_id).first()
-            if not course:
+            if course is None:
                 continue
 
             # Get all student groups matching year level and degree
@@ -300,7 +300,7 @@ def validate_schedule(semester_id: int, db: Session = Depends(get_db)):
     Checks for conflicts and ensures all requirements are met.
     """
     semester = db.query(Semester).filter(Semester.sem_id == semester_id).first()
-    if not semester:
+    if semester is None:
         raise HTTPException(status_code=404, detail="Semester not found")
 
     issues = []
@@ -352,7 +352,7 @@ def validate_schedule(semester_id: int, db: Session = Depends(get_db)):
 def clear_schedule(semester_id: int, db: Session = Depends(get_db)):
     """Clear all scheduled sessions for a given semester."""
     semester = db.query(Semester).filter(Semester.sem_id == semester_id).first()
-    if not semester:
+    if semester is None:
         raise HTTPException(status_code=404, detail="Semester not found")
 
     # Delete all offering schedules for this semester

@@ -4,6 +4,7 @@ from database import get_db
 from models import Rooms as DBRooms
 from schemas import RoomsCreate, Rooms
 from typing import List
+from utils import validate_pagination
 
 router = APIRouter()
 
@@ -17,6 +18,7 @@ def create_room(room: RoomsCreate, db: Session = Depends(get_db)):
 
 @router.get("/rooms/", response_model=List[Rooms])
 def read_rooms(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    skip, limit = validate_pagination(skip, limit)
     rooms = db.query(DBRooms).offset(skip).limit(limit).all()
     return rooms
 

@@ -5,6 +5,7 @@ from models import User as DBUser
 from schemas import UserCreate, User
 from typing import List
 from datetime import datetime
+from utils import validate_pagination
 
 router = APIRouter()
 
@@ -20,9 +21,10 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_user)
     return db_user
-    
+
 @router.get("/users/", response_model=List[User])
 def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    skip, limit = validate_pagination(skip, limit)
     users = db.query(DBUser).offset(skip).limit(limit).all()
     return users
 

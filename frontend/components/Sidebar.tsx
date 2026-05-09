@@ -12,7 +12,8 @@ import {
     LogOut,
     Settings,
     Building,
-    School
+    School,
+    Users2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -29,7 +30,8 @@ const menuGroups = [
         label: 'User Management',
         items: [
             { icon: Users, label: 'Professors', href: '/professors' },
-            { icon: User, label: 'Student', href: '/students' },
+            { icon: User, label: 'Students', href: '/students' },
+            { icon: Users2, label: 'Student Groups', href: '/student-groups' },
         ],
     },
     {
@@ -71,7 +73,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                         exit={{ opacity: 0, x: -20 }}
                         className="flex items-center gap-2"
                     >
-                        <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/30">
+                        <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center font-bold text-white shadow-lg shadow-red-500/30">
                             S
                         </div>
                         <span className="font-bold text-xl text-white tracking-tight">Scheduler</span>
@@ -87,7 +89,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
             {/* Toggle Button */}
             <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className="absolute -right-3 top-20 bg-indigo-600 text-white rounded-full p-1 border-2 border-slate-900 hover:bg-indigo-500 transition-colors shadow-md"
+                className="absolute -right-3 top-20 bg-red-600 text-white rounded-full p-1 border-2 border-slate-900 hover:bg-red-500 transition-colors shadow-md"
             >
                 {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
             </button>
@@ -111,13 +113,13 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                                             whileTap={{ scale: 0.98 }}
                                             className={`flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 group relative
                   ${isActive
-                                            ? 'bg-indigo-600/10 text-indigo-400'
+                                            ? 'bg-red-600/10 text-red-400'
                                             : 'hover:bg-slate-800/50 hover:text-white'
                                         }`}
                                         >
                                             <item.icon
                                                 size={22}
-                                                className={`${isActive ? 'text-indigo-400' : 'group-hover:text-white'} transition-colors`}
+                                                className={`${isActive ? 'text-red-400' : 'group-hover:text-white'} transition-colors`}
                                             />
 
                                             <AnimatePresence>
@@ -136,7 +138,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                                             {isActive && (
                                                 <motion.div
                                                     layoutId="active-pill"
-                                                    className="absolute left-0 w-1 h-6 bg-indigo-500 rounded-r-full"
+                                                    className="absolute left-0 w-1 h-6 bg-red-500 rounded-r-full"
                                                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                                 />
                                             )}

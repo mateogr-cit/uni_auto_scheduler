@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import ProfessorAvailability as DBProfessorAvailability, User as DBUser
 from schemas import ProfessorAvailabilityCreate, ProfessorAvailabilityUpdate, ProfessorAvailability
-from typing import List
+from typing import List, Optional
+from utils import validate_pagination
 
 router = APIRouter()
 
@@ -19,7 +20,8 @@ def create_professor_availability(item: ProfessorAvailabilityCreate, db: Session
     return db_item
 
 @router.get("/professor-availability/", response_model=List[ProfessorAvailability])
-def read_professor_availability(u_id: int = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def read_professor_availability(u_id: Optional[int] = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    skip, limit = validate_pagination(skip, limit)
     query = db.query(DBProfessorAvailability)
     if u_id is not None:
         query = query.filter(DBProfessorAvailability.u_id == u_id)
@@ -62,11 +64,11 @@ def batch_update_professor_availability(u_id: int, availabilities: List[Professo
 
     # Delete existing entries for this user
     db.query(DBProfessorAvailability).filter(DBProfessorAvailability.u_id == u_id).delete()
-    
+
     # Add new entries
     for item in availabilities:
         db_item = DBProfessorAvailability(**item.dict())
         db.add(db_item)
-    
+
     db.commit()
     return {"message": "Batch availability update successful"}
