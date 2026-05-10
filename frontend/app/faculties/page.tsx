@@ -103,22 +103,22 @@ export default function FacultiesPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-8">
       <div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <div className="p-2 bg-indigo-600/10 text-indigo-600 rounded-lg">
+              <div className="p-2 bg-red-600/10 text-red-600 rounded-lg">
                 <School size={24} />
               </div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Faculty & Degrees</h1>
+              <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">Faculty & Degrees</h1>
             </div>
-            <p className="text-slate-500 dark:text-slate-400">Manage your university's faculties and their associated degree programmes.</p>
+            <p className="text-zinc-500 dark:text-zinc-400">Manage your university's faculties and their associated degree programmes.</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={loadAll}
-              className="cursor-pointer inline-flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+              className="cursor-pointer inline-flex items-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
             >
               <RefreshCcw size={16} /> Refresh Data
             </button>
@@ -126,7 +126,7 @@ export default function FacultiesPage() {
         </div>
 
         {statusMessage ? (
-          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-700/30 dark:bg-emerald-900/30 dark:text-emerald-200">
+          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-700/30 dark:bg-emerald-900/30 dark:text-emerald-200">
             {statusMessage}
           </div>
         ) : null}

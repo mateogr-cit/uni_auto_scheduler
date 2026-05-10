@@ -16,6 +16,24 @@ def create_room(room: RoomsCreate, db: Session = Depends(get_db)):
     db.refresh(db_room)
     return db_room
 
+@router.post("/rooms/bulk", response_model=List[Rooms])
+def create_rooms_bulk(rooms: List[RoomsCreate], db: Session = Depends(get_db)):
+    try:
+        result = []
+        for room in rooms:
+            db_room = DBRooms(**room.dict())
+            db.add(db_room)
+            result.append(db_room)
+        
+        db.commit()
+        # Refresh all to ensure we have the latest data
+        for item in result:
+            db.refresh(item)
+        return result
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Bulk create failed: {str(e)}")
+
 @router.get("/rooms/", response_model=List[Rooms])
 def read_rooms(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     skip, limit = validate_pagination(skip, limit)

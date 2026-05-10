@@ -113,16 +113,16 @@ export default function EnrollmentsPanel({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Header Section */}
-      <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-3xl border border-indigo-100 dark:border-indigo-800/50 p-6">
+      <div className="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 rounded-xl border border-red-100 dark:border-red-800/50 p-6">
         <div className="flex items-start gap-4">
-          <div className="p-3 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-500/30">
+          <div className="p-3 bg-red-600 rounded-xl shadow-lg shadow-red-500/30">
             <UserCheck size={28} className="text-white" />
           </div>
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Student Enrollments</h2>
-            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+            <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">Student Enrollments</h2>
+            <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed">
               Enroll students into course offerings. Each enrollment links a student to a specific course offering for the current semester.
               Use manual enrollment for individual students or run auto-enrollment to enroll all students in their group's courses.
             </p>
@@ -132,36 +132,36 @@ export default function EnrollmentsPanel({
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-blue-100 dark:bg-blue-500/10 rounded-xl">
               <Users size={20} className="text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Enrollments</p>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{enrollments.length}</p>
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Total Enrollments</p>
+              <p className="text-2xl font-bold text-zinc-900 dark:text-white">{enrollments.length}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-emerald-100 dark:bg-emerald-500/10 rounded-xl">
               <BookOpen size={20} className="text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active Offerings</p>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{offerings.length}</p>
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Active Offerings</p>
+              <p className="text-2xl font-bold text-zinc-900 dark:text-white">{offerings.length}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-purple-100 dark:bg-purple-500/10 rounded-xl">
-              <Zap size={20} className="text-purple-600 dark:text-purple-400" />
+            <div className="p-2.5 bg-red-100 dark:bg-red-500/10 rounded-xl">
+              <Zap size={20} className="text-red-600 dark:text-red-400" />
             </div>
             <div>
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Auto-Enroll</p>
-              <p className={`text-2xl font-bold ${autoEnrollmentEnabled ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500"}`}>
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Auto-Enroll</p>
+              <p className={`text-2xl font-bold ${autoEnrollmentEnabled ? "text-emerald-600 dark:text-emerald-400" : "text-zinc-400 dark:text-zinc-500"}`}>
                 {autoEnrollmentEnabled ? "Ready" : "Pending"}
               </p>
             </div>
@@ -177,15 +177,15 @@ export default function EnrollmentsPanel({
           description="Enroll a specific student into a course offering."
           icon={Plus}
         >
-          <div className="space-y-5">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-400">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center gap-2 text-sm font-semibold text-zinc-600 dark:text-zinc-400">
                   <BookOpen size={16} />
                   Course Offering
                 </label>
                 <select
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500/80 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white appearance-none"
+                  className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white appearance-none"
                   value={enrollmentForm.offering_id ?? 0}
                   onChange={(event) => setEnrollmentForm((prev) => ({ ...prev, offering_id: Number(event.target.value) }))}
                 >
@@ -198,13 +198,13 @@ export default function EnrollmentsPanel({
                 </select>
               </div>
 
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-400">
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center gap-2 text-sm font-semibold text-zinc-600 dark:text-zinc-400">
                   <Users size={16} />
                   Student
                 </label>
                 <select
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500/80 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white appearance-none"
+                  className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white appearance-none"
                   value={enrollmentForm.u_id ?? 0}
                   onChange={(event) => setEnrollmentForm((prev) => ({ ...prev, u_id: Number(event.target.value) }))}
                 >
@@ -233,7 +233,7 @@ export default function EnrollmentsPanel({
                   )
                 }
                 disabled={!enrollmentForm.offering_id || !enrollmentForm.u_id}
-                className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-500 px-5 py-3 text-sm font-semibold text-white hover:from-red-500 hover:to-rose-400 transition shadow-lg shadow-red-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {editEnrollmentId ? <Edit size={18} /> : <Plus size={18} />}
                 {editEnrollmentId ? "Update Enrollment" : "Create Enrollment"}
@@ -244,7 +244,7 @@ export default function EnrollmentsPanel({
                     setEditEnrollmentId(null);
                     setEnrollmentForm({ offering_id: 0, u_id: 0 });
                   }}
-                  className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 dark:border-slate-800 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 transition active:scale-95"
+                  className="cursor-pointer rounded-xl border border-zinc-200 px-5 py-3 text-sm font-semibold text-zinc-700 dark:border-zinc-800 dark:text-zinc-200 hover:bg-white dark:hover:bg-zinc-800 transition active:scale-95"
                 >
                   Cancel
                 </button>
@@ -259,32 +259,32 @@ export default function EnrollmentsPanel({
           description="Automatically enroll all students into their group's course offerings."
           icon={Zap}
         >
-          <div className="space-y-5">
-            <div className="rounded-2xl bg-slate-50 dark:bg-slate-900/50 p-5 border border-slate-200 dark:border-slate-800">
+          <div className="flex flex-col gap-6">
+            <div className="rounded-xl bg-zinc-50 dark:bg-zinc-900/50 p-5 border border-zinc-200 dark:border-zinc-800">
               <div className="flex items-start gap-3 mb-4">
-                <div className="p-2 bg-indigo-100 dark:bg-indigo-500/10 rounded-xl">
-                  <Info size={18} className="text-indigo-600 dark:text-indigo-400" />
+                <div className="p-2 bg-red-100 dark:bg-red-500/10 rounded-xl">
+                  <Info size={18} className="text-red-600 dark:text-red-400" />
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-slate-900 dark:text-white mb-1">How it works</h4>
-                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                  <h4 className="font-semibold text-zinc-900 dark:text-white mb-1">How it works</h4>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed">
                     Auto-enrollment matches each student to course offerings based on their group's curriculum.
                     All students in a group will be enrolled in the same courses.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800">
+              <div className="flex items-center justify-between p-3 bg-white dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <div className="flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full ${autoEnrollmentEnabled ? "bg-emerald-500" : "bg-slate-300 dark:bg-slate-600"}`} />
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                  <div className={`w-3 h-3 rounded-full ${autoEnrollmentEnabled ? "bg-emerald-500" : "bg-zinc-300 dark:bg-zinc-600"}`} />
+                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
                     {autoEnrollmentEnabled ? "Auto-enrollment completed" : "Auto-enrollment not run yet"}
                   </span>
                 </div>
                 <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
                   autoEnrollmentEnabled
                     ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
-                    : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                    : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
                 }`}>
                   {autoEnrollmentEnabled ? "Complete" : "Pending"}
                 </span>
@@ -293,7 +293,7 @@ export default function EnrollmentsPanel({
 
             <button
               onClick={handleAutoEnroll}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-3 text-sm font-semibold text-white hover:from-indigo-500 hover:to-purple-500 transition shadow-lg shadow-indigo-500/20 active:scale-95"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-500 px-5 py-3 text-sm font-semibold text-white hover:from-red-500 hover:to-rose-400 transition shadow-lg shadow-red-500/20 active:scale-95"
             >
               <Zap size={18} />
               Run Auto Enrollment
@@ -311,43 +311,43 @@ export default function EnrollmentsPanel({
         {/* Search Bar */}
         <div className="mb-4">
           <div className="relative">
-            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400" />
             <input
               type="text"
               placeholder="Search by student name, course, or group..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500/80 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white placeholder:text-slate-400"
+              className="w-full rounded-xl border border-zinc-500 dark:border-zinc-800 bg-white dark:bg-zinc-950 pl-11 pr-4 py-3 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:text-white placeholder:text-zinc-500"
             />
           </div>
         </div>
 
         {filteredEnrollments.length === 0 ? (
           <div className="text-center py-12">
-            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-              <UserCheck size={32} className="text-slate-400" />
+            <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+              <UserCheck size={32} className="text-zinc-400" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+            <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-2">
               {searchTerm ? "No Matching Enrollments" : "No Enrollments Yet"}
             </h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto">
               {searchTerm
                 ? "Try adjusting your search terms."
                 : "Create manual enrollments or run auto-enrollment to get started."}
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+          <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800">
+              <thead className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800">
                 <tr>
-                  <th className="px-5 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider w-10"></th>
-                  <th className="px-5 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Student</th>
-                  <th className="px-5 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Group</th>
-                  <th className="px-5 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Enrollments</th>
+                  <th className="px-5 py-4 text-xs font-semibold text-zinc-500 uppercase tracking-wider w-10"></th>
+                  <th className="px-5 py-4 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Student</th>
+                  <th className="px-5 py-4 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Group</th>
+                  <th className="px-5 py-4 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Enrollments</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {Object.entries(enrollmentsByStudent).map(([studentId, studentEnrollments]) => {
                   const student = students.find((s) => s.u_id === Number(studentId));
                   const isExpanded = expandedStudents.has(Number(studentId));
@@ -357,31 +357,31 @@ export default function EnrollmentsPanel({
                     <React.Fragment key={studentId}>
                       {/* Student Row */}
                       <tr
-                        className="hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors cursor-pointer"
+                        className="hover:bg-zinc-50 dark:hover:bg-zinc-900/30 transition-colors cursor-pointer"
                         onClick={() => toggleStudentExpand(Number(studentId))}
                       >
                         <td className="px-5 py-4">
-                          <button className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                          <button className="cursor-pointer p-1 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition">
                             {isExpanded ? (
-                              <ChevronDown size={18} className="text-slate-500" />
+                              <ChevronDown size={18} className="text-zinc-500" />
                             ) : (
-                              <ChevronRight size={18} className="text-slate-500" />
+                              <ChevronRight size={18} className="text-zinc-500" />
                             )}
                           </button>
                         </td>
                         <td className="px-5 py-4">
-                          <div className="font-medium text-slate-900 dark:text-white">
+                          <div className="font-medium text-zinc-900 dark:text-white">
                             {student ? `${student.fname} ${student.lname}` : `Student ${studentId}`}
                           </div>
-                          <div className="text-xs text-slate-500 dark:text-slate-400">ID: {studentId}</div>
+                          <div className="text-xs text-zinc-500 dark:text-zinc-400">ID: {studentId}</div>
                         </td>
                         <td className="px-5 py-4">
-                          <span className="inline-flex items-center rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400">
+                          <span className="inline-flex items-center rounded-lg bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 dark:bg-red-500/10 dark:text-red-400">
                             {groupName}
                           </span>
                         </td>
                         <td className="px-5 py-4">
-                          <span className="inline-flex items-center rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-600 dark:text-slate-300">
+                          <span className="inline-flex items-center rounded-lg bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-600 dark:text-zinc-300">
                             {studentEnrollments.length} enrollment{studentEnrollments.length !== 1 ? 's' : ''}
                           </span>
                         </td>
@@ -391,25 +391,25 @@ export default function EnrollmentsPanel({
                       {isExpanded && (
                         <tr>
                           <td colSpan={4} className="px-0 py-0">
-                            <div className="bg-slate-50 dark:bg-slate-900/30 border-t border-b border-slate-200 dark:border-slate-800">
+                            <div className="bg-zinc-50 dark:bg-zinc-900/30 border-t border-b border-zinc-200 dark:border-zinc-800">
                               <table className="w-full text-left text-sm">
-                                <thead className="bg-slate-100 dark:bg-slate-900/50">
+                                <thead className="bg-zinc-100 dark:bg-zinc-900/50">
                                   <tr>
-                                    <th className="px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Course Offering</th>
-                                    <th className="px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Group</th>
-                                    <th className="px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+                                    <th className="px-5 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Course Offering</th>
+                                    <th className="px-5 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Group</th>
+                                    <th className="px-5 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider text-right">Actions</th>
                                   </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                                <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
                                   {studentEnrollments.map((enrollment) => {
                                     const offeringDetails = getOfferingDetails(enrollment.offering_id);
                                     return (
-                                      <tr key={enrollment.id} className="hover:bg-slate-100 dark:hover:bg-slate-900/50 transition-colors">
+                                      <tr key={enrollment.id} className="hover:bg-zinc-100 dark:hover:bg-zinc-900/50 transition-colors cursor-pointer">
                                         <td className="px-5 py-4">
-                                          <div className="font-medium text-slate-900 dark:text-white">{offeringDetails.course}</div>
+                                          <div className="font-medium text-zinc-900 dark:text-white">{offeringDetails.course}</div>
                                         </td>
                                         <td className="px-5 py-4">
-                                          <div className="text-sm text-slate-600 dark:text-slate-300">{offeringDetails.group}</div>
+                                          <div className="text-sm text-zinc-600 dark:text-zinc-300">{offeringDetails.group}</div>
                                         </td>
                                         <td className="px-5 py-4 text-right">
                                           <div className="flex items-center justify-end gap-2">
@@ -419,7 +419,7 @@ export default function EnrollmentsPanel({
                                                 setEditEnrollmentId(enrollment.id);
                                                 setEnrollmentForm({ offering_id: enrollment.offering_id, u_id: enrollment.u_id });
                                               }}
-                                              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+                                              className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
                                             >
                                               <Edit size={16} />
                                             </button>
@@ -428,7 +428,7 @@ export default function EnrollmentsPanel({
                                                 e.stopPropagation();
                                                 handleDelete(`/enrollments/${enrollment.id}`, loadEnrollments, `enrollment ${enrollment.id}`);
                                               }}
-                                              className="p-2 rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 transition"
+                                              className="cursor-pointer p-2 rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 transition"
                                             >
                                               <Trash2 size={16} />
                                             </button>

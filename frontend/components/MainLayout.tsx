@@ -8,7 +8,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     return (
-        <div className="flex bg-slate-50 dark:bg-slate-950">
+        <div className="flex bg-zinc-50 dark:bg-zinc-950">
             <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
             <main
                 className={`flex-1 min-h-screen transition-all duration-300 ease-in-out ${isCollapsed ? 'ml-20' : 'ml-[260px]'

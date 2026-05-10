@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from models import User as DBUser
-from schemas import UserCreate, User
+from schemas import UserCreate, UserUpdate, User
 from typing import List
 from datetime import datetime
 from utils import validate_pagination
@@ -36,13 +36,17 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
     return db_user
 
 @router.put("/users/{user_id}", response_model=User)
-def update_user(user_id: int, user: dict, db: Session = Depends(get_db)):
+def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
     db_user = db.query(DBUser).filter(DBUser.u_id == user_id).first()
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
-    for key, value in user.items():
-        if value is not None and value != "":
+    update_data = user.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        if value is not None:
             setattr(db_user, key, value)
+    # Explicitly handle u_role to ensure it's always updated when provided
+    if user.u_role is not None:
+        db_user.u_role = user.u_role
     db.commit()
     db.refresh(db_user)
     return db_user

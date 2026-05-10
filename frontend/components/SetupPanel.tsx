@@ -123,13 +123,13 @@ export default function SetupPanel({
       >
         <div className="flex flex-col gap-6">
           {/* Form */}
-          <div className="space-y-4 rounded-3xl bg-slate-50 dark:bg-slate-900/50 p-5 ring-1 ring-slate-200 dark:ring-slate-800">
+          <div className="space-y-4 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 p-5 ring-1 ring-zinc-200 dark:ring-zinc-800">
             <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-xs font-medium text-slate-500 uppercase tracking-wider dark:text-slate-400">
+              <label className="flex items-center gap-2 text-xs font-medium text-zinc-500 uppercase tracking-wider dark:text-zinc-400">
                 <Info size={12} /> Semester Name
               </label>
               <input
-                className="w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
                 value={semesterForm.sem_name}
                 placeholder="e.g. Winter 2024"
                 onChange={(event) => setFormValue(setSemesterForm, "sem_name", event.target.value)}
@@ -138,11 +138,11 @@ export default function SetupPanel({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <label className="flex items-center gap-2 text-xs font-medium text-slate-500 uppercase tracking-wider dark:text-slate-400">
+                <label className="flex items-center gap-2 text-xs font-medium text-zinc-500 uppercase tracking-wider dark:text-zinc-400">
                   <Zap size={12} /> Special Semester?
                 </label>
                 <select
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.75rem_center] bg-no-repeat"
+                  className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.75rem_center] bg-no-repeat"
                   value={semesterForm.is_special_semester ? "true" : "false"}
                   onChange={(event) => setFormValue(setSemesterForm, "is_special_semester", event.target.value === "true")}
                 >
@@ -151,14 +151,14 @@ export default function SetupPanel({
                 </select>
               </div>
               <div className="space-y-1.5">
-                <label className="flex items-center gap-2 text-xs font-medium text-slate-500 uppercase tracking-wider dark:text-slate-400">
+                <label className="flex items-center gap-2 text-xs font-medium text-zinc-500 uppercase tracking-wider dark:text-zinc-400">
                   <Hash size={12} /> Week Count
                 </label>
                 <input
                   type="number"
                   min={1}
                   placeholder="15"
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                  className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
                   value={semesterForm.week_count}
                   onChange={(event) => setFormValue(setSemesterForm, "week_count", Math.max(1, Number(event.target.value)))}
                 />
@@ -167,26 +167,26 @@ export default function SetupPanel({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <label className="flex items-center gap-2 text-xs font-medium text-slate-500 uppercase tracking-wider dark:text-slate-400">
+                <label className="flex items-center gap-2 text-xs font-medium text-zinc-500 uppercase tracking-wider dark:text-zinc-400">
                   <Calendar size={12} /> Start Date
                 </label>
                 <DatePicker
                   selected={semesterForm.start_date ? new Date(semesterForm.start_date) : null}
                   onChange={(date:any) => setFormValue(setSemesterForm, "start_date", date ? date.toISOString().split('T')[0] : "")}
                   dateFormat="yyyy-MM-dd"
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                  className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
                   placeholderText="Select start date"
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="flex items-center gap-2 text-xs font-medium text-slate-500 uppercase tracking-wider dark:text-slate-400">
+                <label className="flex items-center gap-2 text-xs font-medium text-zinc-500 uppercase tracking-wider dark:text-zinc-400">
                   <Calendar size={12} /> End Date
                 </label>
                 <DatePicker
                   selected={semesterForm.end_date ? new Date(semesterForm.end_date) : null}
                   onChange={(date:any) => setFormValue(setSemesterForm, "end_date", date ? date.toISOString().split('T')[0] : "")}
                   dateFormat="yyyy-MM-dd"
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                  className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
                   placeholderText="Select end date"
                 />
               </div>
@@ -207,7 +207,7 @@ export default function SetupPanel({
                     () => setSemesterForm({ sem_name: "", start_date: "", end_date: "", is_special_semester: false, week_count: 15 })
                   )
                 }
-                className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-500 px-5 py-2.5 text-sm font-semibold text-white hover:from-red-500 hover:to-rose-400 transition shadow-lg shadow-red-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {editSemesterId ? <Save size={16} /> : <Plus size={16} />} {editSemesterId ? "Update Semester" : "Create Semester"}
               </button>
@@ -217,7 +217,7 @@ export default function SetupPanel({
                     setEditSemesterId(null);
                     setSemesterForm({ sem_name: "", start_date: "", end_date: "", is_special_semester: false, week_count: 15 });
                   }}
-                  className="rounded-2xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 dark:border-slate-800 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 transition active:scale-95"
+                  className="rounded-xl border border-zinc-200 px-5 py-2.5 text-sm font-semibold text-zinc-700 dark:border-zinc-800 dark:text-zinc-200 hover:bg-white dark:hover:bg-zinc-800 transition active:scale-95 cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -226,10 +226,10 @@ export default function SetupPanel({
           </div>
 
           {/* Table */}
-          <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+          <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-left text-sm text-slate-700 dark:text-slate-300">
-                <thead className="bg-slate-50 border-b border-slate-200 dark:bg-slate-900/50 dark:border-slate-800 text-slate-500 uppercase tracking-wider text-[11px] font-semibold">
+              <table className="w-full border-collapse text-left text-sm text-zinc-700 dark:text-zinc-300">
+                <thead className="bg-zinc-50 border-b border-zinc-200 dark:bg-zinc-900/50 dark:border-zinc-800 text-zinc-500 uppercase tracking-wider text-[11px] font-semibold">
                   <tr>
                     <th className="px-5 py-4">Semester</th>
                     <th className="px-5 py-4">Period</th>
@@ -237,7 +237,7 @@ export default function SetupPanel({
                     <th className="px-5 py-4 text-center">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                   <AnimatePresence mode="popLayout">
                     {semesters.map((item, idx) => (
                       <motion.tr
@@ -246,11 +246,11 @@ export default function SetupPanel({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.2, delay: idx * 0.05 }}
-                        className="group border-t border-slate-200 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors"
+                        className="group border-t border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/30 transition-colors"
                       >
                         <td className="px-5 py-4">
                           <div className="space-y-1">
-                            <div className="font-semibold text-slate-900 dark:text-white">{item.sem_name}</div>
+                            <div className="font-semibold text-zinc-900 dark:text-white">{item.sem_name}</div>
                             {item.is_special_semester && (
                               <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-600 ring-1 ring-inset ring-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
                                 <Zap size={10} /> SPECIAL
@@ -260,9 +260,9 @@ export default function SetupPanel({
                         </td>
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-2 text-xs">
-                            <span className="text-slate-900 dark:text-white">{item.start_date ? new Date(item.start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : "-"}</span>
-                            <ArrowRight size={10} className="text-slate-400" />
-                            <span className="text-slate-900 dark:text-white">{item.end_date ? new Date(item.end_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : "-"}</span>
+                            <span className="text-zinc-900 dark:text-white">{item.start_date ? new Date(item.start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : "-"}</span>
+                            <ArrowRight size={10} className="text-zinc-400" />
+                            <span className="text-zinc-900 dark:text-white">{item.end_date ? new Date(item.end_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : "-"}</span>
                           </div>
                         </td>
                         <td className="px-5 py-4 text-center font-mono text-xs">
@@ -281,13 +281,13 @@ export default function SetupPanel({
                                   week_count: item.week_count,
                                 });
                               }}
-                              className="rounded-xl p-2 text-red-600 hover:bg-red-50 transition dark:text-red-400 dark:hover:bg-red-500/10"
+                              className="rounded-xl p-2 text-red-600 hover:bg-red-50 transition dark:text-red-400 dark:hover:bg-red-500/10 cursor-pointer"
                             >
                               <Pencil size={16} />
                             </button>
                             <button
                               onClick={() => handleDelete(`/semesters/${item.sem_id}`, loadSemesters, item.sem_name)}
-                              className="rounded-xl p-2 text-red-600 hover:bg-red-50 transition dark:text-red-400 dark:hover:bg-red-500/10"
+                              className="rounded-xl p-2 text-red-600 hover:bg-red-50 transition dark:text-red-400 dark:hover:bg-red-500/10 cursor-pointer"
                             >
                               <Trash2 size={16} />
                             </button>
@@ -298,7 +298,7 @@ export default function SetupPanel({
                   </AnimatePresence>
                   {semesters.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="px-5 py-10 text-center text-slate-400 dark:text-slate-600 italic">
+                      <td colSpan={4} className="px-5 py-10 text-center text-zinc-400 dark:text-zinc-600 italic">
                         No semesters defined. Create one above.
                       </td>
                     </tr>

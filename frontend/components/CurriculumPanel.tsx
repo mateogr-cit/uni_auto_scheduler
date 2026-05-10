@@ -46,9 +46,9 @@ export default function CurriculumPanel({
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-3">
               <div className="grid gap-3 sm:grid-cols-2">
-                <label className="text-sm text-slate-500 dark:text-slate-400">Course</label>
+                <label className="text-sm text-zinc-500 dark:text-zinc-400">Course</label>
                 <select
-                  className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500/80 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
                   value={courseCurriculumForm.c_id ?? 0}
                   onChange={(event) => setFormValue(setCourseCurriculumForm, "c_id", Number(event.target.value))}
                 >
@@ -61,9 +61,9 @@ export default function CurriculumPanel({
                 </select>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <label className="text-sm text-slate-500 dark:text-slate-400">Degree</label>
+                <label className="text-sm text-zinc-500 dark:text-zinc-400">Degree</label>
                 <select
-                  className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500/80 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
                   value={courseCurriculumForm.degree_id ?? 0}
                   onChange={(event) => setFormValue(setCourseCurriculumForm, "degree_id", Number(event.target.value))}
                 >
@@ -79,10 +79,10 @@ export default function CurriculumPanel({
                 </select>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <label className="text-sm text-slate-500 dark:text-slate-400">Year Level</label>
+                <label className="text-sm text-zinc-500 dark:text-zinc-400">Year Level</label>
                 <input
                   type="number"
-                  className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500/80 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
                   value={courseCurriculumForm.year_level}
                   onChange={(event) => setFormValue(setCourseCurriculumForm, "year_level", Number(event.target.value))}
                   min={1}
@@ -90,10 +90,10 @@ export default function CurriculumPanel({
                 />
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <label className="text-sm text-slate-500 dark:text-slate-400">Semester #</label>
+                <label className="text-sm text-zinc-500 dark:text-zinc-400">Semester #</label>
                 <input
                   type="number"
-                  className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500/80 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
                   value={courseCurriculumForm.semester_number}
                   onChange={(event) => setFormValue(setCourseCurriculumForm, "semester_number", Number(event.target.value))}
                   min={1}
@@ -102,9 +102,9 @@ export default function CurriculumPanel({
               </div>
               <div className="grid gap-3 sm:grid-cols-2 items-end">
                 <div>
-                  <label className="text-sm text-slate-500 dark:text-slate-400">Active</label>
+                  <label className="text-sm text-zinc-500 dark:text-zinc-400">Active</label>
                   <select
-                    className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500/80 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
                     value={courseCurriculumForm.is_active ? "true" : "false"}
                     onChange={(event) => setFormValue(setCourseCurriculumForm, "is_active", event.target.value === "true")}
                   >
@@ -125,15 +125,15 @@ export default function CurriculumPanel({
                       () => setCourseCurriculumForm({ c_id: 0, degree_id: 0, year_level: 1, is_active: true, semester_number: 1 })
                     )
                   }
-                  className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 transition"
+                  className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500 transition cursor-pointer"
                 >
                   <span className="inline-flex items-center gap-2">+</span> {editCourseCurriculumId ? "Update curriculum" : "Create curriculum"}
                 </button>
               </div>
             </div>
-            <div className="overflow-x-auto rounded-3xl border border-slate-200 dark:border-slate-800">
-              <table className="w-full text-left text-sm text-slate-700 dark:text-slate-300">
-                <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 uppercase tracking-[0.12em] text-[11px]">
+            <div className="overflow-x-auto rounded-3xl border border-zinc-200 dark:border-zinc-800">
+              <table className="w-full text-left text-sm text-zinc-700 dark:text-zinc-300">
+                <thead className="bg-zinc-50 dark:bg-zinc-950 text-zinc-500 uppercase tracking-[0.12em] text-[11px]">
                   <tr>
                     <th className="px-4 py-3">Course</th>
                     <th className="px-4 py-3">Degree</th>
@@ -147,7 +147,7 @@ export default function CurriculumPanel({
                     const course = courses.find((c) => c.c_id === item.c_id);
                     const degree = degrees.find((d) => d.d_id === item.degree_id);
                     return (
-                      <tr key={item.course_year_id} className="border-t border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-950">
+                      <tr key={item.course_year_id} className="border-t border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-950">
                         <td className="px-4 py-3">{course?.c_name || item.c_id}</td>
                         <td className="px-4 py-3">{degree?.d_name || item.degree_id}</td>
                         <td className="px-4 py-3">{item.year_level}</td>
@@ -164,13 +164,13 @@ export default function CurriculumPanel({
                                 semester_number: item.semester_number,
                               });
                             }}
-                            className="rounded-2xl bg-slate-100 px-3 py-1 text-xs text-slate-700 hover:bg-slate-200 transition dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                            className="rounded-xl bg-zinc-100 px-3 py-1 text-xs text-zinc-700 hover:bg-zinc-200 transition dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700 cursor-pointer"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleDelete(`/course-curriculum/${item.course_year_id}`, loadCourseCurriculum, `curriculum ${item.course_year_id}`)}
-                            className="rounded-2xl bg-red-50 px-3 py-1 text-xs text-red-600 hover:bg-red-100 transition dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20"
+                            className="rounded-xl bg-red-50 px-3 py-1 text-xs text-red-600 hover:bg-red-100 transition dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20 cursor-pointer"
                           >
                             Delete
                           </button>

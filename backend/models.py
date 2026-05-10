@@ -41,7 +41,8 @@ class Course(Base):
     degree_id = Column(Integer, ForeignKey("degree.d_id", ondelete="CASCADE"), nullable=True)
     semester_id = Column(Integer, ForeignKey("semester.sem_id", ondelete="SET NULL"), nullable=True)
     professors = relationship("Prof", secondary=professor_course_table, back_populates="courses")
-    degree = relationship("Degree")
+    degree = relationship("Degree", foreign_keys=[degree_id])
+    course_curricula = relationship("CourseCurriculum", back_populates="course", cascade="all, delete-orphan")
     
 class User(Base):
     __tablename__ = "user"
@@ -206,3 +207,5 @@ class CourseCurriculum(Base):
     is_active = Column(Boolean, nullable=False)
     semester_number = Column(Integer, nullable=False)
     createdAt = Column(DateTime, nullable=False)
+    course = relationship("Course", back_populates="course_curricula")
+    degree = relationship("Degree")

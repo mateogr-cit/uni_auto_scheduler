@@ -1,7 +1,7 @@
 import { type Dispatch, type SetStateAction } from "react";
 import { SectionCard } from "./ScheduleSection";
 import { type Faculty, type Degree, type FormState } from "./schedule-types";
-import { Building2, GraduationCap, Edit, Trash2, Hash, Tag, Plus, X } from "lucide-react";
+import { Building2, GraduationCap, Edit, Trash2, Hash, Tag, Plus, X, Search, BookOpen } from "lucide-react";
 
 type FacultyPanelProps = {
   faculty: Faculty[];
@@ -48,28 +48,29 @@ export default function FacultyPanel({
   handleDelete,
 }: FacultyPanelProps) {
   return (
-    <div className="space-y-12">
+    <div className="flex flex-col gap-12">
+      {/* Forms Section */}
       <div className="grid gap-8 xl:grid-cols-2">
         <SectionCard title="Faculty" description="Create and manage academic faculties." icon={Building2}>
-          <div className="space-y-5">
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Faculty Name</label>
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1">Faculty Name</label>
               <div className="relative group">
-                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
                 <input
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all text-sm font-medium"
+                  className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800/50 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all text-sm font-medium"
                   placeholder="e.g. Faculty of Computer Science"
                   value={facultyForm.f_name}
                   onChange={(event) => setFormValue(setFacultyForm, "f_name", event.target.value)}
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Abbreviation</label>
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1">Abbreviation</label>
               <div className="relative group">
-                <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
                 <input
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all text-sm font-medium"
+                  className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800/50 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all text-sm font-medium"
                   placeholder="e.g. FCS"
                   value={facultyForm.f_abbr}
                   onChange={(event) => setFormValue(setFacultyForm, "f_abbr", event.target.value)}
@@ -90,7 +91,7 @@ export default function FacultyPanel({
                     () => setFacultyForm({ f_name: "", f_abbr: "" })
                   )
                 }
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-3.5 text-sm font-bold text-white hover:bg-indigo-500 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-indigo-500/25"
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-500 px-6 py-3.5 text-sm font-bold text-white hover:from-red-500 hover:to-rose-400 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-red-500/25 cursor-pointer"
               >
                 <Plus size={18} /> {editFacultyId ? "Update Faculty" : "Add Faculty"}
               </button>
@@ -100,7 +101,7 @@ export default function FacultyPanel({
                     setEditFacultyId(null);
                     setFacultyForm({ f_name: "", f_abbr: "" });
                   }}
-                  className="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                  className="cursor-pointer p-3.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all"
                 >
                   <X size={18} />
                 </button>
@@ -110,26 +111,26 @@ export default function FacultyPanel({
         </SectionCard>
 
         <SectionCard title="Degree Programme" description="Create degree programmes and link them to faculty." icon={GraduationCap}>
-          <div className="space-y-5">
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Degree Name</label>
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1">Degree Name</label>
               <div className="relative group">
-                <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
                 <input
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all text-sm font-medium"
+                  className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800/50 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all text-sm font-medium"
                   placeholder="e.g. Bachelor of Science"
                   value={degreeForm.d_name}
                   onChange={(event) => setFormValue(setDegreeForm, "d_name", event.target.value)}
                 />
               </div>
             </div>
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Faculty</label>
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1">Faculty</label>
                 <div className="relative group">
-                  <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors pointer-events-none" size={18} />
+                  <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors pointer-events-none" size={18} />
                   <select
-                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all text-sm font-medium appearance-none"
+                    className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800/50 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all text-sm font-medium appearance-none"
                     value={degreeForm.f_id ?? 0}
                     onChange={(event) => setFormValue(setDegreeForm, "f_id", Number(event.target.value))}
                   >
@@ -142,12 +143,12 @@ export default function FacultyPanel({
                   </select>
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Abbreviation</label>
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1">Abbreviation</label>
                 <div className="relative group">
-                  <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                  <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
                   <input
-                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all text-sm font-medium"
+                    className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800/50 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all text-sm font-medium"
                     placeholder="e.g. BSc"
                     value={degreeForm.degree_abbr}
                     onChange={(event) => setFormValue(setDegreeForm, "degree_abbr", event.target.value)}
@@ -169,7 +170,7 @@ export default function FacultyPanel({
                     () => setDegreeForm({ d_name: "", f_id: 0, degree_abbr: "" })
                   )
                 }
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-3.5 text-sm font-bold text-white hover:bg-indigo-500 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-indigo-500/25"
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-500 px-6 py-3.5 text-sm font-bold text-white hover:from-red-500 hover:to-rose-400 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-red-500/25 cursor-pointer"
               >
                 <Plus size={18} /> {editDegreeId ? "Update Degree" : "Add Degree"}
               </button>
@@ -179,7 +180,7 @@ export default function FacultyPanel({
                     setEditDegreeId(null);
                     setDegreeForm({ d_name: "", f_id: 0, degree_abbr: "" });
                   }}
-                  className="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                  className="p-3.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all"
                 >
                   <X size={18} />
                 </button>
@@ -189,135 +190,133 @@ export default function FacultyPanel({
         </SectionCard>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        {/* Faculties Table */}
-        <div className="bg-white dark:bg-slate-950 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
-          <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/20">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-                <Building2 size={18} />
-              </div>
-              <h3 className="font-bold text-slate-900 dark:text-white">Active Faculties</h3>
-            </div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{faculty.length} Units</span>
+      {/* Nested/Grouped View - Faculties with Degrees */}
+      {faculty.length === 0 ? (
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-12 text-center border border-dashed border-zinc-300 dark:border-zinc-700">
+          <div className="w-20 h-20 bg-zinc-100 dark:bg-zinc-800 rounded-full mx-auto mb-4 flex items-center justify-center">
+            <Building2 size={40} className="text-zinc-400" />
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50/30 dark:bg-slate-900/10 border-b border-slate-100 dark:border-slate-800/10">
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Faculty Name</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">ID / Abbr</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                {faculty.map((item) => (
-                  <tr key={`faculty-${item.f_id}`} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-5">
-                      <p className="text-sm font-bold text-slate-900 dark:text-white mb-0.5">{item.f_name}</p>
-                      <p className="text-[10px] text-slate-400 font-medium">Academic Department</p>
-                    </td>
-                    <td className="px-6 py-5">
-                      <div className="flex flex-col gap-1.5">
-                        <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
-                          <Hash size={10} className="opacity-40" />
-                          <code className="text-[10px] font-mono tracking-tight">{item.f_id}</code>
-                        </div>
-                        <span className="inline-flex w-fit px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold uppercase">{item.f_abbr}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-5">
-                      <div className="flex justify-end items-center gap-2">
-                        <button
-                          onClick={() => {
-                            setEditFacultyId(item.f_id);
-                            setFacultyForm({ f_name: item.f_name, f_abbr: item.f_abbr });
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                          }}
-                          className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all border border-transparent hover:border-indigo-100/50"
-                        >
-                          <Edit size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(`/faculty/${item.f_id}`, loadFaculty, item.f_name)}
-                          className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all border border-transparent hover:border-red-100/50"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <h3 className="text-xl font-bold mb-2 text-zinc-900 dark:text-white">No faculties yet</h3>
+          <p className="text-zinc-500 dark:text-zinc-400 mb-6 max-w-sm mx-auto">Create your first faculty to start organizing degree programmes</p>
+          <button
+            onClick={() => {
+              setEditFacultyId(null);
+              setFacultyForm({ f_name: "", f_abbr: "" });
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 text-white px-6 py-3 rounded-xl font-medium transition shadow-lg shadow-red-500/25 cursor-pointer"
+          >
+            Create Faculty
+          </button>
         </div>
+      ) : (
+        <div className="flex flex-col gap-8">
+          {faculty.map((fac) => {
+            const facultyDegrees = degrees.filter((d) => d.f_id === fac.f_id);
+            return (
+              <div key={fac.f_id} className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+                {/* Faculty Header */}
+                <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 bg-gradient-to-r from-zinc-50 to-white dark:from-zinc-900/50 dark:to-zinc-900">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-rose-400 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-red-500/25">
+                        {fac.f_abbr}
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-zinc-900 dark:text-white">{fac.f_name}</h3>
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-sm text-zinc-500 dark:text-zinc-400">
+                            <BookOpen size={14} className="inline mr-1" />
+                            {facultyDegrees.length} degree programme{facultyDegrees.length !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setEditFacultyId(fac.f_id);
+                          setFacultyForm({ f_name: fac.f_name, f_abbr: fac.f_abbr });
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all border border-transparent hover:border-red-100/50 cursor-pointer"
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(`/faculty/${fac.f_id}`, loadFaculty, fac.f_name)}
+                        className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all border border-transparent hover:border-red-100/50 cursor-pointer"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
-        {/* Degrees Table */}
-        <div className="bg-white dark:bg-slate-950 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
-          <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/20">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400">
-                <GraduationCap size={18} />
+                {/* Degrees Grid */}
+                {facultyDegrees.length === 0 ? (
+                  <div className="p-8 text-center">
+                    <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-800 rounded-full mx-auto mb-3 flex items-center justify-center">
+                      <GraduationCap size={24} className="text-zinc-400" />
+                    </div>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-sm">No degree programmes yet</p>
+                    <button
+                      onClick={() => {
+                        setEditDegreeId(null);
+                        setDegreeForm({ d_name: "", f_id: fac.f_id, degree_abbr: "" });
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className="mt-3 text-red-600 dark:text-red-400 text-sm font-medium hover:underline cursor-pointer"
+                    >
+                      Add first degree
+                    </button>
+                  </div>
+                ) : (
+                  <div className="p-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {facultyDegrees.map((deg) => (
+                        <div
+                          key={deg.d_id}
+                          className="group p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 hover:border-red-500/30 hover:bg-white dark:hover:bg-zinc-900 transition-all"
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-rose-100 dark:bg-rose-900/30 rounded-xl flex items-center justify-center text-rose-600 dark:text-rose-400 font-bold text-sm">
+                                {deg.degree_abbr}
+                              </div>
+                              <div>
+                                <h4 className="font-semibold text-zinc-900 dark:text-white text-sm">{deg.d_name}</h4>
+                              </div>
+                            </div>
+                            <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => {
+                                  setEditDegreeId(deg.d_id);
+                                  setDegreeForm({ d_name: deg.d_name, f_id: deg.f_id, degree_abbr: deg.degree_abbr });
+                                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all cursor-pointer"
+                              >
+                                <Edit size={14} />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(`/degrees/${deg.d_id}`, loadDegrees, deg.d_name)}
+                                className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all cursor-pointer"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              <h3 className="font-bold text-slate-900 dark:text-white">Degree Programmes</h3>
-            </div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{degrees.length} Programs</span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50/30 dark:bg-slate-900/10 border-b border-slate-100 dark:border-slate-800/10">
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Programme Info</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Department</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                {degrees.map((item) => {
-                  const facultyItem = faculty.find((f) => f.f_id === item.f_id);
-                  return (
-                    <tr key={`degree-${item.d_id}`} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
-                      <td className="px-6 py-5">
-                        <p className="text-sm font-bold text-slate-900 dark:text-white mb-0.5">{item.d_name}</p>
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[10px] font-bold uppercase">{item.degree_abbr}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-5">
-                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-                          <Building2 size={12} className="opacity-40" />
-                          <span className="text-[11px] font-medium truncate max-w-[120px]">{facultyItem?.f_name || 'N/A'}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-5">
-                        <div className="flex justify-end items-center gap-2">
-                          <button
-                            onClick={() => {
-                              setEditDegreeId(item.d_id);
-                              setDegreeForm({ d_name: item.d_name, f_id: item.f_id, degree_abbr: item.degree_abbr });
-                              window.scrollTo({ top: 0, behavior: 'smooth' });
-                            }}
-                            className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-all border border-transparent hover:border-purple-100/50"
-                          >
-                            <Edit size={14} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(`/degrees/${item.d_id}`, loadDegrees, item.d_name)}
-                            className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all border border-transparent hover:border-red-100/50"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+            );
+          })}
         </div>
-      </div>
+      )}
     </div>
   );
 }

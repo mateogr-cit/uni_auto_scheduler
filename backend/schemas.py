@@ -63,6 +63,7 @@ class ProfCreate(ProfBase):
     course_ids: Optional[List[int]] = None
 
 class ProfUpdate(BaseModel):
+    u_id: Optional[int] = None  # Accept but ignore (u_id from URL path is used)
     course_ids: Optional[List[int]] = None
 
 class Prof(ProfBase):
@@ -162,7 +163,7 @@ class CourseBase(BaseModel):
     semester_id: Optional[int] = None
 
 class CourseCreate(CourseBase):
-    pass
+    degree_ids: Optional[List[int]] = None
 
 class CourseUpdate(BaseModel):
     c_name: Optional[str] = None
@@ -172,11 +173,13 @@ class CourseUpdate(BaseModel):
     c_semester: Optional[int] = None
     is_active: Optional[bool] = None
     degree_id: Optional[int] = None
+    degree_ids: Optional[List[int]] = None
     semester_id: Optional[int] = None
 
 class Course(CourseBase):
     c_id: int
     degree: Optional["Degree"] = None
+    degrees: List["Degree"] = []
 
     class Config:
         from_attributes = True

@@ -216,19 +216,19 @@ export default function StudentGroupsPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-8">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <div className="p-2 bg-indigo-600/10 text-indigo-600 rounded-lg">
+            <div className="p-2 bg-red-600/10 text-red-600 rounded-lg">
               <Users2 size={24} />
             </div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+            <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
               Student Groups
             </h1>
           </div>
-          <p className="text-slate-500 dark:text-slate-400">
+          <p className="text-zinc-500 dark:text-zinc-400">
             Manage academic groups for scheduling and enrollment.
           </p>
         </div>
@@ -238,7 +238,7 @@ export default function StudentGroupsPage() {
               fetchGroups();
               fetchDegrees();
             }}
-            className="cursor-pointer inline-flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+            className="cursor-pointer inline-flex items-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
           >
             <RefreshCcw size={16} />
             Refresh
@@ -249,7 +249,7 @@ export default function StudentGroupsPage() {
               setEditingGroup(null);
               resetForm();
             }}
-            className="cursor-pointer inline-flex items-center gap-2 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 font-medium transition-colors shadow-lg shadow-indigo-500/25"
+            className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 text-white px-5 py-2.5 font-medium transition-colors shadow-lg shadow-red-500/25"
           >
             <Plus size={20} />
             Add Group
@@ -259,48 +259,48 @@ export default function StudentGroupsPage() {
 
       {/* Status Message */}
       {statusMessage && (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-700/30 dark:bg-emerald-900/30 dark:text-emerald-200">
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-700/30 dark:bg-emerald-900/30 dark:text-emerald-200">
           {statusMessage}
         </div>
       )}
 
       {/* Form */}
       {showForm && (
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <h2 className="text-xl font-semibold mb-6">
             {editingGroup ? 'Edit Student Group' : 'Create Student Group'}
           </h2>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Group Name */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-600 dark:text-slate-400 ml-1">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">
                   Group Name
                 </label>
                 <div className="relative group">
-                  <Users2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                  <Users2 className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
                   <input
                     type="text"
                     placeholder="e.g., SE1, CS2"
                     value={formData.group_name}
                     onChange={(e) => setFormData({ ...formData, group_name: e.target.value })}
-                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all"
+                    className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all"
                     required
                   />
                 </div>
               </div>
 
               {/* Degree */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-600 dark:text-slate-400 ml-1">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">
                   Degree Programme
                 </label>
                 <div className="relative group">
-                  <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                  <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
                   <select
                     value={formData.deg_id}
                     onChange={(e) => setFormData({ ...formData, deg_id: e.target.value })}
-                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all appearance-none"
+                    className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all appearance-none"
                     required
                   >
                     <option value="">Select Degree</option>
@@ -314,16 +314,16 @@ export default function StudentGroupsPage() {
               </div>
 
               {/* Year Level */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-600 dark:text-slate-400 ml-1">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">
                   Year Level
                 </label>
                 <div className="relative group">
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
                   <select
                     value={formData.year_level}
                     onChange={(e) => setFormData({ ...formData, year_level: e.target.value })}
-                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all appearance-none"
+                    className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all appearance-none"
                     required
                   >
                     <option value="">Select Year</option>
@@ -336,16 +336,16 @@ export default function StudentGroupsPage() {
               </div>
 
               {/* Semester */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-600 dark:text-slate-400 ml-1">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">
                   Semester
                 </label>
                 <div className="relative group">
-                  <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                  <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
                   <select
                     value={formData.semester_number}
                     onChange={(e) => setFormData({ ...formData, semester_number: e.target.value })}
-                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all appearance-none"
+                    className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all appearance-none"
                     required
                   >
                     <option value="">Select Semester</option>
@@ -356,18 +356,18 @@ export default function StudentGroupsPage() {
               </div>
 
               {/* Capacity */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-600 dark:text-slate-400 ml-1">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">
                   Capacity
                 </label>
                 <div className="relative group">
-                  <Users2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                  <Users2 className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
                   <input
                     type="number"
                     placeholder="e.g., 40"
                     value={formData.capacity}
                     onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all"
+                    className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all"
                     required
                     min="1"
                   />
@@ -376,19 +376,19 @@ export default function StudentGroupsPage() {
             </div>
 
             {/* Weekly Availability */}
-            <div className="space-y-4">
+            <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2">
-                <Clock size={20} className="text-indigo-600" />
+                <Clock size={20} className="text-red-600" />
                 <h3 className="text-lg font-bold">Weekly Availability</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 {DAYS.map((day) => (
                   <div
                     key={day}
-                    className={`p-4 rounded-2xl border-2 transition-all ${
+                    className={`p-4 rounded-xl border-2 transition-all ${
                       availabilities[day].is_available
-                        ? 'bg-indigo-50/50 dark:bg-indigo-950/20 border-indigo-100 dark:border-indigo-900/50'
-                        : 'bg-slate-50 dark:bg-slate-800/50 border-transparent opacity-60'
+                        ? 'bg-red-50/50 dark:bg-red-950/20 border-red-100 dark:border-red-900/50'
+                        : 'bg-zinc-50 dark:bg-zinc-800/50 border-transparent opacity-60'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-3">
@@ -404,14 +404,14 @@ export default function StudentGroupsPage() {
                             [day]: { ...availabilities[day], is_available: e.target.checked }
                           })
                         }
-                        className="w-5 h-5 rounded-lg accent-indigo-600 cursor-pointer"
+                        className="w-5 h-5 rounded-lg accent-red-600 cursor-pointer"
                       />
                     </div>
-                    <div className="space-y-3">
+                    <div className="flex flex-col gap-3">
                       <div className="relative">
                         <Clock
                           size={12}
-                          className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400"
+                          className="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400"
                         />
                         <input
                           type="time"
@@ -423,13 +423,13 @@ export default function StudentGroupsPage() {
                               [day]: { ...availabilities[day], start_time: e.target.value }
                             })
                           }
-                          className="w-full pl-7 pr-2 py-1.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
+                          className="w-full pl-7 pr-2 py-1.5 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg outline-none! focus:ring-1 focus:ring-red-500 disabled:opacity-50"
                         />
                       </div>
                       <div className="relative">
                         <Clock
                           size={12}
-                          className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400"
+                          className="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400"
                         />
                         <input
                           type="time"
@@ -441,7 +441,7 @@ export default function StudentGroupsPage() {
                               [day]: { ...availabilities[day], end_time: e.target.value }
                             })
                           }
-                          className="w-full pl-7 pr-2 py-1.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
+                          className="w-full pl-7 pr-2 py-1.5 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg outline-none! focus:ring-1 focus:ring-red-500 disabled:opacity-50"
                         />
                       </div>
                     </div>
@@ -450,7 +450,7 @@ export default function StudentGroupsPage() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex justify-end gap-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
               <button
                 type="button"
                 onClick={() => {
@@ -458,13 +458,13 @@ export default function StudentGroupsPage() {
                   setEditingGroup(null);
                   resetForm();
                 }}
-                className="px-6 py-3 rounded-2xl font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                className="cursor-pointer px-6 py-3 rounded-xl font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-10 py-3 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-slate-900/10 dark:shadow-white/5"
+                className="cursor-pointer px-10 py-3 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-zinc-900/10 dark:shadow-white/5"
               >
                 {editingGroup ? 'Update Group' : 'Create Group'}
               </button>
@@ -475,15 +475,15 @@ export default function StudentGroupsPage() {
 
       {/* Groups Grid */}
       {groups.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-12 flex flex-col items-center justify-center text-center space-y-4">
-          <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center">
-            <Users2 className="text-slate-400" size={32} />
+        <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-12 flex flex-col items-center justify-center text-center flex flex-col gap-4">
+          <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center">
+            <Users2 className="text-zinc-400" size={32} />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+            <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">
               No Student Groups Yet
             </h2>
-            <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+            <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto">
               Create your first student group to start organizing students for scheduling.
             </p>
           </div>
@@ -493,7 +493,7 @@ export default function StudentGroupsPage() {
               setEditingGroup(null);
               resetForm();
             }}
-            className="cursor-pointer bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl font-medium transition-colors shadow-lg shadow-indigo-500/25"
+            className="cursor-pointer bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 text-white px-6 py-2.5 rounded-xl font-medium transition-colors shadow-lg shadow-red-500/25"
           >
             Create First Group
           </button>
@@ -503,19 +503,19 @@ export default function StudentGroupsPage() {
           {groups.map((group) => (
             <div
               key={group.group_id}
-              className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group"
+              className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition-all group"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-500/10 rounded-xl flex items-center justify-center">
-                    <Users2 className="text-indigo-600 dark:text-indigo-400" size={24} />
+                  <div className="w-12 h-12 bg-red-100 dark:bg-red-500/10 rounded-xl flex items-center justify-center">
+                    <Users2 className="text-red-600 dark:text-red-400" size={24} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                    <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
                       {group.group_name}
                     </h3>
                     {group.degree && (
-                      <p className="text-sm text-slate-500 dark:text-slate-400">
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
                         {group.degree.d_name}
                       </p>
                     )}
@@ -524,7 +524,7 @@ export default function StudentGroupsPage() {
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => handleEdit(group)}
-                    className="cursor-pointer p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 transition-colors"
+                    className="cursor-pointer p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400 transition-colors"
                   >
                     <Edit size={16} />
                   </button>
@@ -537,22 +537,22 @@ export default function StudentGroupsPage() {
                 </div>
               </div>
 
-              <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex flex-col gap-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500 dark:text-slate-400">Year</span>
-                  <span className="font-medium text-slate-900 dark:text-white">
+                  <span className="text-zinc-500 dark:text-zinc-400">Year</span>
+                  <span className="font-medium text-zinc-900 dark:text-white">
                     {getYearLabel(group.year_level)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500 dark:text-slate-400">Semester</span>
-                  <span className="font-medium text-slate-900 dark:text-white">
+                  <span className="text-zinc-500 dark:text-zinc-400">Semester</span>
+                  <span className="font-medium text-zinc-900 dark:text-white">
                     {getSemesterLabel(group.semester_number)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500 dark:text-slate-400">Capacity</span>
-                  <span className="font-medium text-slate-900 dark:text-white">
+                  <span className="text-zinc-500 dark:text-zinc-400">Capacity</span>
+                  <span className="font-medium text-zinc-900 dark:text-white">
                     {group.capacity} students
                   </span>
                 </div>
@@ -566,9 +566,9 @@ export default function StudentGroupsPage() {
               setEditingGroup(null);
               resetForm();
             }}
-            className="border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center text-slate-400 group space-y-2 border-slate-200 dark:border-slate-800 hover:border-indigo-500/50 hover:text-indigo-500 transition-all min-h-[200px]"
+            className="cursor-pointer border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-zinc-400 group flex flex-col gap-2 border-zinc-200 dark:border-zinc-800 hover:border-red-500/50 hover:text-red-500 transition-all min-h-[200px]"
           >
-            <div className="w-12 h-12 rounded-full border-2 border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-center group-hover:border-indigo-500/50">
+            <div className="w-12 h-12 rounded-full border-2 border-dashed border-zinc-200 dark:border-zinc-800 flex items-center justify-center group-hover:border-red-500/50">
               <Plus size={24} />
             </div>
             <span className="font-medium">Add New Group</span>

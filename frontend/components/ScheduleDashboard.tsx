@@ -234,13 +234,13 @@ const ScheduleDashboard = () => {
       <div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Schedule Builder</h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">Configure your academic groups, semesters, curriculum, enrollments, and launch schedule generation.</p>
+            <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">Schedule Builder</h1>
+            <p className="text-zinc-500 dark:text-zinc-400 mt-1">Configure your academic groups, semesters, curriculum, enrollments, and launch schedule generation.</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={loadAll}
-              className="cursor-pointer inline-flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+              className="cursor-pointer inline-flex items-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
             >
               <RefreshCcw size={16} /> Refresh Data
             </button>
@@ -248,7 +248,7 @@ const ScheduleDashboard = () => {
         </div>
 
         {statusMessage ? (
-          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-700/30 dark:bg-emerald-900/30 dark:text-emerald-200">
+          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-700/30 dark:bg-emerald-900/30 dark:text-emerald-200">
             {statusMessage}
           </div>
         ) : null}

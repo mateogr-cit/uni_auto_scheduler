@@ -1,7 +1,8 @@
 'use client';
 
-import { BookOpen, Plus, Grid, List as ListIcon, Edit, Trash2, Tag, Scale, GraduationCap, Calendar } from "lucide-react";
-import { useState, useEffect } from "react";
+import { BookOpen, Plus, Grid, List as ListIcon, Edit, Trash2, Tag, Scale, GraduationCap, Calendar, Search, Check } from "lucide-react";
+import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useDataSource } from "@/contexts/DataSourceContext";
 
 interface Degree {
@@ -17,6 +18,16 @@ interface Semester {
     end_date: string;
 }
 
+interface FormData {
+    c_name: string;
+    c_abbr: string;
+    c_difficulty_weight: string;
+    c_year: string;
+    c_semester: string;
+    degree_ids: string[];
+    semester_id: string;
+}
+
 interface Course {
     c_id: number;
     c_name: string;
@@ -27,6 +38,7 @@ interface Course {
     is_active: boolean;
     degree_id?: number;
     degree?: Degree;
+    degrees?: Degree[];
 }
 
 export default function CoursesPage() {
@@ -36,13 +48,16 @@ export default function CoursesPage() {
     const [semesters, setSemesters] = useState<Semester[]>([]);
     const [showForm, setShowForm] = useState(false);
     const [editingCourse, setEditingCourse] = useState<Course | null>(null);
-    const [formData, setFormData] = useState({
+    const [degreeDropdownOpen, setDegreeDropdownOpen] = useState(false);
+    const [degreeSearchQuery, setDegreeSearchQuery] = useState("");
+    const [showAllDegrees, setShowAllDegrees] = useState(false);
+    const [formData, setFormData] = useState<FormData>({
         c_name: "",
         c_abbr: "",
         c_difficulty_weight: "",
         c_year: "",
         c_semester: "",
-        degree_id: "",
+        degree_ids: [],
         semester_id: ""
     });
     const [error, setError] = useState<string | null>(null);
@@ -96,7 +111,7 @@ export default function CoursesPage() {
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (dataSource === 'dummy') {
             setError("Cannot modify courses while using dummy data. Switch to database mode.");
@@ -113,14 +128,14 @@ export default function CoursesPage() {
                 c_year: parseInt(formData.c_year),
                 c_semester: parseInt(formData.c_semester),
                 is_active: true,
-                degree_id: formData.degree_id ? parseInt(formData.degree_id) : null,
+                degree_ids: formData.degree_ids.length > 0 ? formData.degree_ids.map(d => parseInt(d)) : null,
                 semester_id: formData.semester_id ? parseInt(formData.semester_id) : null
             }),
         });
         fetchCourses();
         setShowForm(false);
         setEditingCourse(null);
-        setFormData({ c_name: "", c_abbr: "", c_difficulty_weight: "", c_year: "", c_semester: "", degree_id: "", semester_id: "" });
+        setFormData({ c_name: "", c_abbr: "", c_difficulty_weight: "", c_year: "", c_semester: "", degree_ids: [], semester_id: "" });
     };
 
     const handleEdit = (course: Course) => {
@@ -129,13 +144,18 @@ export default function CoursesPage() {
             return;
         }
         setEditingCourse(course);
+        // Get degree IDs from degrees array if available, otherwise use degree_id for backward compatibility
+        const degreeIds = course.degrees && course.degrees.length > 0 
+            ? course.degrees.map(d => d.d_id.toString())
+            : (course.degree_id ? [course.degree_id.toString()] : []);
+        
         setFormData({
             c_name: course.c_name,
             c_abbr: course.c_abbr,
             c_difficulty_weight: course.c_difficulty_weight.toString(),
             c_year: course.c_year.toString(),
             c_semester: course.c_semester.toString(),
-            degree_id: course.degree_id?.toString() || "",
+            degree_ids: degreeIds,
             semester_id: ""
         });
         setShowForm(true);
@@ -171,18 +191,18 @@ export default function CoursesPage() {
     };
 
     return (
-        <div className="space-y-8">
-            <div className="flex justify-between items-end">
+        <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Courses</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">See syllabus, credits, and prerequisites for each course.</p>
+                    <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">Courses</h1>
+                    <p className="text-zinc-500 dark:text-zinc-400 mt-2">See syllabus, credits, and prerequisites for each course.</p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mr-2">
-                        <button className="cursor-pointer p-2 bg-white dark:bg-slate-700 shadow-sm rounded-lg text-indigo-600"><Grid size={18} /></button>
-                        <button className="cursor-pointer p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><ListIcon size={18} /></button>
+                <div className="flex gap-3">
+                    <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
+                        <button className="cursor-pointer p-2 bg-white dark:bg-zinc-700 shadow-sm rounded-lg text-red-600"><Grid size={18} /></button>
+                        <button className="cursor-pointer p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"><ListIcon size={18} /></button>
                     </div>
-                    <button onClick={() => setShowForm(true)} disabled={dataSource === 'dummy'} className={`${dataSource === 'dummy' ? "opacity-50 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-500/25"} text-white px-5 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2`}>
+                    <button onClick={() => setShowForm(true)} disabled={dataSource === 'dummy'} className={`${dataSource === 'dummy' ? "opacity-50 cursor-not-allowed" : "bg-red-600 hover:bg-red-500 shadow-lg shadow-red-500/25 cursor-pointer"} text-white px-5 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2`}>
                         <Plus size={20} />
                         Add Course
                     </button>
@@ -190,63 +210,63 @@ export default function CoursesPage() {
             </div>
 
             {error && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-5 py-4 rounded-2xl text-sm font-medium">
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-5 py-4 rounded-xl text-sm font-medium">
                     ⚠️ {error}
                 </div>
             )}
 
             {showForm && (
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <h2 className="text-xl font-semibold mb-4">{editingCourse ? "Edit Course" : "Add Course"}</h2>
+                <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                    <h2 className="text-xl font-semibold mb-6">{editingCourse ? "Edit Course" : "Add Course"}</h2>
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-slate-600 dark:text-slate-400 ml-1">Course Name</label>
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">Course Name</label>
                             <div className="relative group">
-                                <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                                <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
                                 <input
                                     type="text"
                                     placeholder="Course Name"
                                     value={formData.c_name}
                                     onChange={(e) => setFormData({ ...formData, c_name: e.target.value })}
-                                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all"
+                                    className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all"
                                     required
                                 />
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-slate-600 dark:text-slate-400 ml-1">Abbreviation</label>
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">Abbreviation</label>
                             <div className="relative group">
-                                <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                                <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
                                 <input
                                     type="text"
                                     placeholder="Abbreviation"
                                     value={formData.c_abbr}
                                     onChange={(e) => setFormData({ ...formData, c_abbr: e.target.value })}
-                                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all"
+                                    className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all"
                                     required
                                 />
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-slate-600 dark:text-slate-400 ml-1">Difficulty Weight</label>
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">Difficulty Weight</label>
                             <div className="relative group">
-                                <Scale className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                                <Scale className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
                                 <input
                                     type="number"
                                     placeholder="Difficulty Weight"
                                     value={formData.c_difficulty_weight}
                                     onChange={(e) => setFormData({ ...formData, c_difficulty_weight: e.target.value })}
-                                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all"
+                                    className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all"
                                     required
                                 />
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-slate-600 dark:text-slate-400 ml-1">Year (1-3)</label>
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">Year (1-3)</label>
                             <select
                                 value={formData.c_year}
                                 onChange={(e) => setFormData({ ...formData, c_year: e.target.value })}
-                                className="w-full px-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all"
+                                className="w-full px-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all"
                                 required
                             >
                                 <option value="">Select Year</option>
@@ -255,12 +275,12 @@ export default function CoursesPage() {
                                 <option value="3">Year 3</option>
                             </select>
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-slate-600 dark:text-slate-400 ml-1">Semester Type (1=Fall, 2=Spring)</label>
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">Semester Type (1=Fall, 2=Spring)</label>
                             <select
                                 value={formData.c_semester}
                                 onChange={(e) => setFormData({ ...formData, c_semester: e.target.value })}
-                                className="w-full px-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all"
+                                className="w-full px-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all"
                                 required
                             >
                                 <option value="">Select Semester Type</option>
@@ -268,14 +288,14 @@ export default function CoursesPage() {
                                 <option value="2">Spring (Semester 2)</option>
                             </select>
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-slate-600 dark:text-slate-400 ml-1">Target Semester</label>
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">Target Semester</label>
                             <div className="relative group">
-                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
                                 <select
                                     value={formData.semester_id}
                                     onChange={(e) => setFormData({ ...formData, semester_id: e.target.value })}
-                                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all appearance-none"
+                                    className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all appearance-none"
                                 >
                                     <option value="">Select Semester (Required for Auto-Schedule)</option>
                                     {semesters.map((sem) => (
@@ -284,25 +304,116 @@ export default function CoursesPage() {
                                 </select>
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-slate-600 dark:text-slate-400 ml-1">Degree</label>
-                            <div className="relative group">
-                                <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
-                                <select
-                                    value={formData.degree_id}
-                                    onChange={(e) => setFormData({ ...formData, degree_id: e.target.value })}
-                                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 rounded-2xl outline-none transition-all appearance-none"
-                                >
-                                    <option value="">Select Degree (Required for Auto-Schedule)</option>
-                                    {degrees.map((deg) => (
-                                        <option key={deg.d_id} value={deg.d_id}>{deg.d_name} ({deg.degree_abbr})</option>
-                                    ))}
-                                </select>
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">Degrees</label>
+                            <div className="relative">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400 pointer-events-none" size={16} />
+                                    <input
+                                        type="text"
+                                        placeholder={formData.degree_ids.length > 0 ? `${formData.degree_ids.length} degree${formData.degree_ids.length !== 1 ? 's' : ''} selected – search to refine` : "Click to select degrees..."}
+                                        value={degreeSearchQuery}
+                                        onFocus={() => { setDegreeDropdownOpen(true); setShowAllDegrees(false); }}
+                                        onBlur={() => setTimeout(() => setDegreeDropdownOpen(false), 150)}
+                                        onChange={(e) => { setDegreeSearchQuery(e.target.value); setDegreeDropdownOpen(true); setShowAllDegrees(false); }}
+                                        className="w-full pl-10 pr-10 py-2.5 bg-white dark:bg-zinc-800 border-2 border-zinc-500 dark:border-zinc-700 rounded-xl outline-none! focus:border-red-500 focus:ring-1 focus:ring-red-500/30 text-sm transition-all cursor-pointer placeholder-zinc-500"
+                                        readOnly={false}
+                                    />
+                                    <div className={`absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 transition-transform duration-200 pointer-events-none ${degreeDropdownOpen ? 'rotate-180' : ''}`}>
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                    </div>
+                                </div>
+
+                                <AnimatePresence>
+                                    {degreeDropdownOpen && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                                            transition={{ duration: 0.15 }}
+                                            className="absolute z-50 w-full mt-1.5 bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl shadow-2xl shadow-zinc-900/15 overflow-hidden"
+                                        >
+                                            <div className="p-2 flex flex-col gap-1">
+                                                {(() => {
+                                                    const filtered = degrees.filter(degree =>
+                                                        degree.d_name.toLowerCase().includes(degreeSearchQuery.toLowerCase()) ||
+                                                        degree.degree_abbr.toLowerCase().includes(degreeSearchQuery.toLowerCase())
+                                                    );
+                                                    const isSearching = degreeSearchQuery.length > 0;
+                                                    const visible = (isSearching || showAllDegrees) ? filtered : filtered.slice(0, 3);
+                                                    const hidden = filtered.length - 3;
+
+                                                    return (
+                                                        <>
+                                                            {visible.map(degree => (
+                                                                <label
+                                                                    key={degree.d_id}
+                                                                    onMouseDown={(e) => e.preventDefault()}
+                                                                    className="flex items-center gap-3 p-3 bg-white dark:bg-zinc-700/50 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg cursor-pointer transition-all duration-200 group border border-transparent hover:border-red-200 dark:hover:border-red-800"
+                                                                >
+                                                                    <div className="relative flex items-center justify-center flex-shrink-0">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={formData.degree_ids.includes(degree.d_id.toString())}
+                                                                            onChange={(e) => {
+                                                                                if (e.target.checked) {
+                                                                                    setFormData({ ...formData, degree_ids: [...formData.degree_ids, degree.d_id.toString()] });
+                                                                                } else {
+                                                                                    setFormData({ ...formData, degree_ids: formData.degree_ids.filter(id => id !== degree.d_id.toString()) });
+                                                                                }
+                                                                            }}
+                                                                            className="w-5 h-5 rounded-md accent-red-600 cursor-pointer appearance-none bg-white dark:bg-zinc-600 border-2 border-zinc-300 dark:border-zinc-500 checked:bg-red-600 checked:border-red-600 transition-all duration-200"
+                                                                        />
+                                                                        {formData.degree_ids.includes(degree.d_id.toString()) && (
+                                                                            <Check size={14} className="absolute text-white pointer-events-none" />
+                                                                        )}
+                                                                    </div>
+                                                                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                                                                        {degree.d_name} <span className="text-xs text-zinc-400 dark:text-zinc-500 font-normal">({degree.degree_abbr})</span>
+                                                                    </span>
+                                                                </label>
+                                                            ))}
+
+                                                            {filtered.length === 0 && (
+                                                                <div className="p-6 text-center text-zinc-400 dark:text-zinc-500 text-sm">
+                                                                    <div className="text-2xl mb-2">○</div>
+                                                                    No degrees found
+                                                                </div>
+                                                            )}
+
+                                                            {!isSearching && hidden > 0 && (
+                                                                <button
+                                                                    type="button"
+                                                                    onMouseDown={(e) => e.preventDefault()}
+                                                                    onClick={() => setShowAllDegrees(prev => !prev)}
+                                                                    className="w-full mt-1 py-2 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                                                                >
+                                                                    {showAllDegrees ? (
+                                                                        <><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 10l4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg> Show less</>
+                                                                    ) : (
+                                                                        <><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg> Show all {filtered.length} degrees</>
+                                                                    )}
+                                                                </button>
+                                                            )}
+                                                        </>
+                                                    );
+                                                })()}
+                                            </div>
+
+                                            {formData.degree_ids.length > 0 && (
+                                                <div className="px-3 py-2 border-t border-zinc-100 dark:border-zinc-700 flex items-center gap-2 text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50/60 dark:bg-red-900/10">
+                                                    <Check size={12} />
+                                                    {formData.degree_ids.length} degree{formData.degree_ids.length !== 1 ? 's' : ''} selected
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         </div>
                         <div className="col-span-full flex justify-end gap-2 mt-4">
-                            <button type="button" onClick={() => { setShowForm(false); setEditingCourse(null); }} className="px-6 py-3 rounded-2xl font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">Cancel</button>
-                            <button type="submit" className="px-10 py-3 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-slate-900/10 dark:shadow-white/5">Save</button>
+                            <button type="button" onClick={() => { setShowForm(false); setEditingCourse(null); }} className="cursor-pointer px-6 py-3 rounded-xl font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all">Cancel</button>
+                            <button type="submit" className="cursor-pointer px-10 py-3 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-zinc-900/10 dark:shadow-white/5">Save</button>
                         </div>
                     </form>
                 </div>
@@ -310,9 +421,9 @@ export default function CoursesPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {courses.map((course) => (
-                    <div key={course.c_id} className={`bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group flex flex-col h-full ${!course.is_active ? "opacity-60 grayscale" : ""}`}>
+                    <div key={course.c_id} className={`bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition-all group flex flex-col h-full ${!course.is_active ? "opacity-60 grayscale" : ""}`}>
                         <div className="flex items-center justify-between mb-4">
-                            <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2.5 py-1 rounded-full">{course.c_abbr}</span>
+                            <span className="text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 px-2.5 py-1 rounded-full">{course.c_abbr}</span>
                             <div className="flex gap-2 items-center">
                                 <button
                                     onClick={() => handleToggleActive(course.c_id, course.is_active)}
@@ -320,8 +431,8 @@ export default function CoursesPage() {
                                     title={course.is_active ? "Deactivate course" : "Activate course"}
                                     className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
                                         course.is_active
-                                            ? "bg-emerald-500 hover:bg-emerald-600"
-                                            : "bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500"
+                                            ? "bg-red-500 hover:bg-red-600"
+                                            : "bg-zinc-300 dark:bg-zinc-600 hover:bg-zinc-400 dark:hover:bg-zinc-500"
                                     } ${dataSource === 'dummy' ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                                 >
                                     <span
@@ -330,12 +441,12 @@ export default function CoursesPage() {
                                         }`}
                                     />
                                 </button>
-                                <button onClick={() => handleEdit(course)} disabled={dataSource === 'dummy'} className={`text-white px-4 py-2 rounded ${dataSource === 'dummy' ? "bg-gray-300 cursor-not-allowed opacity-50" : "bg-gray-500 hover:bg-gray-600"}`}><Edit size={16} /></button>
-                                <button onClick={() => handleDelete(course.c_id)} disabled={dataSource === 'dummy'} className={`text-white px-4 py-2 rounded ${dataSource === 'dummy' ? "bg-indigo-300 cursor-not-allowed opacity-50" : "bg-indigo-600 hover:bg-indigo-700"}`}><Trash2 size={16} /></button>
+                                <button onClick={() => handleEdit(course)} disabled={dataSource === 'dummy'} className={`text-white px-4 py-2 rounded ${dataSource === 'dummy' ? "bg-gray-300 cursor-not-allowed opacity-50" : "bg-gray-500 hover:bg-gray-600 cursor-pointer"}`}><Edit size={16} /></button>
+                                <button onClick={() => handleDelete(course.c_id)} disabled={dataSource === 'dummy'} className={`cursor-pointer text-white px-4 py-2 rounded ${dataSource === 'dummy' ? "bg-red-300 cursor-not-allowed opacity-50" : "bg-red-600 hover:bg-red-700"}`}><Trash2 size={16} /></button>
                             </div>
                         </div>
-                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">{course.c_name}</h3>
-                        <div className="mt-auto pt-4 space-y-2 text-sm text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800">
+                        <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-2">{course.c_name}</h3>
+                        <div className="mt-auto pt-4 flex flex-col gap-2 text-sm text-zinc-500 dark:text-zinc-400 border-t border-zinc-100 dark:border-zinc-800">
                             <div className="flex justify-between">
                                 <span>Weight: {course.c_difficulty_weight}</span>
                                 <span className="font-medium">Year {course.c_year}</span>
@@ -343,17 +454,25 @@ export default function CoursesPage() {
                             <div className="flex justify-between">
                                 <span className="font-medium">Semester {course.c_semester}</span>
                             </div>
-                            {course.degree && (
-                                <div className="mt-2 text-xs font-semibold text-slate-400 dark:text-slate-500">
+                            {(course.degrees && course.degrees.length > 0) ? (
+                                <div className="mt-2 flex flex-wrap gap-1">
+                                    {course.degrees.map((deg) => (
+                                        <span key={deg.d_id} className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">
+                                            {deg.degree_abbr}
+                                        </span>
+                                    ))}
+                                </div>
+                            ) : course.degree ? (
+                                <div className="mt-2 text-xs font-semibold text-zinc-400 dark:text-zinc-500">
                                     <span>{course.degree.d_name}</span>
                                 </div>
-                            )}
+                            ) : null}
                         </div>
                     </div>
                 ))}
 
-                <button onClick={() => setShowForm(true)} disabled={dataSource === 'dummy'} className={`border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center text-slate-400 group space-y-2 ${dataSource === 'dummy' ? "hidden" : "border-slate-200 dark:border-slate-800 hover:border-indigo-500/50 hover:text-indigo-500 transition-all"}`}>
-                    <div className="w-10 h-10 rounded-full border-2 border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-center group-hover:border-indigo-500/50">
+                <button onClick={() => setShowForm(true)} disabled={dataSource === 'dummy'} className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-zinc-400 group flex flex-col gap-2 ${dataSource === 'dummy' ? "hidden" : "border-zinc-200 dark:border-zinc-800 hover:border-red-500/50 hover:text-red-500 transition-all cursor-pointer"}`}>
+                    <div className="w-10 h-10 rounded-full border-2 border-dashed border-zinc-200 dark:border-zinc-800 flex items-center justify-center group-hover:border-red-500/50">
                         <Plus size={24} />
                     </div>
                     <span className="font-medium text-sm">Add New Course</span>

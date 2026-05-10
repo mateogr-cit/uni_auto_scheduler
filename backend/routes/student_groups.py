@@ -38,6 +38,29 @@ def create_student_group(item: StudentGroupCreate, db: Session = Depends(get_db)
 
     return db_item
 
+@router.post("/student-groups/bulk", response_model=List[StudentGroup])
+def create_student_groups_bulk(items: List[StudentGroupCreate], db: Session = Depends(get_db)):
+    try:
+        result = []
+        for item in items:
+            db_item = DBStudentGroup(**item.dict(), createdAt=datetime.utcnow(), updatedAt=datetime.utcnow())
+            db.add(db_item)
+            db.flush()  # Flush to get the group_id
+            
+            # Create default availability for this group
+            create_default_availability(db_item.group_id, db)
+            
+            result.append(db_item)
+        
+        db.commit()
+        # Refresh all to ensure we have the latest data
+        for item in result:
+            db.refresh(item)
+        return result
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Bulk create failed: {str(e)}")
+
 @router.get("/student-groups/", response_model=List[StudentGroup])
 def read_student_groups(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     skip, limit = validate_pagination(skip, limit)

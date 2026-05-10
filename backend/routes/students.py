@@ -25,6 +25,30 @@ def create_student(student: StudentCreate, db: Session = Depends(get_db)):
         "lname": user.lname
     }
 
+@router.post("/students/bulk", response_model=List[Student])
+def create_students_bulk(students: List[StudentCreate], db: Session = Depends(get_db)):
+    try:
+        result = []
+        for student in students:
+            student_data = {k: v for k, v in student.dict().items() if v is not None}
+            db_student = DBStudent(**student_data)
+            db.add(db_student)
+            db.flush()  # Flush to get the u_id
+            # Fetch user info to return complete data
+            user = db.query(DBUser).filter(DBUser.u_id == db_student.u_id).first()
+            result.append({
+                "u_id": db_student.u_id,
+                "s_status": db_student.s_status,
+                "group_id": db_student.group_id,
+                "fname": user.fname,
+                "lname": user.lname
+            })
+        db.commit()
+        return result
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Bulk create failed: {str(e)}")
+
 @router.get("/students/", response_model=List[Student])
 def read_students(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     skip, limit = validate_pagination(skip, limit)
