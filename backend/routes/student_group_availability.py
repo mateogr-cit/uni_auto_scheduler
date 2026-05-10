@@ -14,12 +14,36 @@ def create_student_group_availability(item: StudentGroupAvailabilityCreate, db: 
     student_group = db.query(DBStudentGroup).filter(DBStudentGroup.group_id == item.group_id).first()
     if student_group is None:
         raise HTTPException(status_code=404, detail="Student group not found")
-    
+
     db_item = DBStudentGroupAvailability(**item.dict())
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
     return db_item
+
+@router.post("/student-group-availability/bulk", response_model=List[StudentGroupAvailability])
+def create_student_group_availability_bulk(items: List[StudentGroupAvailabilityCreate], db: Session = Depends(get_db)):
+    try:
+        result = []
+        for item in items:
+            # Verify student group exists
+            student_group = db.query(DBStudentGroup).filter(DBStudentGroup.group_id == item.group_id).first()
+            if student_group is None:
+                raise HTTPException(status_code=404, detail=f"Student group not found: {item.group_id}")
+
+            db_item = DBStudentGroupAvailability(**item.dict())
+            db.add(db_item)
+            result.append(db_item)
+        db.commit()
+        for item in result:
+            db.refresh(item)
+        return result
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Bulk create failed: {str(e)}")
 
 @router.get("/student-group-availability/", response_model=List[StudentGroupAvailability])
 def read_student_group_availability(group_id: int = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):

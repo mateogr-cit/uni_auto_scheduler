@@ -1,10 +1,13 @@
 'use client';
 
-import { User, Plus, Search, Edit, Trash2, CheckCircle, Users, Mail, User as UserIcon, GraduationCap } from "lucide-react";
+import { User, Plus, Search, Edit, Trash2, CheckCircle, Users, Mail, Eye, EyeOff, GraduationCap, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import UserFormFields from "../../components/UserFormFields";
 import { toast } from "sonner";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 interface User {
     u_id: number;
@@ -34,6 +37,7 @@ export default function StudentsPage() {
     const [showForm, setShowForm] = useState(false);
     const [editingStudent, setEditingStudent] = useState<User | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({ fname: "", lname: "", email: "", username: "", password: "", s_status: "active", group_id: null as number | null });
 
     useEffect(() => {
@@ -211,43 +215,137 @@ export default function StudentsPage() {
                     </div>
 
                     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-                        <UserFormFields
-                            formData={formData}
-                            onChange={handleFormChange}
-                            editing={!!editingStudent}
-                        />
-
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="flex flex-col gap-2">
-                                <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">Status</label>
-                                <div className="relative group">
-                                    <CheckCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
-                                    <select
-                                        value={formData.s_status}
-                                        onChange={(e) => setFormData({ ...formData, s_status: e.target.value })}
-                                        className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all appearance-none"
-                                    >
-                                        <option value="active">Active</option>
-                                        <option value="inactive">Inactive</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div className="flex flex-col gap-2">
-                                <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">Student Group</label>
-                                <div className="relative group">
-                                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
-                                    <select
-                                        value={formData.group_id || ""}
-                                        onChange={(e) => setFormData({ ...formData, group_id: e.target.value ? parseInt(e.target.value) : null })}
-                                        className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all appearance-none"
-                                    >
-                                        <option value="">No Group</option>
+                            <Field>
+                                <FieldLabel htmlFor="fname">First Name</FieldLabel>
+                                <InputGroup>
+                                    <InputGroupAddon align="inline-start">
+                                        <User data-icon="inline-start" />
+                                    </InputGroupAddon>
+                                    <InputGroupInput
+                                        id="fname"
+                                        placeholder="John"
+                                        value={formData.fname}
+                                        onChange={(e) => handleFormChange('fname', e.target.value)}
+                                        className="capitalize"
+                                        required
+                                    />
+                                </InputGroup>
+                            </Field>
+                            <Field>
+                                <FieldLabel htmlFor="lname">Last Name</FieldLabel>
+                                <InputGroup>
+                                    <InputGroupAddon align="inline-start">
+                                        <User data-icon="inline-start" />
+                                    </InputGroupAddon>
+                                    <InputGroupInput
+                                        id="lname"
+                                        placeholder="Doe"
+                                        value={formData.lname}
+                                        onChange={(e) => handleFormChange('lname', e.target.value)}
+                                        className="capitalize"
+                                        required
+                                    />
+                                </InputGroup>
+                            </Field>
+                            <Field>
+                                <FieldLabel htmlFor="email">Email Address</FieldLabel>
+                                <InputGroup>
+                                    <InputGroupAddon align="inline-start">
+                                        <Mail data-icon="inline-start" />
+                                    </InputGroupAddon>
+                                    <InputGroupInput
+                                        id="email"
+                                        type="email"
+                                        placeholder="john.doe@university.edu"
+                                        value={formData.email}
+                                        onChange={(e) => handleFormChange('email', e.target.value)}
+                                        required
+                                    />
+                                </InputGroup>
+                            </Field>
+                            <Field>
+                                <FieldLabel htmlFor="username">Username</FieldLabel>
+                                <InputGroup>
+                                    <InputGroupAddon align="inline-start">
+                                        <span className="font-bold">@</span>
+                                    </InputGroupAddon>
+                                    <InputGroupInput
+                                        id="username"
+                                        placeholder="jdoe"
+                                        value={formData.username}
+                                        onChange={(e) => handleFormChange('username', e.target.value)}
+                                        required
+                                    />
+                                </InputGroup>
+                            </Field>
+                            <Field>
+                                <FieldLabel htmlFor="status">Status</FieldLabel>
+                                <Select
+                                    value={formData.s_status}
+                                    onValueChange={(value) => setFormData({ ...formData, s_status: value })}
+                                >
+                                    <SelectTrigger>
+                                        <InputGroup>
+                                            <InputGroupAddon align="inline-start">
+                                                <CheckCircle data-icon="inline-start" />
+                                            </InputGroupAddon>
+                                            <SelectValue placeholder="Select status" />
+                                        </InputGroup>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="active">Active</SelectItem>
+                                        <SelectItem value="inactive">Inactive</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </Field>
+                            <Field>
+                                <FieldLabel htmlFor="group">Student Group</FieldLabel>
+                                <Select
+                                    value={formData.group_id?.toString() || ""}
+                                    onValueChange={(value) => setFormData({ ...formData, group_id: value ? parseInt(value) : null })}
+                                >
+                                    <SelectTrigger>
+                                        <InputGroup>
+                                            <InputGroupAddon align="inline-start">
+                                                <Users data-icon="inline-start" />
+                                            </InputGroupAddon>
+                                            <SelectValue placeholder="Select group" />
+                                        </InputGroup>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="">No Group</SelectItem>
                                         {groups.map(group => (
-                                            <option key={group.group_id} value={group.group_id}>{group.group_name}</option>
+                                            <SelectItem key={group.group_id} value={group.group_id.toString()}>{group.group_name}</SelectItem>
                                         ))}
-                                    </select>
-                                </div>
-                            </div>
+                                    </SelectContent>
+                                </Select>
+                            </Field>
+                            <Field className="md:col-span-2">
+                                <FieldLabel htmlFor="password">
+                                    {editingStudent ? "New Password (Optional)" : "Password"}
+                                </FieldLabel>
+                                <InputGroup>
+                                    <InputGroupInput
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="••••••••"
+                                        value={formData.password}
+                                        onChange={(e) => handleFormChange('password', e.target.value)}
+                                        required={!editingStudent}
+                                    />
+                                    <InputGroupAddon align="inline-end">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon-xs"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                        >
+                                            {showPassword ? <EyeOff /> : <Eye />}
+                                        </Button>
+                                    </InputGroupAddon>
+                                </InputGroup>
+                            </Field>
                         </div>
 
                         <div className="flex justify-end gap-3 pt-4">
@@ -272,14 +370,16 @@ export default function StudentsPage() {
             <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
                 <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 flex flex-col md:flex-row gap-6 items-center justify-between bg-zinc-50/50 dark:bg-zinc-800/30">
                     <div className="relative w-full md:w-[450px]">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400" size={20} />
-                        <input
-                            type="text"
-                            placeholder="Find a student by name or email..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="outline-none! w-full pl-12 pr-4 py-4 rounded-xl border-2 border-zinc-500 dark:border-transparent bg-white dark:bg-zinc-900 shadow-sm focus:border-red-500 focus:outline-none! transition-all placeholder-zinc-500"
-                        />
+                        <InputGroup>
+                            <InputGroupAddon align="inline-start">
+                                <Search data-icon="inline-start" />
+                            </InputGroupAddon>
+                            <InputGroupInput
+                                placeholder="Find a student by name or email..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </InputGroup>
                     </div>
                 </div>
 
@@ -310,14 +410,6 @@ export default function StudentsPage() {
                                             <div className="uppercase w-16 h-16 rounded-xl bg-gradient-to-br from-red-500 to-rose-400 overflow-hidden flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-red-500/25">
                                                 {student.fname[0]}{student.lname[0]}
                                             </div>
-                                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button onClick={() => handleEdit(student)} className="cursor-pointer p-2 rounded-xl transition-colors hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500">
-                                                    <Edit size={18} />
-                                                </button>
-                                                <button onClick={() => handleDelete(student.u_id)} className="p-2 rounded-xl transition-colors hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500">
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </div>
                                         </div>
 
                                         <div className="flex flex-col gap-1">
@@ -329,7 +421,7 @@ export default function StudentsPage() {
                                                 <span className="truncate">{student.email}</span>
                                             </div>
                                             <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 text-sm">
-                                                <UserIcon size={14} />
+                                                <User size={14} />
                                                 <span>@{student.username}</span>
                                             </div>
                                         </div>
@@ -354,6 +446,10 @@ export default function StudentsPage() {
                                                     </span>
                                                 </div>
                                             )}
+                                            <div className="flex gap-2 mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+                                                <button onClick={() => handleEdit(student)} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer"><Edit size={16} /> Edit</button>
+                                                <button onClick={() => handleDelete(student.u_id)} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 cursor-pointer"><Trash2 size={16} /> Delete</button>
+                                            </div>
                                         </div>
                                     </motion.div>
                                 );

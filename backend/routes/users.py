@@ -22,6 +22,27 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return db_user
 
+@router.post("/users/bulk", response_model=List[User])
+def create_users_bulk(users: List[UserCreate], db: Session = Depends(get_db)):
+    try:
+        now = datetime.utcnow()
+        result = []
+        for user in users:
+            db_user = DBUser(
+                **user.dict(),
+                createdAt=now,
+                updatedAt=now,
+            )
+            db.add(db_user)
+            result.append(db_user)
+        db.commit()
+        for item in result:
+            db.refresh(item)
+        return result
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Bulk create failed: {str(e)}")
+
 @router.get("/users/", response_model=List[User])
 def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     skip, limit = validate_pagination(skip, limit)

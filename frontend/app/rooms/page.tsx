@@ -3,6 +3,9 @@
 import { Building, Plus, Search, Edit, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
+import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group";
+import { Button } from "@/components/ui/button";
 
 interface Room {
     room_id: string;
@@ -17,10 +20,6 @@ export default function RoomsPage() {
     const [formData, setFormData] = useState({ room_id: "", capacity: 0 });
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetchRooms();
-    }, []);
-
     const fetchRooms = async () => {
         try {
             const response = await fetch('http://localhost:8000/rooms/');
@@ -33,6 +32,10 @@ export default function RoomsPage() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchRooms();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -118,14 +121,16 @@ export default function RoomsPage() {
                     className="flex flex-col sm:flex-row gap-4 mb-6"
                 >
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-500 dark:text-zinc-400 w-5 h-5" />
-                        <input
-                            type="text"
-                            placeholder="Search rooms..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 bg-white dark:bg-zinc-800 border border-zinc-500 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-white placeholder-zinc-500 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200"
-                        />
+                        <InputGroup>
+                            <InputGroupAddon align="inline-start">
+                                <Search data-icon="inline-start" />
+                            </InputGroupAddon>
+                            <InputGroupInput
+                                placeholder="Search rooms..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </InputGroup>
                     </div>
                     <motion.button
                         whileHover={{ scale: 1.05 }}
@@ -135,7 +140,7 @@ export default function RoomsPage() {
                             setEditingRoom(null);
                             setFormData({ room_id: "", capacity: 0 });
                         }}
-                        className="hover:cursor-pointer flex items-center gap-2 px-6 py-3 rounded-lg transition-all duration-200 bg-red-600 text-white hover:bg-red-500 shadow-lg shadow-red-500/30"
+                        className="hover:cursor-pointer flex items-center gap-2 px-6 py-3 rounded-lg transition-all duration-200 bg-gradient-to-r from-red-600 to-rose-500 text-white hover:from-red-500 hover:to-rose-400 shadow-lg shadow-red-500/30"
                     >
                         <Plus className="w-5 h-5" />
                         Add Room
@@ -227,69 +232,62 @@ export default function RoomsPage() {
                             >
                                 <h2 className="text-xl font-semibold mb-6 text-zinc-900 dark:text-white">{editingRoom ? 'Edit Room' : 'Add Room'}</h2>
                                 <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-                                    <motion.div
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.1 }}
-                                        className="flex flex-col gap-2"
-                                    >
-                                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Room ID</label>
-                                        {editingRoom && <p className="text-xs text-zinc-500 dark:text-zinc-500">Room ID cannot be changed.</p>}
-                                        <input
-                                            type="text"
-                                            value={formData.room_id}
-                                            onChange={(e) => setFormData({ ...formData, room_id: e.target.value })}
-                                            className="w-full px-4 py-3 bg-white dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-md text-zinc-900 dark:text-white placeholder-zinc-400 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200"
-                                            placeholder="e.g., A101"
-                                            required
-                                            disabled={!!editingRoom}
-                                        />
-                                    </motion.div>
-                                    <motion.div
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.2 }}
-                                        className="flex flex-col gap-2"
-                                    >
-                                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Capacity</label>
-                                        <input
-                                            type="number"
-                                            value={formData.capacity}
-                                            onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) || 0 })}
-                                            className="w-full px-4 py-3 bg-white dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-md text-zinc-900 dark:text-white placeholder-zinc-400 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200"
-                                            placeholder="e.g., 50"
-                                            required
-                                            min="1"
-                                        />
-                                    </motion.div>
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.3 }}
-                                        className="flex flex-col gap-3 pt-6"
-                                    >
-                                        <motion.button
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
+                                    <FieldGroup>
+                                        <Field>
+                                            <FieldLabel htmlFor="room_id">Room ID</FieldLabel>
+                                            {editingRoom && <p className="text-xs text-zinc-500 dark:text-zinc-500">Room ID cannot be changed.</p>}
+                                            <InputGroup>
+                                                <InputGroupAddon align="inline-start">
+                                                    <Building data-icon="inline-start" />
+                                                </InputGroupAddon>
+                                                <InputGroupInput
+                                                    id="room_id"
+                                                    value={formData.room_id}
+                                                    onChange={(e) => setFormData({ ...formData, room_id: e.target.value })}
+                                                    placeholder="e.g., A101"
+                                                    required
+                                                    disabled={!!editingRoom}
+                                                />
+                                            </InputGroup>
+                                        </Field>
+                                        <Field>
+                                            <FieldLabel htmlFor="capacity">Capacity</FieldLabel>
+                                            <InputGroup>
+                                                <InputGroupAddon align="inline-start">
+                                                    <span className="font-bold">#</span>
+                                                </InputGroupAddon>
+                                                <InputGroupInput
+                                                    id="capacity"
+                                                    type="number"
+                                                    value={formData.capacity}
+                                                    onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) || 0 })}
+                                                    placeholder="e.g., 50"
+                                                    required
+                                                    min="1"
+                                                />
+                                            </InputGroup>
+                                        </Field>
+                                    </FieldGroup>
+                                    <div className="flex flex-col gap-3 pt-6">
+                                        <Button
                                             type="submit"
-                                            className="hover:cursor-pointer flex-1 bg-red-600 text-white py-3 px-4 rounded-md hover:bg-red-500 transition-all duration-200 shadow-lg shadow-red-500/30"
+                                            className="w-full"
                                         >
                                             {editingRoom ? 'Update' : 'Add'} Room
-                                        </motion.button>
-                                        <motion.button
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
+                                        </Button>
+                                        <Button
                                             type="button"
+                                            variant="outline"
                                             onClick={() => {
                                                 setShowForm(false);
                                                 setEditingRoom(null);
                                                 setFormData({ room_id: "", capacity: 0 });
                                             }}
-                                            className="hover:cursor-pointer flex-1 bg-zinc-200 dark:bg-zinc-600 text-zinc-700 dark:text-zinc-300 py-3 px-4 rounded-md hover:bg-zinc-300 dark:hover:bg-zinc-500 transition-all duration-200"
+                                            className="w-full"
                                         >
                                             Cancel
-                                        </motion.button>
-                                    </motion.div>
+                                        </Button>
+                                    </div>
                                 </form>
                             </motion.div>
                         </motion.div>

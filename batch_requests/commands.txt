@@ -1,0 +1,26 @@
+# Batch API Requests
+# API Base URL: http://localhost:8000
+
+# Add Faculties
+.\batch_requests\add_faculties.ps1
+
+# Add Degrees
+.\batch_requests\add_degrees.ps1
+
+# Add Rooms
+.\batch_requests\add_rooms.ps1
+
+# Add Student Groups
+.\batch_requests\add_student_groups.ps1
+
+# Add Students
+.\batch_requests\add_students.ps1
+
+# Example: Add a single student
+$user = Invoke-RestMethod -Method Post -Uri "http://localhost:8000/users/" `
+  -ContentType "application/json" `
+  -Body '{"fname": "John", "lname": "Doe", "email": "john.doe@cit.edu.al", "username": "doe.john", "password": "doe.123", "u_role": "student"}'
+
+Invoke-RestMethod -Method Post -Uri "http://localhost:8000/students/" `
+  -ContentType "application/json" `
+  -Body "{""u_id"": $($user.u_id), ""s_status"": ""active"", ""group_id"": 1}"

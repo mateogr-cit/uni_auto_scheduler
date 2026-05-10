@@ -15,22 +15,22 @@ export default function DashboardStats() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/dashboard/stats");
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch dashboard stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchStats();
   }, []);
-
-  const fetchStats = async () => {
-    try {
-      const response = await fetch("http://localhost:8000/dashboard/stats");
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch dashboard stats:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const statsData = stats ? [
     { label: "Total Students", value: stats.total_students.toLocaleString(), icon: Users, color: "text-blue-600 dark:text-blue-500", bg: "bg-blue-100 dark:bg-blue-500/10" },

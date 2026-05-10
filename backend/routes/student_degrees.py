@@ -17,6 +17,22 @@ def create_student_degree(item: StudentDegreeCreate, db: Session = Depends(get_d
     db.refresh(db_item)
     return db_item
 
+@router.post("/student-degrees/bulk", response_model=List[StudentDegree])
+def create_student_degrees_bulk(items: List[StudentDegreeCreate], db: Session = Depends(get_db)):
+    try:
+        result = []
+        for item in items:
+            db_item = DBStudentDegree(**item.dict(), createdAt=datetime.utcnow(), updatedAt=datetime.utcnow())
+            db.add(db_item)
+            result.append(db_item)
+        db.commit()
+        for item in result:
+            db.refresh(item)
+        return result
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Bulk create failed: {str(e)}")
+
 @router.get("/student-degrees/", response_model=List[StudentDegree])
 def read_student_degrees(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     skip, limit = validate_pagination(skip, limit)

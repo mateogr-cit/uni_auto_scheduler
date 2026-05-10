@@ -53,9 +53,9 @@ export default function FacultiesPage() {
     }
   };
 
-  const loadAll = () => {
-    loadFaculty();
-    loadDegrees();
+  const loadAll = async () => {
+    await loadFaculty();
+    await loadDegrees();
   };
 
   useEffect(() => {
@@ -63,12 +63,12 @@ export default function FacultiesPage() {
   }, []);
 
   const setFormValue = useCallback(<T extends object>(setter: Dispatch<SetStateAction<T>>, key: string, value: string | number | boolean) => {
-    setter((current: any) => ({ ...current, [key]: value }));
+    setter((current: T) => ({ ...current, [key]: value }));
   }, []);
 
   const handleSave = async (
     section: string,
-    form: Record<string, any>,
+    form: Record<string, string | number | boolean>,
     createPath: string,
     updatePath: string,
     editId: number | null,

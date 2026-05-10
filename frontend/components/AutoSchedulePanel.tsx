@@ -14,6 +14,9 @@ import {
   Trash2,
   Eye,
 } from "lucide-react";
+import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import type {
   Semester,
   GenerateScheduleResponse,
@@ -152,7 +155,7 @@ export default function AutoSchedulePanel({
         className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-all"
       >
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 bg-red-600 rounded-xl shadow-lg shadow-red-500/20">
+          <div className="p-3 bg-gradient-to-br from-red-600 to-rose-500 rounded-xl shadow-lg shadow-red-500/20">
             <Zap className="w-6 h-6 text-white" />
           </div>
           <div>
@@ -167,23 +170,26 @@ export default function AutoSchedulePanel({
 
         <div className="space-y-4">
           {/* Semester Selection */}
-          <div>
-            <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
-              Select Semester
-            </label>
-            <select
-              value={selectedSemesterId || ""}
-              onChange={(e) => setSelectedSemesterId(parseInt(e.target.value))}
-              className="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none!"
-            >
-              <option value="">-- Select Semester --</option>
-              {semesters.map((s) => (
-                <option key={s.sem_id} value={s.sem_id}>
-                  {s.sem_name} ({s.week_count} weeks)
-                </option>
-              ))}
-            </select>
-          </div>
+          <FieldGroup>
+            <Field>
+              <FieldLabel>Select Semester</FieldLabel>
+              <Select
+                value={selectedSemesterId?.toString() || ""}
+                onValueChange={(value) => setSelectedSemesterId(Number(value))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a semester" />
+                </SelectTrigger>
+                <SelectContent>
+                  {semesters.map((s) => (
+                    <SelectItem key={s.sem_id} value={s.sem_id.toString()}>
+                      {s.sem_name} ({s.week_count} weeks)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          </FieldGroup>
 
           {/* Error Message */}
           {error && (
@@ -204,59 +210,58 @@ export default function AutoSchedulePanel({
 
           {/* Action Buttons */}
           <div className="flex gap-3 flex-wrap">
-            <button
+            <Button
               onClick={handleGenerateSchedule}
               disabled={isGenerating || !selectedSemesterId}
-              className="cursor-pointer px-4 py-2 bg-red-600 hover:bg-red-500 disabled:bg-zinc-400 text-white font-semibold rounded-lg transition-colors flex items-center gap-2 shadow-lg shadow-red-500/20"
             >
               {isGenerating ? (
                 <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <RefreshCcw size={16} className="animate-spin" />
                   Generating...
                 </>
               ) : (
                 <>
-                  <Zap className="w-4 h-4" />
+                  <Zap size={16} />
                   Generate Schedule
                 </>
               )}
-            </button>
+            </Button>
 
-            <button
+            <Button
+              variant="outline"
               onClick={validateSchedule}
               disabled={isValidating || !selectedSemesterId}
-              className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 disabled:bg-zinc-400 disabled:dark:bg-zinc-700 text-zinc-900 dark:text-white font-semibold rounded-lg transition-colors flex items-center gap-2 border border-zinc-300 dark:border-zinc-700 cursor-pointer"
             >
               {isValidating ? (
                 <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <RefreshCcw size={16} className="animate-spin" />
                   Validating...
                 </>
               ) : (
                 <>
-                  <CheckCircle className="w-4 h-4" />
+                  <CheckCircle size={16} />
                   Validate
                 </>
               )}
-            </button>
+            </Button>
 
-            <button
+            <Button
+              variant="outline"
               onClick={handleClearSchedule}
               disabled={isClearing || !selectedSemesterId}
-              className="cursor-pointer px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 disabled:bg-zinc-400 disabled:dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-semibold rounded-lg transition-colors flex items-center gap-2 border border-zinc-300 dark:border-zinc-700"
             >
               {isClearing ? (
                 <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <RefreshCcw size={16} className="animate-spin" />
                   Clearing...
                 </>
               ) : (
                 <>
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 size={16} />
                   Clear Schedule
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </motion.div>
@@ -369,12 +374,13 @@ export default function AutoSchedulePanel({
                 </p>
               </div>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setShowDetails(!showDetails)}
-              className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition cursor-pointer"
             >
-              <Eye className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
-            </button>
+              <Eye size={20} />
+            </Button>
           </div>
 
           {/* Summary Stats */}
@@ -423,7 +429,9 @@ export default function AutoSchedulePanel({
                     key={offeringId}
                     className="border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden"
                   >
-                    <button
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-between"
                       onClick={() =>
                         setExpandedOffering(
                           expandedOffering === parseInt(offeringId)
@@ -431,11 +439,10 @@ export default function AutoSchedulePanel({
                             : parseInt(offeringId)
                         )
                       }
-                      className="cursor-pointer w-full px-4 py-3 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
                     >
                       <div className="flex items-center gap-3 text-left">
                         <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded">
-                          <BookOpen className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+                          <BookOpen size={16} />
                         </div>
                         <div>
                           <div className="font-semibold text-zinc-900 dark:text-white">
@@ -455,7 +462,7 @@ export default function AutoSchedulePanel({
                       >
                         ▼
                       </span>
-                    </button>
+                    </Button>
 
                     {expandedOffering === parseInt(offeringId) && (
                       <div className="border-t border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-4 space-y-2">

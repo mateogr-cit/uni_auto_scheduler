@@ -25,7 +25,7 @@ export default function Home() {
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">Upcoming Schedule</h2>
             <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto">No classes scheduled for the next 24 hours. Start by creating a new schedule or checking the history.</p>
           </div>
-          <button className="cursor-pointer bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-xl font-medium transition-colors shadow-lg shadow-red-500/25">
+          <button className="cursor-pointer bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 text-white px-6 py-2.5 rounded-xl font-medium transition-colors shadow-lg shadow-red-500/25">
             Create Schedule
           </button>
         </div>
@@ -35,7 +35,7 @@ export default function Home() {
           <div className="flex flex-col gap-6">
             {[1, 2, 3, 4].map((_, i) => (
               <div key={i} className="flex gap-4">
-                <div className="w-2 h-2 rounded-full bg-red-500 mt-2 shrink-0" />
+                <div className="w-2 h-2 rounded-full bg-gradient-to-b from-red-500 to-rose-400 mt-2 shrink-0" />
                 <div>
                   <p className="text-sm font-medium text-zinc-900 dark:text-white">New professor added</p>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">Dr. Sarah Johnson was assigned to CS101</p>

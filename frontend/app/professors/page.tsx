@@ -1,10 +1,13 @@
 'use client';
 
-import { Users, Plus, Search, Filter, Edit, Trash2, Mail, User as UserIcon, Calendar, Clock, X, Check, ArrowRight, Settings } from "lucide-react";
+import { Users, Plus, Search, Filter, Edit, Trash2, Mail, User, Calendar, Clock, X, Check, ArrowRight, Settings, ChevronDown, Eye, EyeOff, UserIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import UserFormFields from "../../components/UserFormFields";
 import { toast } from "sonner";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 
 interface User {
     u_id: number;
@@ -45,6 +48,7 @@ export default function ProfessorsPage() {
     const [showForm, setShowForm] = useState(false);
     const [editingProfessor, setEditingProfessor] = useState<User | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     
     // Multi-day availability state
     const [availabilities, setAvailabilities] = useState<Record<string, ProfessorAvailability>>(
@@ -298,7 +302,7 @@ export default function ProfessorsPage() {
                         whileTap={{ scale: 0.98 }}
                         onClick={() => setShowForm(true)}
                         disabled={dataSource === 'dummy'}
-                        className={`cursor-pointer text-white px-6 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 group ${dataSource === 'dummy' ? 'bg-zinc-400 cursor-not-allowed opacity-50' : 'bg-red-600 hover:bg-red-500 shadow-xl shadow-red-500/25'}`}
+                        className={`cursor-pointer text-white px-6 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 group ${dataSource === 'dummy' ? 'bg-zinc-400 cursor-not-allowed opacity-50' : 'bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 shadow-xl shadow-red-500/25'}`}
                     >
                         <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
                         Add New Professor
@@ -329,130 +333,198 @@ export default function ProfessorsPage() {
                         </div>
 
                         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-                            {/* User Fields and Courses in Grid */}
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                <div className="lg:col-span-3">
-                                    <UserFormFields
-                                        formData={formData}
-                                        onChange={handleFormChange}
-                                        editing={!!editingProfessor}
-                                    />
-                                    <div className="flex flex-col gap-2">
-                                    <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">Courses Taught</label>
-
-                                    {/* Dropdown Trigger – Search Input */}
-                                    <div className="relative">
-                                        <div className="relative">
-                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400 pointer-events-none" size={16} />
-                                            <input
-                                                type="text"
-                                                placeholder={selectedCourseIds.length > 0 ? `${selectedCourseIds.length} course${selectedCourseIds.length !== 1 ? 's' : ''} selected – search to refine` : "Click to select courses..."}
-                                                value={courseSearchQuery}
-                                                onFocus={() => { setCourseDropdownOpen(true); setShowAllCourses(false); }}
-                                                onBlur={() => setTimeout(() => setCourseDropdownOpen(false), 150)}
-                                                onChange={(e) => { setCourseSearchQuery(e.target.value); setCourseDropdownOpen(true); setShowAllCourses(false); }}
-                                                className="w-full pl-10 pr-10 py-2.5 bg-white dark:bg-zinc-800 border-2 border-zinc-500 dark:border-zinc-700 rounded-xl outline-none! focus:border-red-500 focus:ring-1 focus:ring-red-500/30 text-sm transition-all cursor-pointer placeholder-zinc-500"
-                                                readOnly={false}
-                                            />
-                                            {/* Chevron indicator */}
-                                            <div className={`absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 transition-transform duration-200 pointer-events-none ${courseDropdownOpen ? 'rotate-180' : ''}`}>
-                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                                            </div>
-                                        </div>
-
-                                        {/* Floating Dropdown */}
-                                        <AnimatePresence>
-                                            {courseDropdownOpen && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: -6, scale: 0.98 }}
-                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                    exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                                                    transition={{ duration: 0.15 }}
-                                                    className="absolute z-50 w-full mt-1.5 bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl shadow-2xl shadow-zinc-900/15 overflow-hidden"
-                                                >
-                                                    <div className="p-2 flex flex-col gap-1">
-                                                        {(() => {
-                                                            const filtered = courses.filter(course =>
-                                                                course.c_name.toLowerCase().includes(courseSearchQuery.toLowerCase()) ||
-                                                                course.c_abbr.toLowerCase().includes(courseSearchQuery.toLowerCase())
-                                                            );
-                                                            const isSearching = courseSearchQuery.length > 0;
-                                                            const visible = (isSearching || showAllCourses) ? filtered : filtered.slice(0, 3);
-                                                            const hidden = filtered.length - 3;
-
-                                                            return (
-                                                                <>
-                                                                    {visible.map(course => (
-                                                                        <label
-                                                                            key={course.c_id}
-                                                                            onMouseDown={(e) => e.preventDefault()}
-                                                                            className="flex items-center gap-3 p-3 bg-white dark:bg-zinc-700/50 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg cursor-pointer transition-all duration-200 group border border-transparent hover:border-red-200 dark:hover:border-red-800"
-                                                                        >
-                                                                            <div className="relative flex items-center justify-center flex-shrink-0">
-                                                                                <input
-                                                                                    type="checkbox"
-                                                                                    checked={selectedCourseIds.includes(course.c_id)}
-                                                                                    onChange={(e) => {
-                                                                                        if (e.target.checked) {
-                                                                                            handleCourseSelection([...selectedCourseIds, course.c_id].map(String));
-                                                                                        } else {
-                                                                                            handleCourseSelection(selectedCourseIds.filter(id => id !== course.c_id).map(String));
-                                                                                        }
-                                                                                    }}
-                                                                                    className="w-5 h-5 rounded-md accent-red-600 cursor-pointer appearance-none bg-white dark:bg-zinc-600 border-2 border-zinc-300 dark:border-zinc-500 checked:bg-red-600 checked:border-red-600 transition-all duration-200"
-                                                                                />
-                                                                                {selectedCourseIds.includes(course.c_id) && (
-                                                                                    <Check size={14} className="absolute text-white pointer-events-none" />
-                                                                                )}
-                                                                            </div>
-                                                                            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
-                                                                                {course.c_name} <span className="text-xs text-zinc-400 dark:text-zinc-500 font-normal">({course.c_abbr})</span>
-                                                                            </span>
-                                                                        </label>
-                                                                    ))}
-
-                                                                    {filtered.length === 0 && (
-                                                                        <div className="p-6 text-center text-zinc-400 dark:text-zinc-500 text-sm">
-                                                                            <div className="text-2xl mb-2">○</div>
-                                                                            No courses found
-                                                                        </div>
-                                                                    )}
-
-                                                                    {!isSearching && hidden > 0 && (
-                                                                        <button
-                                                                            type="button"
-                                                                            onMouseDown={(e) => e.preventDefault()}
-                                                                            onClick={() => setShowAllCourses(prev => !prev)}
-                                                                            className="w-full mt-1 py-2 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors flex items-center justify-center gap-1.5"
-                                                                        >
-                                                                            {showAllCourses ? (
-                                                                                <><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 10l4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg> Show less</>
-                                                                            ) : (
-                                                                                <><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg> Show all {filtered.length} courses</>
-                                                                            )}
-                                                                        </button>
-                                                                    )}
-                                                                </>
-                                                            );
-                                                        })()}
-                                                    </div>
-
-                                                    {selectedCourseIds.length > 0 && (
-                                                        <div className="px-3 py-2 border-t border-zinc-100 dark:border-zinc-700 flex items-center gap-2 text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50/60 dark:bg-red-900/10">
-                                                            <Check size={12} />
-                                                            {selectedCourseIds.length} course{selectedCourseIds.length !== 1 ? 's' : ''} selected
-                                                        </div>
-                                                    )}
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </div>
-                                </div>
-                                </div>
-                                
-                                {/* Courses Section - Right Side */}
-                                
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <Field>
+                                    <FieldLabel htmlFor="fname">First Name</FieldLabel>
+                                    <InputGroup>
+                                        <InputGroupAddon align="inline-start">
+                                            <User data-icon="inline-start" />
+                                        </InputGroupAddon>
+                                        <InputGroupInput
+                                            id="fname"
+                                            placeholder="John"
+                                            value={formData.fname}
+                                            onChange={(e) => handleFormChange('fname', e.target.value)}
+                                            className="capitalize"
+                                            required
+                                        />
+                                    </InputGroup>
+                                </Field>
+                                <Field>
+                                    <FieldLabel htmlFor="lname">Last Name</FieldLabel>
+                                    <InputGroup>
+                                        <InputGroupAddon align="inline-start">
+                                            <User data-icon="inline-start" />
+                                        </InputGroupAddon>
+                                        <InputGroupInput
+                                            id="lname"
+                                            placeholder="Doe"
+                                            value={formData.lname}
+                                            onChange={(e) => handleFormChange('lname', e.target.value)}
+                                            className="capitalize"
+                                            required
+                                        />
+                                    </InputGroup>
+                                </Field>
+                                <Field>
+                                    <FieldLabel htmlFor="email">Email Address</FieldLabel>
+                                    <InputGroup>
+                                        <InputGroupAddon align="inline-start">
+                                            <Mail data-icon="inline-start" />
+                                        </InputGroupAddon>
+                                        <InputGroupInput
+                                            id="email"
+                                            type="email"
+                                            placeholder="john.doe@university.edu"
+                                            value={formData.email}
+                                            onChange={(e) => handleFormChange('email', e.target.value)}
+                                            required
+                                        />
+                                    </InputGroup>
+                                </Field>
+                                <Field>
+                                    <FieldLabel htmlFor="username">Username</FieldLabel>
+                                    <InputGroup>
+                                        <InputGroupAddon align="inline-start">
+                                            <span className="font-bold">@</span>
+                                        </InputGroupAddon>
+                                        <InputGroupInput
+                                            id="username"
+                                            placeholder="jdoe"
+                                            value={formData.username}
+                                            onChange={(e) => handleFormChange('username', e.target.value)}
+                                            required
+                                        />
+                                    </InputGroup>
+                                </Field>
+                                <Field className="md:col-span-2">
+                                    <FieldLabel htmlFor="password">
+                                        {editingProfessor ? "New Password (Optional)" : "Password"}
+                                    </FieldLabel>
+                                    <InputGroup>
+                                        <InputGroupInput
+                                            id="password"
+                                            type={showPassword ? "text" : "password"}
+                                            placeholder="••••••••"
+                                            value={formData.password}
+                                            onChange={(e) => handleFormChange('password', e.target.value)}
+                                            required={!editingProfessor}
+                                        />
+                                        <InputGroupAddon align="inline-end">
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon-xs"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                            >
+                                                {showPassword ? <EyeOff /> : <Eye />}
+                                            </Button>
+                                        </InputGroupAddon>
+                                    </InputGroup>
+                                </Field>
                             </div>
+
+                            <Field>
+                                <FieldLabel htmlFor="courses">Courses Taught</FieldLabel>
+                                <div className="relative">
+                                    <InputGroup>
+                                        <InputGroupAddon align="inline-start">
+                                            <Search data-icon="inline-start" />
+                                        </InputGroupAddon>
+                                        <InputGroupInput
+                                            id="courses"
+                                            placeholder={selectedCourseIds.length > 0 ? `${selectedCourseIds.length} course${selectedCourseIds.length !== 1 ? 's' : ''} selected – search to refine` : "Click to select courses..."}
+                                            value={courseSearchQuery}
+                                            onFocus={() => { setCourseDropdownOpen(true); setShowAllCourses(false); }}
+                                            onBlur={() => setTimeout(() => setCourseDropdownOpen(false), 150)}
+                                            onChange={(e) => { setCourseSearchQuery(e.target.value); setCourseDropdownOpen(true); setShowAllCourses(false); }}
+                                            readOnly={false}
+                                        />
+                                        <InputGroupAddon align="inline-end">
+                                            <ChevronDown className={`transition-transform duration-200 ${courseDropdownOpen ? 'rotate-180' : ''}`} />
+                                        </InputGroupAddon>
+                                    </InputGroup>
+
+                                    <AnimatePresence>
+                                        {courseDropdownOpen && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                                                transition={{ duration: 0.15 }}
+                                                className="absolute z-50 w-full mt-1.5 bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-xl shadow-2xl shadow-zinc-900/15 overflow-hidden"
+                                            >
+                                                <div className="p-2 flex flex-col gap-1">
+                                                    {(() => {
+                                                        const filtered = courses.filter(course =>
+                                                            course.c_name.toLowerCase().includes(courseSearchQuery.toLowerCase()) ||
+                                                            course.c_abbr.toLowerCase().includes(courseSearchQuery.toLowerCase())
+                                                        );
+                                                        const isSearching = courseSearchQuery.length > 0;
+                                                        const visible = (isSearching || showAllCourses) ? filtered : filtered.slice(0, 3);
+                                                        const hidden = filtered.length - 3;
+
+                                                        return (
+                                                            <>
+                                                                {visible.map(course => (
+                                                                    <label
+                                                                        key={course.c_id}
+                                                                        onMouseDown={(e) => e.preventDefault()}
+                                                                        className="flex items-center gap-3 p-3 bg-white dark:bg-zinc-700/50 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg cursor-pointer transition-all duration-200 group border border-transparent hover:border-red-200 dark:hover:border-red-800"
+                                                                    >
+                                                                        <Checkbox
+                                                                            checked={selectedCourseIds.includes(course.c_id)}
+                                                                            onCheckedChange={(checked) => {
+                                                                                if (checked) {
+                                                                                    handleCourseSelection([...selectedCourseIds, course.c_id].map(String));
+                                                                                } else {
+                                                                                    handleCourseSelection(selectedCourseIds.filter(id => id !== course.c_id).map(String));
+                                                                                }
+                                                                            }}
+                                                                        />
+                                                                        <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                                                                            {course.c_name} <span className="text-xs text-zinc-400 dark:text-zinc-500 font-normal">({course.c_abbr})</span>
+                                                                        </span>
+                                                                    </label>
+                                                                ))}
+
+                                                                {filtered.length === 0 && (
+                                                                    <div className="p-6 text-center text-zinc-400 dark:text-zinc-500 text-sm">
+                                                                        <div className="text-2xl mb-2">○</div>
+                                                                        No courses found
+                                                                    </div>
+                                                                )}
+
+                                                                {!isSearching && hidden > 0 && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onMouseDown={(e) => e.preventDefault()}
+                                                                        onClick={() => setShowAllCourses(prev => !prev)}
+                                                                        className="w-full mt-1 py-2 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                                                                    >
+                                                                        {showAllCourses ? (
+                                                                            <><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 10l4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg> Show less</>
+                                                                        ) : (
+                                                                            <><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg> Show all {filtered.length} courses</>
+                                                                        )}
+                                                                    </button>
+                                                                )}
+                                                            </>
+                                                        );
+                                                    })()}
+                                                </div>
+
+                                                {selectedCourseIds.length > 0 && (
+                                                    <div className="px-3 py-2 border-t border-zinc-100 dark:border-zinc-700 flex items-center gap-2 text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50/60 dark:bg-red-900/10">
+                                                        <Check size={12} />
+                                                        {selectedCourseIds.length} course{selectedCourseIds.length !== 1 ? 's' : ''} selected
+                                                    </div>
+                                                )}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            </Field>
 
                             <div className="flex flex-col gap-4">
                                 <div className="flex items-center gap-2 mb-2">
@@ -464,20 +536,20 @@ export default function ProfessorsPage() {
                                         <div key={day} className={`p-4 rounded-2xl border-2 transition-all ${availabilities[day].is_available ? 'bg-red-50/50 dark:bg-red-950/20 border-red-100 dark:border-red-900/50' : 'bg-zinc-50 dark:bg-zinc-800/50 border-transparent opacity-60'}`}>
                                             <div className="flex items-center justify-between mb-3">
                                                 <span className="font-bold text-sm uppercase tracking-wider">{day.substring(0, 3)}</span>
-                                                <input 
-                                                    type="checkbox"
+                                                <Checkbox
                                                     checked={availabilities[day].is_available}
-                                                    onChange={(e) => setAvailabilities({
+                                                    onCheckedChange={(checked) => setAvailabilities({
                                                         ...availabilities,
-                                                        [day]: { ...availabilities[day], is_available: e.target.checked }
+                                                        [day]: { ...availabilities[day], is_available: checked as boolean }
                                                     })}
-                                                    className="w-5 h-5 rounded-lg accent-red-600 cursor-pointer"
                                                 />
                                             </div>
                                             <div className="flex flex-col gap-3">
-                                                <div className="relative">
-                                                    <Clock size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400" />
-                                                    <input 
+                                                <InputGroup>
+                                                    <InputGroupAddon align="inline-start">
+                                                        <Clock data-icon="inline-start" />
+                                                    </InputGroupAddon>
+                                                    <InputGroupInput
                                                         type="time"
                                                         value={availabilities[day].start_time}
                                                         disabled={!availabilities[day].is_available}
@@ -485,12 +557,13 @@ export default function ProfessorsPage() {
                                                             ...availabilities,
                                                             [day]: { ...availabilities[day], start_time: e.target.value }
                                                         })}
-                                                        className="w-full pl-7 pr-2 py-1.5 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg outline-none! focus:ring-1 focus:ring-red-500 disabled:opacity-50"
                                                     />
-                                                </div>
-                                                <div className="relative">
-                                                    <Clock size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400" />
-                                                    <input 
+                                                </InputGroup>
+                                                <InputGroup>
+                                                    <InputGroupAddon align="inline-start">
+                                                        <Clock data-icon="inline-start" />
+                                                    </InputGroupAddon>
+                                                    <InputGroupInput
                                                         type="time"
                                                         value={availabilities[day].end_time}
                                                         disabled={!availabilities[day].is_available}
@@ -498,9 +571,8 @@ export default function ProfessorsPage() {
                                                             ...availabilities,
                                                             [day]: { ...availabilities[day], end_time: e.target.value }
                                                         })}
-                                                        className="w-full pl-7 pr-2 py-1.5 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg outline-none! focus:ring-1 focus:ring-red-500 disabled:opacity-50"
                                                     />
-                                                </div>
+                                                </InputGroup>
                                             </div>
                                         </div>
                                     ))}
@@ -541,7 +613,7 @@ export default function ProfessorsPage() {
                                     fetchCourses();
                                     fetchProfessors();
                                 }}
-                                className="px-3 py-1 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm font-medium transition-colors"
+                                className="px-3 py-1 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 text-white rounded-lg text-sm font-medium transition-colors"
                             >
                                 Retry
                             </button>
@@ -550,14 +622,16 @@ export default function ProfessorsPage() {
                 )}
                 <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 flex flex-col md:flex-row gap-6 items-center justify-between bg-zinc-50/50 dark:bg-zinc-800/30">
                     <div className="relative w-full md:w-[450px]">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400" size={20} />
-                        <input
-                            type="text"
-                            placeholder="Find a professor by name or email..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-4 rounded-xl border-2 border-zinc-500 dark:border-transparent bg-white dark:bg-zinc-900 shadow-sm focus:border-red-500 focus:outline-none! transition-all placeholder-zinc-500"
-                        />
+                        <InputGroup>
+                            <InputGroupAddon align="inline-start">
+                                <Search data-icon="inline-start" />
+                            </InputGroupAddon>
+                            <InputGroupInput
+                                placeholder="Find a professor by name or email..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </InputGroup>
                     </div>
                 </div>
 
@@ -593,7 +667,7 @@ export default function ProfessorsPage() {
                                     className="group p-6 rounded-xl border border-zinc-300 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-red-500/30 dark:hover:border-red-500/30 transition-all hover:shadow-md relative overflow-hidden cursor-pointer"
                                 >
                                     <div className="flex justify-between items-start mb-6">
-                                        <div className="uppercase w-16 h-16 rounded-xl  bg-gradient-to-br from-red-500 to-rose-400  overflow-hidden flex items-center justify-center text-white font-black text-2xl group-hover:bg-red-600 transition-all duration-500">
+                                        <div className="uppercase w-16 h-16 rounded-xl  bg-gradient-to-br from-red-500 to-rose-400  overflow-hidden flex items-center justify-center text-white font-black text-2xl group-hover:from-red-600 group-hover:to-rose-500 transition-all duration-500">
                                             {prof.fname[0]}{prof.lname[0]}
                                         </div>
                                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -637,7 +711,7 @@ export default function ProfessorsPage() {
                                                     key={day} 
                                                     className={`group/day relative w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all border
                                                         ${isAvailable 
-                                                            ? 'bg-red-600 text-white border-red-500 shadow-md shadow-red-500/20' 
+                                                            ? 'bg-gradient-to-br from-red-600 to-rose-500 text-white border-red-500 shadow-md shadow-red-500/20' 
                                                             : 'bg-zinc-50 dark:bg-zinc-800 dark:text-zinc-500 text-zinc-400 border-zinc-100 dark:border-zinc-800'
                                                         }`}
                                                 >

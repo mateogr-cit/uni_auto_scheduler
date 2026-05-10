@@ -3,11 +3,35 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from database import get_db
 from models import CourseOffering as DBCourseOffering, Course, Semester, StudentGroup
-from schemas import CourseOffering
+from schemas import CourseOffering, CourseOfferingCreate
 from typing import List
 from utils import validate_pagination
 
 router = APIRouter()
+
+@router.post("/course-offerings/", response_model=CourseOffering)
+def create_course_offering(item: CourseOfferingCreate, db: Session = Depends(get_db)):
+    db_item = DBCourseOffering(**item.dict())
+    db.add(db_item)
+    db.commit()
+    db.refresh(db_item)
+    return db_item
+
+@router.post("/course-offerings/bulk", response_model=List[CourseOffering])
+def create_course_offerings_bulk(items: List[CourseOfferingCreate], db: Session = Depends(get_db)):
+    try:
+        result = []
+        for item in items:
+            db_item = DBCourseOffering(**item.dict())
+            db.add(db_item)
+            result.append(db_item)
+        db.commit()
+        for item in result:
+            db.refresh(item)
+        return result
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Bulk create failed: {str(e)}")
 
 @router.get("/course-offerings/", response_model=List[CourseOffering])
 def read_course_offerings(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):

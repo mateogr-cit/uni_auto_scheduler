@@ -17,6 +17,22 @@ def create_course_curriculum(item: CourseCurriculumCreate, db: Session = Depends
     db.refresh(db_item)
     return db_item
 
+@router.post("/course-curriculum/bulk", response_model=List[CourseCurriculum])
+def create_course_curriculum_bulk(items: List[CourseCurriculumCreate], db: Session = Depends(get_db)):
+    try:
+        result = []
+        for item in items:
+            db_item = DBCourseCurriculum(**item.dict(), createdAt=datetime.utcnow())
+            db.add(db_item)
+            result.append(db_item)
+        db.commit()
+        for item in result:
+            db.refresh(item)
+        return result
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Bulk create failed: {str(e)}")
+
 @router.get("/course-curriculum/", response_model=List[CourseCurriculum])
 def read_course_curriculum(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     skip, limit = validate_pagination(skip, limit)

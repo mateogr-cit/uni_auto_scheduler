@@ -26,6 +26,26 @@ def create_session_type(session_type: SessionTypeModelCreate, db: Session = Depe
     db.refresh(db_session_type)
     return db_session_type
 
+@router.post("/session-types/bulk", response_model=List[SessionTypeModelSchema])
+def create_session_types_bulk(session_types: List[SessionTypeModelCreate], db: Session = Depends(get_db)):
+    """Create multiple session types."""
+    try:
+        result = []
+        for session_type in session_types:
+            db_session_type = SessionTypeModel(
+                type_name=session_type.type_name,
+                duration_hours=session_type.duration_hours or 2
+            )
+            db.add(db_session_type)
+            result.append(db_session_type)
+        db.commit()
+        for item in result:
+            db.refresh(item)
+        return result
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Bulk create failed: {str(e)}")
+
 @router.get("/session-types/{session_type_id}", response_model=SessionTypeModelSchema)
 def read_session_type(session_type_id: int, db: Session = Depends(get_db)):
     """Get a specific session type."""

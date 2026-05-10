@@ -19,6 +19,28 @@ def create_professor_availability(item: ProfessorAvailabilityCreate, db: Session
     db.refresh(db_item)
     return db_item
 
+@router.post("/professor-availability/bulk", response_model=List[ProfessorAvailability])
+def create_professor_availability_bulk(items: List[ProfessorAvailabilityCreate], db: Session = Depends(get_db)):
+    try:
+        result = []
+        for item in items:
+            professor_user = db.query(DBUser).filter(DBUser.u_id == item.u_id, DBUser.u_role == "professor").first()
+            if professor_user is None:
+                raise HTTPException(status_code=404, detail=f"Professor not found: {item.u_id}")
+            db_item = DBProfessorAvailability(**item.dict())
+            db.add(db_item)
+            result.append(db_item)
+        db.commit()
+        for item in result:
+            db.refresh(item)
+        return result
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Bulk create failed: {str(e)}")
+
 @router.get("/professor-availability/", response_model=List[ProfessorAvailability])
 def read_professor_availability(u_id: Optional[int] = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     skip, limit = validate_pagination(skip, limit)

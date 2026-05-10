@@ -96,7 +96,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                     </motion.div>
                 )}
                 {isCollapsed && (
-                    <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center font-bold text-white mx-auto shadow-lg shadow-red-500/30">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-600 to-rose-500 flex items-center justify-center font-bold text-white mx-auto shadow-lg shadow-red-500/30">
                         S
                     </div>
                 )}
@@ -158,7 +158,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                                             {isActive && (
                                                 <motion.div
                                                     layoutId="active-pill"
-                                                    className="absolute left-0 w-1 h-6 bg-red-500 rounded-r-full"
+                                                    className="absolute left-0 w-1 h-6 bg-gradient-to-b from-red-500 to-rose-400 rounded-r-full"
                                                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                                 />
                                             )}
@@ -201,7 +201,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                         {pathname === '/settings' && (
                             <motion.div
                                 layoutId="active-pill"
-                                className="absolute left-0 w-1 h-6 bg-red-500 rounded-r-full"
+                                className="absolute left-0 w-1 h-6 bg-gradient-to-b from-red-500 to-rose-400 rounded-r-full"
                                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                             />
                         )}

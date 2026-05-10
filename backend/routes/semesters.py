@@ -16,6 +16,22 @@ def create_semester(item: SemesterCreate, db: Session = Depends(get_db)):
     db.refresh(db_item)
     return db_item
 
+@router.post("/semesters/bulk", response_model=List[Semester])
+def create_semesters_bulk(items: List[SemesterCreate], db: Session = Depends(get_db)):
+    try:
+        result = []
+        for item in items:
+            db_item = DBSemester(**item.dict())
+            db.add(db_item)
+            result.append(db_item)
+        db.commit()
+        for item in result:
+            db.refresh(item)
+        return result
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Bulk create failed: {str(e)}")
+
 @router.get("/semesters/", response_model=List[Semester])
 def read_semesters(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     skip, limit = validate_pagination(skip, limit)

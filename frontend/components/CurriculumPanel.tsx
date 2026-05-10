@@ -125,7 +125,7 @@ export default function CurriculumPanel({
                       () => setCourseCurriculumForm({ c_id: 0, degree_id: 0, year_level: 1, is_active: true, semester_number: 1 })
                     )
                   }
-                  className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500 transition cursor-pointer"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-500 px-4 py-2 text-sm font-medium text-white hover:from-red-500 hover:to-rose-400 transition cursor-pointer"
                 >
                   <span className="inline-flex items-center gap-2">+</span> {editCourseCurriculumId ? "Update curriculum" : "Create curriculum"}
                 </button>

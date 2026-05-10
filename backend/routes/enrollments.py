@@ -17,6 +17,22 @@ def create_enrollment(item: EnrollmentCreate, db: Session = Depends(get_db)):
     db.refresh(db_item)
     return db_item
 
+@router.post("/enrollments/bulk", response_model=List[Enrollment])
+def create_enrollments_bulk(items: List[EnrollmentCreate], db: Session = Depends(get_db)):
+    try:
+        result = []
+        for item in items:
+            db_item = DBEnrollment(**item.dict(), enrolledAt=datetime.utcnow())
+            db.add(db_item)
+            result.append(db_item)
+        db.commit()
+        for item in result:
+            db.refresh(item)
+        return result
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Bulk create failed: {str(e)}")
+
 @router.get("/enrollments/", response_model=List[Enrollment])
 def read_enrollments(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     skip, limit = validate_pagination(skip, limit)

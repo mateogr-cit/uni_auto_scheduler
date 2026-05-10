@@ -117,7 +117,7 @@ export default function EnrollmentsPanel({
       {/* Header Section */}
       <div className="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 rounded-xl border border-red-100 dark:border-red-800/50 p-6">
         <div className="flex items-start gap-4">
-          <div className="p-3 bg-red-600 rounded-xl shadow-lg shadow-red-500/30">
+          <div className="p-3 bg-gradient-to-br from-red-600 to-rose-500 rounded-xl shadow-lg shadow-red-500/30">
             <UserCheck size={28} className="text-white" />
           </div>
           <div className="flex-1">

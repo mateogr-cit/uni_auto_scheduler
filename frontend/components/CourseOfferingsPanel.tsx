@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BookOpen, Check, X, Plus, Trash2, Calendar } from "lucide-react";
+import { BookOpen, Check, Plus, Trash2, Calendar } from "lucide-react";
+import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 interface Course {
   c_id: number;
@@ -157,24 +160,26 @@ export default function CourseOfferingsPanel({ semesters, onRefresh }: CourseOff
           <Calendar size={20} />
           Select Semester
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {semesters.map((sem) => (
-            <button
-              key={sem.sem_id}
-              onClick={() => setSelectedSemester(sem.sem_id)}
-              className={`p-4 rounded-xl border-2 transition-all text-left ${
-                selectedSemester === sem.sem_id
-                  ? "border-red-500 bg-red-50 dark:bg-red-500/10"
-                  : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600"
-              }`}
+        <FieldGroup>
+          <Field>
+            <FieldLabel>Semester</FieldLabel>
+            <Select
+              value={selectedSemester?.toString() || ""}
+              onValueChange={(value) => setSelectedSemester(Number(value))}
             >
-              <div className="font-semibold text-zinc-900 dark:text-white">{sem.sem_name}</div>
-              <div className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                {new Date(sem.start_date).toLocaleDateString()} - {new Date(sem.end_date).toLocaleDateString()}
-              </div>
-            </button>
-          ))}
-        </div>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a semester" />
+              </SelectTrigger>
+              <SelectContent>
+                {semesters.map((sem) => (
+                  <SelectItem key={sem.sem_id} value={sem.sem_id.toString()}>
+                    {sem.sem_name} ({new Date(sem.start_date).toLocaleDateString()} - {new Date(sem.end_date).toLocaleDateString()})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        </FieldGroup>
       </div>
 
       {selectedSemester && (
@@ -212,9 +217,9 @@ export default function CourseOfferingsPanel({ semesters, onRefresh }: CourseOff
                     <div className="flex items-center gap-4">
                       <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                         course.is_offered
-                          ? "border-red-500 bg-red-500"
+                          ? "border-red-500 bg-gradient-to-br from-red-500 to-rose-400"
                           : selectedCourses.has(course.c_id)
-                          ? "border-red-500 bg-red-500"
+                          ? "border-red-500 bg-gradient-to-br from-red-500 to-rose-400"
                           : "border-zinc-300 dark:border-zinc-600"
                       }`}>
                         {course.is_offered ? (
@@ -241,10 +246,10 @@ export default function CourseOfferingsPanel({ semesters, onRefresh }: CourseOff
             )}
 
             {selectedCourses.size > 0 && (
-              <button
+              <Button
                 onClick={generateOfferings}
                 disabled={loading}
-                className="mt-4 w-full bg-red-600 hover:bg-red-500 disabled:bg-zinc-400 text-white px-6 py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+                className="mt-4 w-full"
               >
                 {loading ? (
                   "Generating..."
@@ -254,7 +259,7 @@ export default function CourseOfferingsPanel({ semesters, onRefresh }: CourseOff
                     Generate {selectedCourses.size} Course Offering{selectedCourses.size > 1 ? "s" : ""}
                   </>
                 )}
-              </button>
+              </Button>
             )}
           </div>
 
@@ -274,12 +279,13 @@ export default function CourseOfferingsPanel({ semesters, onRefresh }: CourseOff
                         {offering.course_abbr} • {offering.group} • Year {offering.year_level}
                       </div>
                     </div>
-                    <button
+                    <Button
+                      variant="outline"
+                      size="icon"
                       onClick={() => deleteOffering(offering.offering_id)}
-                      className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                     >
                       <Trash2 size={18} />
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>

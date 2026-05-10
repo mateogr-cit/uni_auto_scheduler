@@ -2,6 +2,11 @@ import { type Dispatch, type SetStateAction } from "react";
 import { SectionCard } from "./ScheduleSection";
 import { type Faculty, type Degree, type FormState } from "./schedule-types";
 import { Building2, GraduationCap, Edit, Trash2, Hash, Tag, Plus, X, Search, BookOpen } from "lucide-react";
+import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
+import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 type FacultyPanelProps = {
   faculty: Faculty[];
@@ -52,33 +57,42 @@ export default function FacultyPanel({
       {/* Forms Section */}
       <div className="grid gap-8 xl:grid-cols-2">
         <SectionCard title="Faculty" description="Create and manage academic faculties." icon={Building2}>
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1">Faculty Name</label>
-              <div className="relative group">
-                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
-                <input
-                  className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800/50 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all text-sm font-medium"
-                  placeholder="e.g. Faculty of Computer Science"
-                  value={facultyForm.f_name}
-                  onChange={(event) => setFormValue(setFacultyForm, "f_name", event.target.value)}
-                />
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1">Abbreviation</label>
-              <div className="relative group">
-                <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
-                <input
-                  className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800/50 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all text-sm font-medium"
-                  placeholder="e.g. FCS"
-                  value={facultyForm.f_abbr}
-                  onChange={(event) => setFormValue(setFacultyForm, "f_abbr", event.target.value)}
-                />
-              </div>
-            </div>
+          <div className="flex flex-col gap-6 h-4/5 justify-between">
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="f_name">Faculty Name</FieldLabel>
+                <InputGroup>
+                  <InputGroupAddon align="inline-start">
+                    <Building2 data-icon="inline-start" />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    id="f_name"
+                    placeholder="e.g. Faculty of Computer Science"
+                    value={facultyForm.f_name}
+                    onChange={(event) => setFormValue(setFacultyForm, "f_name", event.target.value)}
+                  />
+                </InputGroup>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="f_abbr">Abbreviation</FieldLabel>
+                <InputGroup>
+                  <InputGroupAddon align="inline-start">
+                    <Tag data-icon="inline-start" />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    id="f_abbr"
+                    placeholder="e.g. FCS"
+                    value={facultyForm.f_abbr}
+                    onChange={(event) => setFormValue(setFacultyForm, "f_abbr", event.target.value)}
+                  />
+                </InputGroup>
+              </Field>
+            </FieldGroup>
             <div className="flex items-center gap-3 pt-2">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="cursor-pointer w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-500 px-5 py-3 text-sm font-semibold text-white hover:from-red-500 hover:to-rose-400 transition shadow-lg shadow-red-500/20 active:scale-95"
                 onClick={() =>
                   handleSave(
                     "Faculty",
@@ -88,23 +102,20 @@ export default function FacultyPanel({
                     editFacultyId,
                     setEditFacultyId,
                     loadFaculty,
-                    () => setFacultyForm({ f_name: "", f_abbr: "" })
-                  )
-                }
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-500 px-6 py-3.5 text-sm font-bold text-white hover:from-red-500 hover:to-rose-400 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-red-500/25 cursor-pointer"
-              >
+                    () => setFacultyForm({ f_name: "", f_abbr: "" }))}
+                    >
                 <Plus size={18} /> {editFacultyId ? "Update Faculty" : "Add Faculty"}
-              </button>
+              </motion.button>
               {editFacultyId && (
-                <button
+                <Button
+                  variant="outline"
                   onClick={() => {
                     setEditFacultyId(null);
                     setFacultyForm({ f_name: "", f_abbr: "" });
                   }}
-                  className="cursor-pointer p-3.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all"
                 >
                   <X size={18} />
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -112,52 +123,57 @@ export default function FacultyPanel({
 
         <SectionCard title="Degree Programme" description="Create degree programmes and link them to faculty." icon={GraduationCap}>
           <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1">Degree Name</label>
-              <div className="relative group">
-                <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
-                <input
-                  className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800/50 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all text-sm font-medium"
-                  placeholder="e.g. Bachelor of Science"
-                  value={degreeForm.d_name}
-                  onChange={(event) => setFormValue(setDegreeForm, "d_name", event.target.value)}
-                />
-              </div>
-            </div>
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1">Faculty</label>
-                <div className="relative group">
-                  <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors pointer-events-none" size={18} />
-                  <select
-                    className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800/50 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all text-sm font-medium appearance-none"
-                    value={degreeForm.f_id ?? 0}
-                    onChange={(event) => setFormValue(setDegreeForm, "f_id", Number(event.target.value))}
-                  >
-                    <option value={0}>Select a faculty</option>
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="d_name">Degree Name</FieldLabel>
+                <InputGroup>
+                  <InputGroupAddon align="inline-start">
+                    <GraduationCap data-icon="inline-start" />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    id="d_name"
+                    placeholder="e.g. Bachelor of Science"
+                    value={degreeForm.d_name}
+                    onChange={(event) => setFormValue(setDegreeForm, "d_name", event.target.value)}
+                  />
+                </InputGroup>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="f_id">Faculty</FieldLabel>
+                <Select
+                  value={degreeForm.f_id?.toString() || "0"}
+                  onValueChange={(value) => setFormValue(setDegreeForm, "f_id", Number(value))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a faculty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Select a faculty</SelectItem>
                     {faculty.map((item) => (
-                      <option key={item.f_id} value={item.f_id}>
+                      <SelectItem key={item.f_id} value={item.f_id.toString()}>
                         {item.f_name} {item.f_abbr ? `(${item.f_abbr})` : ""}
-                      </option>
+                      </SelectItem>
                     ))}
-                  </select>
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider ml-1">Abbreviation</label>
-                <div className="relative group">
-                  <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
-                  <input
-                    className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800/50 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all text-sm font-medium"
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="degree_abbr">Abbreviation</FieldLabel>
+                <InputGroup>
+                  <InputGroupAddon align="inline-start">
+                    <Tag data-icon="inline-start" />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    id="degree_abbr"
                     placeholder="e.g. BSc"
                     value={degreeForm.degree_abbr}
                     onChange={(event) => setFormValue(setDegreeForm, "degree_abbr", event.target.value)}
                   />
-                </div>
-              </div>
-            </div>
+                </InputGroup>
+              </Field>
+            </FieldGroup>
             <div className="flex items-center gap-3 pt-2">
-              <button
+              <motion.button
                 onClick={() =>
                   handleSave(
                     "Degree",
@@ -170,20 +186,21 @@ export default function FacultyPanel({
                     () => setDegreeForm({ d_name: "", f_id: 0, degree_abbr: "" })
                   )
                 }
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-500 px-6 py-3.5 text-sm font-bold text-white hover:from-red-500 hover:to-rose-400 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-red-500/25 cursor-pointer"
+                className="cursor-pointer w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-500 px-5 py-3 text-sm font-semibold text-white hover:from-red-500 hover:to-rose-400 transition shadow-lg shadow-red-500/20 active:scale-95"
               >
                 <Plus size={18} /> {editDegreeId ? "Update Degree" : "Add Degree"}
-              </button>
+              </motion.button>
               {editDegreeId && (
-                <button
+                <Button
+                  variant="outline"
+                  
                   onClick={() => {
                     setEditDegreeId(null);
                     setDegreeForm({ d_name: "", f_id: 0, degree_abbr: "" });
                   }}
-                  className="p-3.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all"
                 >
                   <X size={18} />
-                </button>
+                </Button>
               )}
             </div>
           </div>

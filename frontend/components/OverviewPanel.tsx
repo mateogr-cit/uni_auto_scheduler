@@ -90,7 +90,7 @@ export default function OverviewPanel({ studentGroupsCount, semestersCount, degr
               transition={{ delay: 0.2 + index * 0.05, duration: 0.3 }}
               className="flex items-center gap-3 text-sm text-zinc-600 dark:text-zinc-400 group"
             >
-              <div className="w-5 h-5 rounded-full bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0 border border-red-100 dark:border-red-800 group-hover:bg-red-500 group-hover:border-red-500 transition-colors cursor-pointer">
+              <div className="w-5 h-5 rounded-full bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0 border border-red-100 dark:border-red-800 group-hover:bg-gradient-to-br group-hover:from-red-500 group-hover:to-rose-400 group-hover:border-red-500 transition-colors cursor-pointer">
                 <CheckCircle className="w-3 h-3 text-red-600 dark:text-red-400 group-hover:text-white transition-colors" />
               </div>
               <span className="truncate group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">{prereq}</span>

@@ -1,7 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users2, Plus, Edit, Trash2, GraduationCap, Calendar, Building2, RefreshCcw, Clock } from 'lucide-react';
+import { Users2, Plus, Edit, Trash2, GraduationCap, Calendar, Building2, RefreshCcw, Clock, ChevronDown } from 'lucide-react';
+import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
+import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { toast } from 'sonner';
 
 interface Degree {
   d_id: number;
@@ -38,14 +44,19 @@ export default function StudentGroupsPage() {
   const [degrees, setDegrees] = useState<Degree[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingGroup, setEditingGroup] = useState<StudentGroup | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [availabilities, setAvailabilities] = useState<Record<string, StudentGroupAvailability>>(
     DAYS.reduce((acc, day) => ({
       ...acc,
       [day]: { group_id: 0, day_of_week: day, start_time: "09:00", end_time: "15:00", is_available: true }
     }), {})
   );
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    group_name: string;
+    deg_id: string;
+    year_level: string;
+    semester_number: string;
+    capacity: string;
+  }>({
     group_name: '',
     deg_id: '',
     year_level: '',
@@ -122,16 +133,14 @@ export default function StudentGroupsPage() {
         body: JSON.stringify(availabilityList),
       });
 
-      setStatusMessage(
-        `Student group ${editingGroup ? 'updated' : 'created'} successfully.`
-      );
+      toast.success(`Student group ${editingGroup ? 'updated' : 'created'} successfully.`);
       fetchGroups();
       setShowForm(false);
       setEditingGroup(null);
       resetForm();
     } catch (err) {
       console.error('Failed to save group', err);
-      setStatusMessage('Failed to save student group.');
+      toast.error('Failed to save student group.');
     }
   };
 
@@ -182,11 +191,11 @@ export default function StudentGroupsPage() {
 
       if (!response.ok) throw new Error(`Server error: ${response.status}`);
 
-      setStatusMessage('Student group deleted successfully.');
+      toast.success('Student group deleted successfully.');
       fetchGroups();
     } catch (err) {
       console.error('Failed to delete group', err);
-      setStatusMessage('Failed to delete student group.');
+      toast.error('Failed to delete student group.');
     }
   };
 
@@ -257,13 +266,6 @@ export default function StudentGroupsPage() {
         </div>
       </div>
 
-      {/* Status Message */}
-      {statusMessage && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-700/30 dark:bg-emerald-900/30 dark:text-emerald-200">
-          {statusMessage}
-        </div>
-      )}
-
       {/* Form */}
       {showForm && (
         <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
@@ -271,109 +273,108 @@ export default function StudentGroupsPage() {
             {editingGroup ? 'Edit Student Group' : 'Create Student Group'}
           </h2>
           <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Group Name */}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">
-                  Group Name
-                </label>
-                <div className="relative group">
-                  <Users2 className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
-                  <input
-                    type="text"
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="group_name">Group Name</FieldLabel>
+                <InputGroup>
+                  <InputGroupAddon align="inline-start">
+                    <Users2 data-icon="inline-start" />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    id="group_name"
                     placeholder="e.g., SE1, CS2"
                     value={formData.group_name}
                     onChange={(e) => setFormData({ ...formData, group_name: e.target.value })}
-                    className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all"
                     required
                   />
-                </div>
-              </div>
-
-              {/* Degree */}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">
-                  Degree Programme
-                </label>
-                <div className="relative group">
-                  <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
-                  <select
-                    value={formData.deg_id}
-                    onChange={(e) => setFormData({ ...formData, deg_id: e.target.value })}
-                    className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all appearance-none"
+                </InputGroup>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="deg_id">Degree Programme</FieldLabel>
+                <InputGroup>
+                  <InputGroupAddon align="inline-start">
+                    <GraduationCap data-icon="inline-start" />
+                  </InputGroupAddon>
+                  <Select
+                    value={formData.deg_id || ""}
+                    onValueChange={(value: string) => setFormData({ ...formData, deg_id: value })}
                     required
                   >
-                    <option value="">Select Degree</option>
-                    {degrees.map((deg) => (
-                      <option key={deg.d_id} value={deg.d_id}>
-                        {deg.d_name} ({deg.degree_abbr})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Year Level */}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">
-                  Year Level
-                </label>
-                <div className="relative group">
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
-                  <select
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Degree" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {degrees.map((deg) => (
+                        <SelectItem key={deg.d_id} value={deg.d_id.toString()}>
+                          {deg.d_name} ({deg.degree_abbr})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </InputGroup>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="year_level">Year Level</FieldLabel>
+                <InputGroup>
+                  <InputGroupAddon align="inline-start">
+                    <Calendar data-icon="inline-start" />
+                  </InputGroupAddon>
+                  <Select
                     value={formData.year_level}
-                    onChange={(e) => setFormData({ ...formData, year_level: e.target.value })}
-                    className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all appearance-none"
+                    onValueChange={(value) => setFormData({ ...formData, year_level: value })}
                     required
                   >
-                    <option value="">Select Year</option>
-                    <option value="1">1st Year</option>
-                    <option value="2">2nd Year</option>
-                    <option value="3">3rd Year</option>
-                    <option value="4">4th Year</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Semester */}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">
-                  Semester
-                </label>
-                <div className="relative group">
-                  <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
-                  <select
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1st Year</SelectItem>
+                      <SelectItem value="2">2nd Year</SelectItem>
+                      <SelectItem value="3">3rd Year</SelectItem>
+                      <SelectItem value="4">4th Year</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </InputGroup>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="semester_number">Semester</FieldLabel>
+                <InputGroup>
+                  <InputGroupAddon align="inline-start">
+                    <Building2 data-icon="inline-start" />
+                  </InputGroupAddon>
+                  <Select
                     value={formData.semester_number}
-                    onChange={(e) => setFormData({ ...formData, semester_number: e.target.value })}
-                    className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all appearance-none"
+                    onValueChange={(value) => setFormData({ ...formData, semester_number: value })}
                     required
                   >
-                    <option value="">Select Semester</option>
-                    <option value="1">Semester 1</option>
-                    <option value="2">Semester 2</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Capacity */}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 ml-1">
-                  Capacity
-                </label>
-                <div className="relative group">
-                  <Users2 className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-500 transition-colors" size={18} />
-                  <input
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Semester" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Semester 1</SelectItem>
+                      <SelectItem value="2">Semester 2</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </InputGroup>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="capacity">Capacity</FieldLabel>
+                <InputGroup>
+                  <InputGroupAddon align="inline-start">
+                    <Users2 data-icon="inline-start" />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    id="capacity"
                     type="number"
                     placeholder="e.g., 40"
                     value={formData.capacity}
                     onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                    className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-red-500 focus:bg-white dark:focus:bg-zinc-900 rounded-xl outline-none! transition-all"
                     required
                     min="1"
                   />
-                </div>
-              </div>
-            </div>
+                </InputGroup>
+              </Field>
+            </FieldGroup>
 
             {/* Weekly Availability */}
             <div className="flex flex-col gap-4">
@@ -395,25 +396,22 @@ export default function StudentGroupsPage() {
                       <span className="font-bold text-sm uppercase tracking-wider">
                         {day.substring(0, 3)}
                       </span>
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={availabilities[day].is_available}
-                        onChange={(e) =>
+                        onCheckedChange={(checked) =>
                           setAvailabilities({
                             ...availabilities,
-                            [day]: { ...availabilities[day], is_available: e.target.checked }
+                            [day]: { ...availabilities[day], is_available: checked as boolean }
                           })
                         }
-                        className="w-5 h-5 rounded-lg accent-red-600 cursor-pointer"
                       />
                     </div>
                     <div className="flex flex-col gap-3">
-                      <div className="relative">
-                        <Clock
-                          size={12}
-                          className="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400"
-                        />
-                        <input
+                      <InputGroup>
+                        <InputGroupAddon align="inline-start">
+                          <Clock data-icon="inline-start" />
+                        </InputGroupAddon>
+                        <InputGroupInput
                           type="time"
                           value={availabilities[day].start_time}
                           disabled={!availabilities[day].is_available}
@@ -423,15 +421,13 @@ export default function StudentGroupsPage() {
                               [day]: { ...availabilities[day], start_time: e.target.value }
                             })
                           }
-                          className="w-full pl-7 pr-2 py-1.5 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg outline-none! focus:ring-1 focus:ring-red-500 disabled:opacity-50"
                         />
-                      </div>
-                      <div className="relative">
-                        <Clock
-                          size={12}
-                          className="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400"
-                        />
-                        <input
+                      </InputGroup>
+                      <InputGroup>
+                        <InputGroupAddon align="inline-start">
+                          <Clock data-icon="inline-start" />
+                        </InputGroupAddon>
+                        <InputGroupInput
                           type="time"
                           value={availabilities[day].end_time}
                           disabled={!availabilities[day].is_available}
@@ -441,9 +437,8 @@ export default function StudentGroupsPage() {
                               [day]: { ...availabilities[day], end_time: e.target.value }
                             })
                           }
-                          className="w-full pl-7 pr-2 py-1.5 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg outline-none! focus:ring-1 focus:ring-red-500 disabled:opacity-50"
                         />
-                      </div>
+                      </InputGroup>
                     </div>
                   </div>
                 ))}
