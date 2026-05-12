@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Zap,
-  RefreshCw,
+  RefreshCcw,
   CheckCircle,
   AlertCircle,
   Calendar,
@@ -17,6 +17,7 @@ import {
 import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import type {
   Semester,
   GenerateScheduleResponse,
@@ -48,6 +49,7 @@ export default function AutoSchedulePanel({
   const [error, setError] = useState<string | null>(null);
   const [expandedOffering, setExpandedOffering] = useState<number | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
   const handleGenerateSchedule = async () => {
     if (!selectedSemesterId) {
@@ -108,8 +110,11 @@ export default function AutoSchedulePanel({
 
   const handleClearSchedule = async () => {
     if (!selectedSemesterId) return;
+    setClearDialogOpen(true);
+  };
 
-    if (!confirm("Are you sure you want to clear the schedule?")) return;
+  const handleClearConfirm = async () => {
+    if (!selectedSemesterId) return;
 
     setIsClearing(true);
     setError(null);
@@ -519,6 +524,17 @@ export default function AutoSchedulePanel({
           </p>
         </motion.div>
       )}
+
+      <ConfirmDialog
+        open={clearDialogOpen}
+        onOpenChange={setClearDialogOpen}
+        title="Clear Schedule"
+        description="Are you sure you want to clear the schedule? This will remove all generated sessions and cannot be undone."
+        onConfirm={handleClearConfirm}
+        confirmText="Clear Schedule"
+        cancelText="Cancel"
+        variant="danger"
+      />
     </div>
   );
 }

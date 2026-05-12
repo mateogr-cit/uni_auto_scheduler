@@ -13,19 +13,31 @@ import {
     Settings,
     Building,
     School,
-    Users2
+    Users2,
+    Eye,
+    GraduationCap,
+    Bell
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useEffect, useState as useClientState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import NotificationsPanel from './NotificationsPanel';
 
 const menuGroups = [
     {
         label: 'Main',
         items: [
             { icon: LayoutDashboard, label: 'Dashboard', href: '/' },
+        ],
+    },
+    {
+        label: 'Views',
+        items: [
+            { icon: GraduationCap, label: 'Student View', href: '/student-view' },
+            { icon: Eye, label: 'Professor View', href: '/professor-view' },
         ],
     },
     {
@@ -61,6 +73,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
     const pathname = usePathname();
     const { theme } = useTheme();
     const [mounted, setMounted] = useClientState(false);
+    const [notificationsOpen, setNotificationsOpen] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -99,6 +112,18 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-600 to-rose-500 flex items-center justify-center font-bold text-white mx-auto shadow-lg shadow-red-500/30">
                         S
                     </div>
+                )}
+                {!isCollapsed && (
+                    <button
+                        onClick={() => setNotificationsOpen(true)}
+                        className={`p-2 rounded-lg transition-colors ${
+                            theme === 'dark'
+                                ? 'hover:bg-zinc-800 text-zinc-400 hover:text-white'
+                                : 'hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900'
+                        }`}
+                    >
+                        <Bell size={20} />
+                    </button>
                 )}
             </div>
 
@@ -216,6 +241,21 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                     {!isCollapsed && <span className="font-medium text-sm">Logout</span>}
                 </button>
             </div>
+
+            {/* Notifications Panel */}
+            <Dialog open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+                <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden flex flex-col">
+                    <DialogHeader>
+                        <DialogTitle className="text-zinc-900 dark:text-white">
+                            Notifications
+                        </DialogTitle>
+                        <DialogDescription className="text-zinc-600 dark:text-zinc-400">
+                            View all complaints and unavailability requests
+                        </DialogDescription>
+                    </DialogHeader>
+                    <NotificationsPanel />
+                </DialogContent>
+            </Dialog>
         </motion.aside>
     );
 }

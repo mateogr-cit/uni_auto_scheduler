@@ -11,7 +11,25 @@
       "WebFetch(domain:ui.shadcn.com)",
       "Bash(python -m py_compile routes/degrees.py routes/faculty.py routes/users.py routes/semesters.py routes/session_types.py routes/student_degrees.py routes/enrollments.py routes/course_offerings.py routes/course_curriculum.py routes/student_group_availability.py routes/professor_availability.py)",
       "Bash(npm run *)",
-      "Bash(npx shadcn@latest add dialog)"
+      "Bash(npx shadcn@latest add dialog)",
+      "Bash(timeout 10 bash *)",
+      "Bash(curl -s http://localhost:8000/degrees/)",
+      "Bash(curl -s http://localhost:8000/professors/)",
+      "Bash(curl -s http://localhost:8000/student-groups/)",
+      "Bash(curl -s http://localhost:8000/faculty/)",
+      "Bash(python -c \"from database import engine; from sqlalchemy import text; with engine.connect\\(\\) as conn: result = conn.execute\\(text\\('SELECT * FROM degrees'\\)\\); print\\([dict\\(row\\) for row in result]\\)\")",
+      "Bash(netstat -ano)",
+      "Bash(findstr :8000)",
+      "Bash(where python *)",
+      "Bash(\"C:\\\\Users\\\\User\\\\AppData\\\\Local\\\\Microsoft\\\\WindowsApps\\\\python.exe\" -c \"from database import engine; from sqlalchemy import text; with engine.connect\\(\\) as conn: result = conn.execute\\(text\\('SELECT * FROM courses'\\)\\); print\\([dict\\(row\\) for row in result]\\)\")",
+      "Bash(curl *)",
+      "Bash(python -c \"from database import SessionLocal; from models import Degree; db = SessionLocal\\(\\); degrees = db.query\\(Degree\\).all\\(\\); print\\(f'Degrees count: {len\\(degrees\\)}'\\); [print\\(f'{d.d_id}: {d.d_name}'\\) for d in degrees]; db.close\\(\\)\")",
+      "Bash(py -c \"from database import SessionLocal; from models import Degree; db = SessionLocal\\(\\); degrees = db.query\\(Degree\\).all\\(\\); print\\(f'Degrees count: {len\\(degrees\\)}'\\); [print\\(f'{d.d_id}: {d.d_name}'\\) for d in degrees]; db.close\\(\\)\")",
+      "Bash(pwsh -ExecutionPolicy Bypass -File add_degrees.ps1)",
+      "Bash(py -c \"from database import SessionLocal; from models import Course; db = SessionLocal\\(\\); courses = db.query\\(Course\\).all\\(\\); print\\(f'Courses count: {len\\(courses\\)}'\\); [print\\(f'{c.c_id}: {c.c_name}'\\) for c in courses]; db.close\\(\\)\")",
+      "Bash(py -c \"from database import SessionLocal; from models import Prof, User; db = SessionLocal\\(\\); profs = db.query\\(Prof\\).all\\(\\); users = db.query\\(User\\).filter\\(User.u_role == 'professor'\\).all\\(\\); print\\(f'Professors count: {len\\(profs\\)}'\\); print\\(f'Professor users count: {len\\(users\\)}'\\); [print\\(f'Prof: {p.u_id}'\\) for p in profs]; [print\\(f'User: {u.u_id} - {u.fname} {u.lname}'\\) for u in users]; db.close\\(\\)\")",
+      "Bash(py main.py)",
+      "Bash(npx tsc *)"
     ]
   }
 }

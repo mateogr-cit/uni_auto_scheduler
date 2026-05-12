@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface Room {
     room_id: string;
@@ -19,6 +20,8 @@ export default function RoomsPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [formData, setFormData] = useState({ room_id: "", capacity: 0 });
     const [loading, setLoading] = useState(true);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [roomToDelete, setRoomToDelete] = useState<string | null>(null);
 
     const fetchRooms = async () => {
         try {
@@ -65,15 +68,22 @@ export default function RoomsPage() {
     };
 
     const handleDelete = async (room_id: string) => {
-        if (confirm('Are you sure you want to delete this room?')) {
-            try {
-                const response = await fetch(`http://localhost:8000/rooms/${room_id}`, { method: 'DELETE' });
-                if (response.ok) {
-                    fetchRooms();
-                }
-            } catch (error) {
-                console.error('Error deleting room:', error);
+        setRoomToDelete(room_id);
+        setDeleteDialogOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!roomToDelete) return;
+        try {
+            const response = await fetch(`http://localhost:8000/rooms/${roomToDelete}`, { method: 'DELETE' });
+            if (response.ok) {
+                fetchRooms();
             }
+        } catch (error) {
+            console.error('Error deleting room:', error);
+        } finally {
+            setDeleteDialogOpen(false);
+            setRoomToDelete(null);
         }
     };
 
@@ -294,6 +304,17 @@ export default function RoomsPage() {
                     )}
                 </AnimatePresence>
             </div>
+
+            <ConfirmDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                title="Delete Room"
+                description="Are you sure you want to delete this room? This action cannot be undone."
+                onConfirm={confirmDelete}
+                confirmText="Delete"
+                cancelText="Cancel"
+                variant="danger"
+            />
         </div>
     );
 }

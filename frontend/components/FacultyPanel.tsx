@@ -1,4 +1,4 @@
-import { type Dispatch, type SetStateAction } from "react";
+import { type Dispatch, type SetStateAction, useState } from "react";
 import { SectionCard } from "./ScheduleSection";
 import { type Faculty, type Degree, type FormState } from "./schedule-types";
 import { Building2, GraduationCap, Edit, Trash2, Hash, Tag, Plus, X, Search, BookOpen } from "lucide-react";
@@ -7,6 +7,7 @@ import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/in
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 type FacultyPanelProps = {
   faculty: Faculty[];
@@ -52,6 +53,27 @@ export default function FacultyPanel({
   handleSave,
   handleDelete,
 }: FacultyPanelProps) {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletePath, setDeletePath] = useState<string | null>(null);
+  const [deleteItemLabel, setDeleteItemLabel] = useState<string | null>(null);
+  const [deleteRefresh, setDeleteRefresh] = useState<(() => void) | null>(null);
+
+  const handleDeleteClick = (path: string, refresh: () => void, itemLabel: string) => {
+    setDeletePath(path);
+    setDeleteRefresh(() => refresh);
+    setDeleteItemLabel(itemLabel);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletePath || !deleteRefresh) return;
+    await handleDelete(deletePath, deleteRefresh, deleteItemLabel || "");
+    setDeleteDialogOpen(false);
+    setDeletePath(null);
+    setDeleteItemLabel(null);
+    setDeleteRefresh(null);
+  };
+
   return (
     <div className="flex flex-col gap-12">
       {/* Forms Section */}
@@ -261,7 +283,7 @@ export default function FacultyPanel({
                         <Edit size={18} />
                       </button>
                       <button
-                        onClick={() => handleDelete(`/faculty/${fac.f_id}`, loadFaculty, fac.f_name)}
+                        onClick={() => handleDeleteClick(`/faculty/${fac.f_id}`, loadFaculty, fac.f_name)}
                         className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all border border-transparent hover:border-red-100/50 cursor-pointer"
                       >
                         <Trash2 size={18} />
@@ -317,7 +339,7 @@ export default function FacultyPanel({
                                 <Edit size={14} />
                               </button>
                               <button
-                                onClick={() => handleDelete(`/degrees/${deg.d_id}`, loadDegrees, deg.d_name)}
+                                onClick={() => handleDeleteClick(`/degrees/${deg.d_id}`, loadDegrees, deg.d_name)}
                                 className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all cursor-pointer"
                               >
                                 <Trash2 size={14} />

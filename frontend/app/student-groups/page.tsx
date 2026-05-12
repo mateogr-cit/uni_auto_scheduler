@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users2, Plus, Edit, Trash2, GraduationCap, Calendar, Building2, RefreshCcw, Clock, ChevronDown } from 'lucide-react';
+import { Users2, Plus, Edit, Trash2, GraduationCap, Calendar, RefreshCcw, Clock, ChevronDown } from 'lucide-react';
 import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { toast } from 'sonner';
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Degree {
   d_id: number;
@@ -44,6 +46,9 @@ export default function StudentGroupsPage() {
   const [degrees, setDegrees] = useState<Degree[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingGroup, setEditingGroup] = useState<StudentGroup | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [groupToDelete, setGroupToDelete] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
   const [availabilities, setAvailabilities] = useState<Record<string, StudentGroupAvailability>>(
     DAYS.reduce((acc, day) => ({
       ...acc,
@@ -72,6 +77,7 @@ export default function StudentGroupsPage() {
   }, []);
 
   const fetchGroups = async () => {
+    setLoading(true);
     try {
       const response = await fetch(`${API_BASE}/student-groups/`);
       if (!response.ok) throw new Error(`Server error: ${response.status}`);
@@ -79,6 +85,8 @@ export default function StudentGroupsPage() {
       setGroups(data);
     } catch (err) {
       console.error('Failed to fetch groups', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -182,10 +190,15 @@ export default function StudentGroupsPage() {
   };
 
   const handleDelete = async (groupId: number) => {
-    if (!confirm('Are you sure you want to delete this student group?')) return;
+    setGroupToDelete(groupId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!groupToDelete) return;
 
     try {
-      const response = await fetch(`${API_BASE}/student-groups/${groupId}`, {
+      const response = await fetch(`${API_BASE}/student-groups/${groupToDelete}`, {
         method: 'DELETE',
       });
 
@@ -196,6 +209,9 @@ export default function StudentGroupsPage() {
     } catch (err) {
       console.error('Failed to delete group', err);
       toast.error('Failed to delete student group.');
+    } finally {
+      setDeleteDialogOpen(false);
+      setGroupToDelete(null);
     }
   };
 
@@ -291,27 +307,22 @@ export default function StudentGroupsPage() {
               </Field>
               <Field>
                 <FieldLabel htmlFor="deg_id">Degree Programme</FieldLabel>
-                <InputGroup>
-                  <InputGroupAddon align="inline-start">
-                    <GraduationCap data-icon="inline-start" />
-                  </InputGroupAddon>
-                  <Select
-                    value={formData.deg_id || ""}
-                    onValueChange={(value: string) => setFormData({ ...formData, deg_id: value })}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Degree" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {degrees.map((deg) => (
-                        <SelectItem key={deg.d_id} value={deg.d_id.toString()}>
-                          {deg.d_name} ({deg.degree_abbr})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </InputGroup>
+                <Select
+                  value={formData.deg_id || ""}
+                  onValueChange={(value: string) => setFormData({ ...formData, deg_id: value })}
+                  required
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Degree" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {degrees.map((deg) => (
+                      <SelectItem key={deg.d_id} value={deg.d_id.toString()}>
+                        {deg.d_name} ({deg.degree_abbr})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
               <Field>
                 <FieldLabel htmlFor="year_level">Year Level</FieldLabel>
@@ -338,24 +349,19 @@ export default function StudentGroupsPage() {
               </Field>
               <Field>
                 <FieldLabel htmlFor="semester_number">Semester</FieldLabel>
-                <InputGroup>
-                  <InputGroupAddon align="inline-start">
-                    <Building2 data-icon="inline-start" />
-                  </InputGroupAddon>
-                  <Select
-                    value={formData.semester_number}
-                    onValueChange={(value) => setFormData({ ...formData, semester_number: value })}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Semester" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">Semester 1</SelectItem>
-                      <SelectItem value="2">Semester 2</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </InputGroup>
+                <Select
+                  value={formData.semester_number}
+                  onValueChange={(value) => setFormData({ ...formData, semester_number: value })}
+                  required
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Semester" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Semester 1</SelectItem>
+                    <SelectItem value="2">Semester 2</SelectItem>
+                  </SelectContent>
+                </Select>
               </Field>
               <Field>
                 <FieldLabel htmlFor="capacity">Capacity</FieldLabel>
@@ -468,9 +474,46 @@ export default function StudentGroupsPage() {
         </div>
       )}
 
+      {/* Loading Skeleton */}
+      {loading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="w-12 h-12 rounded-xl" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Skeleton className="w-8 h-8 rounded-lg" />
+                  <Skeleton className="w-8 h-8 rounded-lg" />
+                </div>
+              </div>
+              <div className="flex flex-col gap-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Groups Grid */}
-      {groups.length === 0 ? (
-        <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-12 flex flex-col items-center justify-center text-center flex flex-col gap-4">
+      {!loading && (groups.length === 0 ? (
+        <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-12 flex flex-col items-center justify-center text-center gap-4">
           <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center">
             <Users2 className="text-zinc-400" size={32} />
           </div>
@@ -561,7 +604,7 @@ export default function StudentGroupsPage() {
               setEditingGroup(null);
               resetForm();
             }}
-            className="cursor-pointer border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-zinc-400 group flex flex-col gap-2 border-zinc-200 dark:border-zinc-800 hover:border-red-500/50 hover:text-red-500 transition-all min-h-[200px]"
+            className="cursor-pointer border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-zinc-400 group gap-2 border-zinc-200 dark:border-zinc-800 hover:border-red-500/50 hover:text-red-500 transition-all min-h-[200px]"
           >
             <div className="w-12 h-12 rounded-full border-2 border-dashed border-zinc-200 dark:border-zinc-800 flex items-center justify-center group-hover:border-red-500/50">
               <Plus size={24} />
@@ -569,7 +612,18 @@ export default function StudentGroupsPage() {
             <span className="font-medium">Add New Group</span>
           </button>
         </div>
-      )}
+      ))}
+    
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Student Group"
+        description="Are you sure you want to delete this student group? This action cannot be undone."
+        onConfirm={confirmDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+      />
     </div>
   );
 }

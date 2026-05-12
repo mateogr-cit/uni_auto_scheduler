@@ -5,6 +5,7 @@ import { BookOpen, Check, Plus, Trash2, Calendar } from "lucide-react";
 import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface Course {
   c_id: number;
@@ -41,6 +42,8 @@ export default function CourseOfferingsPanel({ semesters, onRefresh }: CourseOff
   const [existingOfferings, setExistingOfferings] = useState<Offering[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [offeringToDelete, setOfferingToDelete] = useState<number | null>(null);
 
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -133,10 +136,15 @@ export default function CourseOfferingsPanel({ semesters, onRefresh }: CourseOff
   };
 
   const deleteOffering = async (offeringId: number) => {
-    if (!confirm("Are you sure you want to delete this offering?")) return;
+    setOfferingToDelete(offeringId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (offeringToDelete === null) return;
 
     try {
-      const response = await fetch(`${API_BASE}/course-offerings/${offeringId}`, {
+      const response = await fetch(`${API_BASE}/course-offerings/${offeringToDelete}`, {
         method: "DELETE",
       });
 
@@ -149,6 +157,8 @@ export default function CourseOfferingsPanel({ semesters, onRefresh }: CourseOff
     } catch (error) {
       console.error("Error deleting offering:", error);
       setMessage({ type: "error", text: "Failed to delete offering" });
+    } finally {
+      setOfferingToDelete(null);
     }
   };
 
@@ -305,6 +315,17 @@ export default function CourseOfferingsPanel({ semesters, onRefresh }: CourseOff
           {message.text}
         </div>
       )}
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Course Offering"
+        description="Are you sure you want to delete this course offering? This action cannot be undone."
+        onConfirm={handleDeleteConfirm}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+      />
     </div>
   );
 }

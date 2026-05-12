@@ -67,6 +67,13 @@ class ProfUpdate(BaseModel):
     course_ids: Optional[List[int]] = None
 
 class Prof(ProfBase):
+    fname: str
+    lname: str
+    email: str
+    username: str
+    u_role: UserRole
+    createdAt: datetime
+    updatedAt: datetime
     courses: List["Course"] = []
 
     class Config:
@@ -136,20 +143,6 @@ class StudentGroup(StudentGroupBase):
     class Config:
         from_attributes = True
 
-# Complaints schemas
-class ComplaintsBase(BaseModel):
-    u_id: int
-    comp_text: str
-
-class ComplaintsCreate(ComplaintsBase):
-    pass
-
-class Complaints(ComplaintsBase):
-    comp_id: int
-    createdAt: datetime
-
-    class Config:
-        from_attributes = True
 
 # Course schemas
 class CourseBase(BaseModel):
@@ -160,7 +153,6 @@ class CourseBase(BaseModel):
     c_semester: int
     is_active: bool = True
     degree_id: Optional[int] = None
-    semester_id: Optional[int] = None
 
 class CourseCreate(CourseBase):
     degree_ids: Optional[List[int]] = None
@@ -174,7 +166,6 @@ class CourseUpdate(BaseModel):
     is_active: Optional[bool] = None
     degree_id: Optional[int] = None
     degree_ids: Optional[List[int]] = None
-    semester_id: Optional[int] = None
 
 class Course(CourseBase):
     c_id: int
@@ -259,56 +250,9 @@ class TimeSlots(TimeSlotsBase):
     class Config:
         from_attributes = True
 
-# OfferingSchedule schemas
-class OfferingScheduleBase(BaseModel):
-    offering_id: int
-    room_id: str
-    slot_id: int
-    session_type_id: Optional[int] = None
-    s_status: Optional[str] = None
 
-class OfferingScheduleCreate(OfferingScheduleBase):
-    pass
 
-class OfferingSchedule(OfferingScheduleBase):
-    schedule_id: int
-    createdAt: datetime
-    updatedAt: datetime
 
-    class Config:
-        from_attributes = True
-
-# OfferingProfessors schemas
-class OfferingProfessorsBase(BaseModel):
-    offering_id: int
-    u_id: int
-
-class OfferingProfessorsCreate(OfferingProfessorsBase):
-    pass
-
-class OfferingProfessors(OfferingProfessorsBase):
-    offering_prof_id: int
-
-    class Config:
-        from_attributes = True
-
-# ProfessorUnavailability schemas
-class ProfessorUnavailabilityBase(BaseModel):
-    u_id: int
-    date: date
-    start_time: time
-    end_time: time
-    reason: Optional[str] = None
-
-class ProfessorUnavailabilityCreate(ProfessorUnavailabilityBase):
-    pass
-
-class ProfessorUnavailability(ProfessorUnavailabilityBase):
-    id: int
-    createdAt: datetime
-
-    class Config:
-        from_attributes = True
 
 # StudentGroupAvailability schemas
 class StudentGroupAvailabilityBase(BaseModel):
@@ -409,6 +353,42 @@ class CourseCurriculumCreate(CourseCurriculumBase):
 
 class CourseCurriculum(CourseCurriculumBase):
     course_year_id: int
+    createdAt: datetime
+
+    class Config:
+        from_attributes = True
+
+# Complaints schemas
+class ComplaintBase(BaseModel):
+    u_id: int
+    comp_text: str
+
+class ComplaintCreate(BaseModel):
+    comp_text: str
+
+class Complaint(ComplaintBase):
+    comp_id: int
+    createdAt: datetime
+
+    class Config:
+        from_attributes = True
+
+# ProfessorUnavailability schemas
+class ProfessorUnavailabilityBase(BaseModel):
+    u_id: int
+    date: date
+    start_time: time
+    end_time: time
+    reason: Optional[str] = None
+
+class ProfessorUnavailabilityCreate(BaseModel):
+    date: date
+    start_time: time
+    end_time: time
+    reason: Optional[str] = None
+
+class ProfessorUnavailability(ProfessorUnavailabilityBase):
+    id: int
     createdAt: datetime
 
     class Config:

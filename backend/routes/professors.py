@@ -44,7 +44,7 @@ def create_professor(prof: ProfCreate, db: Session = Depends(get_db)):
         _assign_professor_courses(db, prof.u_id, prof.course_ids)
         db.commit()
         db.refresh(db_prof)
-        return db.query(DBProf).options(joinedload(DBProf.courses)).filter(DBProf.u_id == db_prof.u_id).first()
+        return db.query(DBProf).options(joinedload(DBProf.user), joinedload(DBProf.courses)).filter(DBProf.u_id == db_prof.u_id).first()
 
     if not prof.fname or not prof.lname or not prof.email or not prof.username or not prof.password:
         raise HTTPException(status_code=400, detail="Missing user fields for new professor")
@@ -68,7 +68,7 @@ def create_professor(prof: ProfCreate, db: Session = Depends(get_db)):
     _assign_professor_courses(db, new_user.u_id, prof.course_ids)
     db.commit()
     db.refresh(db_prof)
-    return db.query(DBProf).options(joinedload(DBProf.courses)).filter(DBProf.u_id == new_user.u_id).first()
+    return db.query(DBProf).options(joinedload(DBProf.user), joinedload(DBProf.courses)).filter(DBProf.u_id == new_user.u_id).first()
 
 
 @router.post("/professors/bulk", response_model=List[Prof])
@@ -120,7 +120,7 @@ def create_professors_bulk(profs: List[ProfCreate], db: Session = Depends(get_db
         # Fetch all created professors with their courses
         result = []
         for u_id in result_profs:
-            prof_obj = db.query(DBProf).options(joinedload(DBProf.courses)).filter(DBProf.u_id == u_id).first()
+            prof_obj = db.query(DBProf).options(joinedload(DBProf.user), joinedload(DBProf.courses)).filter(DBProf.u_id == u_id).first()
             if prof_obj:
                 result.append(prof_obj)
         
@@ -135,12 +135,12 @@ def create_professors_bulk(profs: List[ProfCreate], db: Session = Depends(get_db
 @router.get("/professors/", response_model=List[Prof])
 def read_professors(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     skip, limit = validate_pagination(skip, limit)
-    professors = db.query(DBProf).options(joinedload(DBProf.courses)).offset(skip).limit(limit).all()
+    professors = db.query(DBProf).options(joinedload(DBProf.user), joinedload(DBProf.courses)).offset(skip).limit(limit).all()
     return professors
 
 @router.get("/professors/{prof_id}", response_model=Prof)
 def read_professor(prof_id: int, db: Session = Depends(get_db)):
-    db_prof = db.query(DBProf).options(joinedload(DBProf.courses)).filter(DBProf.u_id == prof_id).first()
+    db_prof = db.query(DBProf).options(joinedload(DBProf.user), joinedload(DBProf.courses)).filter(DBProf.u_id == prof_id).first()
     if db_prof is None:
         raise HTTPException(status_code=404, detail="Professor not found")
     return db_prof
@@ -162,7 +162,7 @@ def update_professor(prof_id: int, prof: ProfUpdate, db: Session = Depends(get_d
     _assign_professor_courses(db, prof_id, prof.course_ids)
     db.commit()
     db.refresh(db_prof)
-    return db.query(DBProf).options(joinedload(DBProf.courses)).filter(DBProf.u_id == prof_id).first()
+    return db.query(DBProf).options(joinedload(DBProf.user), joinedload(DBProf.courses)).filter(DBProf.u_id == prof_id).first()
 
 
 @router.patch("/professors/{prof_id}", response_model=Prof)
@@ -179,7 +179,7 @@ def patch_professor(prof_id: int, prof: ProfUpdate, db: Session = Depends(get_db
     _assign_professor_courses(db, prof_id, prof.course_ids)
     db.commit()
     db.refresh(db_prof)
-    return db.query(DBProf).options(joinedload(DBProf.courses)).filter(DBProf.u_id == prof_id).first()
+    return db.query(DBProf).options(joinedload(DBProf.user), joinedload(DBProf.courses)).filter(DBProf.u_id == prof_id).first()
 
 
 @router.delete("/professors/{prof_id}")

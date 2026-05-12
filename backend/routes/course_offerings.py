@@ -6,6 +6,9 @@ from models import CourseOffering as DBCourseOffering, Course, Semester, Student
 from schemas import CourseOffering, CourseOfferingCreate
 from typing import List
 from utils import validate_pagination
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -208,14 +211,52 @@ def generate_offerings_for_semester(semester_id: int, request: dict = Body(...),
 @router.delete("/course-offerings/{offering_id}")
 def delete_offering(offering_id: int, db: Session = Depends(get_db)):
     """Delete a specific course offering."""
+    logger.info(f"Attempting to delete course offering: {offering_id}")
     offering = db.query(DBCourseOffering).filter(
         DBCourseOffering.offering_id == offering_id
     ).first()
 
     if offering is None:
+        logger.warning(f"Course offering not found for deletion: {offering_id}")
         raise HTTPException(status_code=404, detail="Offering not found")
 
-    db.delete(offering)
-    db.commit()
+    try:
+        # Delete related records first
+        from models import OfferingSchedule, OfferingProfessors, Enrollment
 
-    return {"status": "success", "message": f"Offering {offering_id} deleted"}
+        # Delete schedules for this offering
+        schedules = db.query(OfferingSchedule).filter(
+            OfferingSchedule.offering_id == offering_id
+        ).all()
+        if schedules:
+            logger.info(f"Deleting {len(schedules)} schedule records for offering: {offering_id}")
+            for schedule in schedules:
+                db.delete(schedule)
+
+        # Delete offering professors for this offering
+        offering_profs = db.query(OfferingProfessors).filter(
+            OfferingProfessors.offering_id == offering_id
+        ).all()
+        if offering_profs:
+            logger.info(f"Deleting {len(offering_profs)} offering professor records for offering: {offering_id}")
+            for offering_prof in offering_profs:
+                db.delete(offering_prof)
+
+        # Delete enrollments for this offering
+        enrollments = db.query(Enrollment).filter(
+            Enrollment.offering_id == offering_id
+        ).all()
+        if enrollments:
+            logger.info(f"Deleting {len(enrollments)} enrollment records for offering: {offering_id}")
+            for enrollment in enrollments:
+                db.delete(enrollment)
+
+        # Delete the offering
+        db.delete(offering)
+        db.commit()
+        logger.info(f"Course offering deleted successfully: {offering_id}")
+        return {"status": "success", "message": f"Offering {offering_id} deleted"}
+    except Exception as e:
+        logger.error(f"Error deleting course offering {offering_id}: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete offering: {str(e)}")

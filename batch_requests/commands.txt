@@ -16,11 +16,75 @@
 # Add Students
 .\batch_requests\add_students.ps1
 
-# Example: Add a single student
-$user = Invoke-RestMethod -Method Post -Uri "http://localhost:8000/users/" `
-  -ContentType "application/json" `
-  -Body '{"fname": "John", "lname": "Doe", "email": "john.doe@cit.edu.al", "username": "doe.john", "password": "doe.123", "u_role": "student"}'
+# Add Courses
+.\batch_requests\add_courses.ps1
 
-Invoke-RestMethod -Method Post -Uri "http://localhost:8000/students/" `
+# Add Professors
+.\batch_requests\add_professors.ps1
+
+# Add Semesters
+.\batch_requests\add_semesters.ps1
+
+# Add Session Types
+.\batch_requests\add_session_types.ps1
+
+# Add Time Slots
+.\batch_requests\add_time_slots.ps1
+
+# Add Professor Availability
+.\batch_requests\add_professor_availability.ps1
+
+# Add Course Curriculum
+.\batch_requests\add_course_curriculum.ps1
+
+# Add Course Offerings
+.\batch_requests\add_course_offerings.ps1
+
+# Add Enrollments
+.\batch_requests\add_enrollments.ps1
+
+# Run all scripts in parallel
+.\batch_requests\run_all.ps1
+
+# Example: Add a single course
+Invoke-RestMethod -Method Post -Uri "http://localhost:8000/courses/" `
   -ContentType "application/json" `
-  -Body "{""u_id"": $($user.u_id), ""s_status"": ""active"", ""group_id"": 1}"
+  -Body '{"c_name": "Course Name", "c_abbr": "ABBR", "c_difficulty_weight": 3, "c_year": 1, "c_semester": 1, "degree_ids": [1]}'
+
+# Example: Add a single semester
+Invoke-RestMethod -Method Post -Uri "http://localhost:8000/semesters/" `
+  -ContentType "application/json" `
+  -Body '{"sem_name": "Fall 2024", "start_date": "2024-09-01", "end_date": "2025-01-15", "is_special_semester": false, "week_count": 15}'
+
+# Example: Add a single session type
+Invoke-RestMethod -Method Post -Uri "http://localhost:8000/session-types/" `
+  -ContentType "application/json" `
+  -Body '{"type_name": "Lecture", "duration_hours": 2}'
+
+# Example: Add a single time slot
+Invoke-RestMethod -Method Post -Uri "http://localhost:8000/time-slots/" `
+  -ContentType "application/json" `
+  -Body '{"day_of_week": "Monday", "start_time": "08:00", "end_time": "10:00"}'
+
+# Example: Add a single professor availability
+Invoke-RestMethod -Method Post -Uri "http://localhost:8000/professor-availability/" `
+  -ContentType "application/json" `
+  -Body '{"u_id": 1, "day_of_week": "Monday", "start_time": "08:00", "end_time": "18:00", "is_available": true}'
+
+# Example: Add a single course curriculum entry
+Invoke-RestMethod -Method Post -Uri "http://localhost:8000/course-curriculum/" `
+  -ContentType "application/json" `
+  -Body '{"c_id": 1, "degree_id": 1, "year_level": 1, "is_active": true, "semester_number": 1}'
+
+# Example: Add a single course offering
+Invoke-RestMethod -Method Post -Uri "http://localhost:8000/course-offerings/" `
+  -ContentType "application/json" `
+  -Body '{"c_id": 1, "sem_id": 1, "max_students": 30, "group_id": 1, "hrs_per_week": 4}'
+
+# Example: Add a single enrollment
+Invoke-RestMethod -Method Post -Uri "http://localhost:8000/enrollments/" `
+  -ContentType "application/json" `
+  -Body '{"offering_id": 1, "u_id": 1}'
+
+# Example: Auto-enroll all students to all offerings
+Invoke-RestMethod -Method Post -Uri "http://localhost:8000/enrollments/auto/"

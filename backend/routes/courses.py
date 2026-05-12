@@ -6,6 +6,9 @@ from schemas import CourseCreate, CourseUpdate, Course
 from typing import List
 from utils import validate_pagination
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -24,6 +27,7 @@ def create_curriculum_entries(db: Session, course_id: int, degree_ids: List[int]
 
 @router.post("/courses/", response_model=Course)
 def create_course(course: CourseCreate, db: Session = Depends(get_db)):
+    logger.info(f"Creating course: {course.c_abbr}")
     # Filter out degree_ids from dict to avoid validation errors
     course_data = course.dict(exclude={"degree_ids"})
     db_course = DBCourse(**course_data)
@@ -33,19 +37,20 @@ def create_course(course: CourseCreate, db: Session = Depends(get_db)):
 
     # Create CourseCurriculum entries
     degree_ids = course.degree_ids or (([course.degree_id] if course.degree_id else []))
-    
-    if degree_ids and course.semester_id:
+
+    if degree_ids:
         create_curriculum_entries(
-            db, 
-            db_course.c_id, 
-            degree_ids, 
-            course.c_year, 
-            course.semester_id, 
+            db,
+            db_course.c_id,
+            degree_ids,
+            course.c_year,
+            course.c_semester,
             course.is_active
         )
         db.commit()
 
     db.refresh(db_course)
+    logger.info(f"Course created successfully: {db_course.c_id}")
     return db_course
 
 @router.post("/courses/bulk", response_model=List[Course])
@@ -60,18 +65,18 @@ def create_courses_bulk(courses: List[CourseCreate], db: Session = Depends(get_d
 
             # Create CourseCurriculum entries for multiple degrees
             degree_ids = course.degree_ids or (([course.degree_id] if course.degree_id else []))
-            if degree_ids and course.semester_id:
+            if degree_ids:
                 create_curriculum_entries(
-                    db, 
-                    db_course.c_id, 
-                    degree_ids, 
-                    course.c_year, 
-                    course.semester_id, 
+                    db,
+                    db_course.c_id,
+                    degree_ids,
+                    course.c_year,
+                    course.c_semester,
                     course.is_active
                 )
-            
+
             result.append(db_course)
-        
+
         db.commit()
         # Refresh all to ensure we have the latest data
         for item in result:
@@ -118,24 +123,24 @@ def update_course(course_id: int, course: CourseUpdate, db: Session = Depends(ge
         joinedload(DBCourse.degree),
         joinedload(DBCourse.course_curricula).joinedload(CourseCurriculum.degree)
     ).filter(DBCourse.c_id == course_id).first()
-    
+
     if db_course is None:
         raise HTTPException(status_code=404, detail="Course not found")
-    
+
     # Handle degree_ids separately
     update_data = course.dict(exclude_none=True, exclude={"degree_ids"})
-    
+
     # Handle multiple degrees if provided
     if course.degree_ids is not None:
         # Delete existing curriculum entries
         db.query(CourseCurriculum).filter(CourseCurriculum.c_id == course_id).delete()
-        
+
         # Create new curriculum entries
         if course.degree_ids:
-            semester_number = update_data.get('semester_id', db_course.semester_id)
+            semester_number = update_data.get('c_semester', db_course.c_semester)
             year_level = update_data.get('c_year', db_course.c_year)
             is_active = update_data.get('is_active', db_course.is_active)
-            
+
             if semester_number and year_level:
                 create_curriculum_entries(
                     db,
@@ -145,23 +150,23 @@ def update_course(course_id: int, course: CourseUpdate, db: Session = Depends(ge
                     semester_number,
                     is_active
                 )
-    
+
     for key, value in update_data.items():
         setattr(db_course, key, value)
-    
+
     db.commit()
     db.refresh(db_course)
-    
+
     # Reload relationships
     db_course = db.query(DBCourse).options(
         joinedload(DBCourse.degree),
         joinedload(DBCourse.course_curricula).joinedload(CourseCurriculum.degree)
     ).filter(DBCourse.c_id == course_id).first()
-    
+
     # Set degrees from course_curricula
     if db_course.course_curricula:
         db_course.degrees = [cc.degree for cc in db_course.course_curricula if cc.degree]
-    
+
     return db_course
 
 @router.patch("/courses/{course_id}/toggle-active", response_model=Course)
@@ -186,9 +191,66 @@ def toggle_course_active(course_id: int, db: Session = Depends(get_db)):
 
 @router.delete("/courses/{course_id}")
 def delete_course(course_id: int, db: Session = Depends(get_db)):
+    logger.info(f"Attempting to delete course: {course_id}")
     db_course = db.query(DBCourse).filter(DBCourse.c_id == course_id).first()
     if db_course is None:
+        logger.warning(f"Course not found for deletion: {course_id}")
         raise HTTPException(status_code=404, detail="Course not found")
-    db.delete(db_course)
-    db.commit()
-    return {"message": "Course deleted"}
+
+    try:
+        # Delete related records first
+        from models import (
+            CourseCurriculum, CourseOffering, OfferingSchedule,
+            OfferingProfessors, Enrollment
+        )
+
+        # Delete course curriculum entries
+        curricula = db.query(CourseCurriculum).filter(CourseCurriculum.c_id == course_id).all()
+        if curricula:
+            logger.info(f"Deleting {len(curricula)} curriculum records for course: {course_id}")
+            for curriculum in curricula:
+                db.delete(curriculum)
+
+        # Delete course offerings and their related records
+        offerings = db.query(CourseOffering).filter(CourseOffering.c_id == course_id).all()
+        if offerings:
+            logger.info(f"Deleting {len(offerings)} course offerings for course: {course_id}")
+            for offering in offerings:
+                # Delete schedules for this offering
+                schedules = db.query(OfferingSchedule).filter(
+                    OfferingSchedule.offering_id == offering.offering_id
+                ).all()
+                if schedules:
+                    logger.info(f"Deleting {len(schedules)} schedule records for offering: {offering.offering_id}")
+                    for schedule in schedules:
+                        db.delete(schedule)
+
+                # Delete offering professors for this offering
+                offering_profs = db.query(OfferingProfessors).filter(
+                    OfferingProfessors.offering_id == offering.offering_id
+                ).all()
+                if offering_profs:
+                    logger.info(f"Deleting {len(offering_profs)} offering professor records for offering: {offering.offering_id}")
+                    for offering_prof in offering_profs:
+                        db.delete(offering_prof)
+
+                # Delete enrollments for this offering
+                enrollments = db.query(Enrollment).filter(
+                    Enrollment.offering_id == offering.offering_id
+                ).all()
+                if enrollments:
+                    logger.info(f"Deleting {len(enrollments)} enrollment records for offering: {offering.offering_id}")
+                    for enrollment in enrollments:
+                        db.delete(enrollment)
+
+                db.delete(offering)
+
+        # Delete the course record
+        db.delete(db_course)
+        db.commit()
+        logger.info(f"Course deleted successfully: {course_id}")
+        return {"message": "Course deleted"}
+    except Exception as e:
+        logger.error(f"Error deleting course {course_id}: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete course: {str(e)}")

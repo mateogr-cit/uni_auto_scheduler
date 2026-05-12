@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, type Dispatch, type SetStateAction } 
 import FacultyPanel from "@/components/FacultyPanel";
 import { type Faculty, type Degree, type FormState } from "@/components/schedule-types";
 import { RefreshCcw, School } from "lucide-react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const API_BASE = "http://localhost:8000";
 
@@ -17,6 +18,10 @@ export default function FacultiesPage() {
 
   const [editFacultyId, setEditFacultyId] = useState<number | null>(null);
   const [editDegreeId, setEditDegreeId] = useState<number | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletePath, setDeletePath] = useState<string | null>(null);
+  const [deleteItemLabel, setDeleteItemLabel] = useState<string | null>(null);
+  const [deleteRefresh, setDeleteRefresh] = useState<(() => void) | null>(null);
 
   const [facultyForm, setFacultyForm] = useState<FormState<typeof emptyFaculty>>(emptyFaculty);
   const [degreeForm, setDegreeForm] = useState<FormState<typeof emptyDegree>>(emptyDegree);
@@ -92,13 +97,26 @@ export default function FacultiesPage() {
   };
 
   const handleDelete = async (path: string, refresh: () => void, itemLabel: string) => {
+    setDeletePath(path);
+    setDeleteRefresh(() => refresh);
+    setDeleteItemLabel(itemLabel);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletePath || !deleteRefresh) return;
     try {
-      await apiFetch(path, { method: "DELETE" });
-      setStatusMessage(`${itemLabel} deleted successfully.`);
-      refresh();
+      await apiFetch(deletePath, { method: "DELETE" });
+      setStatusMessage(`${deleteItemLabel} deleted successfully.`);
+      deleteRefresh();
     } catch (error) {
       console.error(error);
-      setStatusMessage(`Unable to delete ${itemLabel.toLowerCase()}.`);
+      setStatusMessage(`Unable to delete ${deleteItemLabel?.toLowerCase()}.`);
+    } finally {
+      setDeleteDialogOpen(false);
+      setDeletePath(null);
+      setDeleteItemLabel(null);
+      setDeleteRefresh(null);
     }
   };
 
@@ -148,6 +166,17 @@ export default function FacultiesPage() {
         setFormValue={setFormValue}
         handleSave={handleSave}
         handleDelete={handleDelete}
+      />
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title={`Delete ${deleteItemLabel}`}
+        description={`Are you sure you want to delete this ${deleteItemLabel?.toLowerCase()}? This action cannot be undone.`}
+        onConfirm={confirmDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
       />
     </div>
   );

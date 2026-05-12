@@ -13,7 +13,9 @@ from .course_curriculum import router as course_curriculum_router
 from .course_offerings import router as course_offerings_router
 from .enrollments import router as enrollments_router
 from .session_types import router as session_types_router
+from .time_slots import router as time_slots_router
 from .migrations import router as migrations_router
+from .complaints import router as complaints_router
 
 __all__ = [
     "users_router",
@@ -31,5 +33,7 @@ __all__ = [
     "course_offerings_router",
     "enrollments_router",
     "session_types_router",
+    "time_slots_router",
     "migrations_router",
+    "complaints_router",
 ]

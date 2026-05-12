@@ -1,6 +1,6 @@
 'use client';
 
-import { User, Plus, Search, Edit, Trash2, CheckCircle, Users, Mail, Eye, EyeOff, GraduationCap, ChevronDown } from "lucide-react";
+import { User, Plus, Search, Edit, Trash2, CheckCircle, Users, Mail, Eye, EyeOff, GraduationCap, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface User {
     u_id: number;
@@ -39,15 +40,23 @@ export default function StudentsPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({ fname: "", lname: "", email: "", username: "", password: "", s_status: "active", group_id: null as number | null });
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [studentToDelete, setStudentToDelete] = useState<number | null>(null);
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalStudents, setTotalStudents] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const ITEMS_PER_PAGE = 100;
 
     useEffect(() => {
         fetchStudents();
         fetchGroups();
-    }, []);
+    }, [currentPage]);
 
     const fetchStudents = async () => {
+        setLoading(true);
         try {
-            const usersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/`);
+            const skip = currentPage * ITEMS_PER_PAGE;
+            const usersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/?skip=${skip}&limit=${ITEMS_PER_PAGE}`);
             const users: User[] = await usersResponse.json();
             const studentsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/students/`);
             const studentsData: Student[] = await studentsResponse.json();
@@ -56,8 +65,11 @@ export default function StudentsPage() {
                 return student ? { ...u, ...student } : null;
             }).filter(Boolean) as (User & Student)[];
             setStudents(studentUsers);
+            setTotalStudents(studentsData.length);
         } catch (error) {
             console.error('Error fetching students:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -146,11 +158,14 @@ export default function StudentsPage() {
     };
 
     const handleDelete = async (u_id: number) => {
-        if (!confirm('Are you sure you want to delete this student?')) {
-            return;
-        }
+        setStudentToDelete(u_id);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (studentToDelete === null) return;
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/${u_id}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/${studentToDelete}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
             });
@@ -161,6 +176,8 @@ export default function StudentsPage() {
         } catch (error: any) {
             console.error('Error deleting student:', error);
             toast.error(`Error deleting student: ${error.message}`);
+        } finally {
+            setStudentToDelete(null);
         }
     };
 
@@ -286,7 +303,7 @@ export default function StudentsPage() {
                                     onValueChange={(value) => setFormData({ ...formData, s_status: value })}
                                 >
                                     <SelectTrigger>
-                                        <InputGroup>
+                                        <InputGroup noBorder>
                                             <InputGroupAddon align="inline-start">
                                                 <CheckCircle data-icon="inline-start" />
                                             </InputGroupAddon>
@@ -305,13 +322,8 @@ export default function StudentsPage() {
                                     value={formData.group_id?.toString() || ""}
                                     onValueChange={(value) => setFormData({ ...formData, group_id: value ? parseInt(value) : null })}
                                 >
-                                    <SelectTrigger>
-                                        <InputGroup>
-                                            <InputGroupAddon align="inline-start">
-                                                <Users data-icon="inline-start" />
-                                            </InputGroupAddon>
-                                            <SelectValue placeholder="Select group" />
-                                        </InputGroup>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select group" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="">No Group</SelectItem>
@@ -456,8 +468,61 @@ export default function StudentsPage() {
                             })}
                         </div>
                     )}
+
+                    {/* Pagination */}
+                    {totalStudents > ITEMS_PER_PAGE && (
+                        <div className="flex items-center justify-between pt-6 border-t border-zinc-100 dark:border-zinc-800">
+                            <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                                Showing {currentPage * ITEMS_PER_PAGE + 1} to {Math.min((currentPage + 1) * ITEMS_PER_PAGE, totalStudents)} of {totalStudents} students
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                                    disabled={currentPage === 0}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                >
+                                    <ChevronLeft size={16} />
+                                    Previous
+                                </button>
+                                <div className="flex items-center gap-1">
+                                    {Array.from({ length: Math.ceil(totalStudents / ITEMS_PER_PAGE) }, (_, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setCurrentPage(i)}
+                                            className={`w-10 h-10 rounded-lg font-medium transition-all cursor-pointer ${
+                                                currentPage === i
+                                                    ? 'bg-red-600 text-white'
+                                                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                                            }`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.min(Math.ceil(totalStudents / ITEMS_PER_PAGE) - 1, p + 1))}
+                                    disabled={currentPage >= Math.ceil(totalStudents / ITEMS_PER_PAGE) - 1}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                >
+                                    Next
+                                    <ChevronRight size={16} />
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
+
+            <ConfirmDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                title="Delete Student"
+                description="Are you sure you want to delete this student? This action cannot be undone."
+                onConfirm={handleDeleteConfirm}
+                confirmText="Delete"
+                cancelText="Cancel"
+                variant="danger"
+            />
         </div>
     );
 }

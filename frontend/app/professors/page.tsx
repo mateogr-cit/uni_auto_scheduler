@@ -1,6 +1,6 @@
 'use client';
 
-import { Users, Plus, Search, Filter, Edit, Trash2, Mail, User, Calendar, Clock, X, Check, ArrowRight, Settings, ChevronDown, Eye, EyeOff, UserIcon } from "lucide-react";
+import { Users, Plus, Search, Edit, Trash2, Mail, User, Calendar, Clock, X, Check, ArrowRight, Settings, ChevronDown, Eye, EyeOff, UserIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -8,8 +8,9 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
-interface User {
+interface Professor {
     u_id: number;
     fname: string;
     lname: string;
@@ -18,6 +19,8 @@ interface User {
     u_role: string;
     createdAt: string;
     updatedAt: string;
+    availability?: ProfessorAvailability[];
+    courses?: Course[];
 }
 
 interface Course {
@@ -39,16 +42,18 @@ interface ProfessorAvailability {
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] as const;
 
 export default function ProfessorsPage() {
-    const [professors, setProfessors] = useState<(User & { availability?: ProfessorAvailability[]; courses?: Course[] })[]>([]);
+    const [professors, setProfessors] = useState<Professor[]>([]);
     const [courses, setCourses] = useState<Course[]>([]);
     const [selectedCourseIds, setSelectedCourseIds] = useState<number[]>([]);
     const [courseSearchQuery, setCourseSearchQuery] = useState("");
     const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
     const [showAllCourses, setShowAllCourses] = useState(false);
     const [showForm, setShowForm] = useState(false);
-    const [editingProfessor, setEditingProfessor] = useState<User | null>(null);
+    const [editingProfessor, setEditingProfessor] = useState<Professor | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [professorToDelete, setProfessorToDelete] = useState<number | null>(null);
     
     // Multi-day availability state
     const [availabilities, setAvailabilities] = useState<Record<string, ProfessorAvailability>>(
@@ -61,7 +66,6 @@ export default function ProfessorsPage() {
     const [formData, setFormData] = useState({ fname: "", lname: "", email: "", username: "", password: "" });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [dataSource, setDataSource] = useState<'database' | 'dummy'>('database');
 
     useEffect(() => {
         fetchCourses();
@@ -93,26 +97,21 @@ export default function ProfessorsPage() {
     const fetchProfessors = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/`);
-            if (!response.ok) {
-                throw new Error(`Failed to fetch users: ${response.status}`);
+            const profsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professors/`);
+            if (!profsResponse.ok) {
+                throw new Error(`Failed to fetch professors: ${profsResponse.status}`);
             }
-            const data: User[] = await response.json();
-            const professorsData = data.filter(u => u.u_role === "professor");
+            const profsData = await profsResponse.json();
 
-            // Fetch availability and courses for each professor
-            const professorsWithDetails = await Promise.all(professorsData.map(async (prof) => {
+            const professorsWithDetails = await Promise.all(profsData.map(async (prof: any) => {
                 try {
                     const availResp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professor-availability?u_id=${prof.u_id}`);
                     const availData = availResp.ok ? await availResp.json() : [];
 
-                    const courseResp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professors/${prof.u_id}`);
-                    const profData = courseResp.ok ? await courseResp.json() : { courses: [] };
-
-                    return { ...prof, availability: availData, courses: profData.courses ?? [] };
+                    return { ...prof, availability: availData };
                 } catch (err) {
-                    console.error(`Error fetching details for professor ${prof.u_id}:`, err);
-                    return { ...prof, availability: [], courses: [] };
+                    console.error(`Error fetching availability for professor ${prof.u_id}:`, err);
+                    return { ...prof, availability: [] };
                 }
             }));
 
@@ -144,10 +143,6 @@ export default function ProfessorsPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (dataSource === 'dummy') {
-            toast.error('Cannot modify professors while using dummy data. Switch to database mode.');
-            return;
-        }
         const userData: any = { fname: formData.fname, lname: formData.lname, email: formData.email, username: formData.username, u_role: "professor" };
         if (formData.password || !editingProfessor) {
             userData.password = formData.password;
@@ -228,11 +223,7 @@ export default function ProfessorsPage() {
         }), {}));
     };
 
-    const handleEdit = async (prof: User) => {
-        if (dataSource === 'dummy') {
-            toast.error('Cannot edit professors while using dummy data. Switch to database mode.');
-            return;
-        }
+    const handleEdit = async (prof: Professor) => {
         setEditingProfessor(prof);
         setFormData({ fname: prof.fname, lname: prof.lname, email: prof.email, username: prof.username, password: "" });
 
@@ -266,17 +257,21 @@ export default function ProfessorsPage() {
     };
 
     const handleDelete = async (id: number) => {
-        if (dataSource === 'dummy') {
-            toast.error('Cannot delete professors while using dummy data. Switch to database mode.');
-            return;
-        }
-        if (!confirm("Are you sure you want to delete this professor?")) return;
-        
+        setProfessorToDelete(id);
+        setDeleteDialogOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!professorToDelete) return;
+
         try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/${id}`, { method: "DELETE" });
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/${professorToDelete}`, { method: "DELETE" });
             fetchProfessors();
         } catch (error) {
             console.error("Error deleting professor:", error);
+        } finally {
+            setDeleteDialogOpen(false);
+            setProfessorToDelete(null);
         }
     };
 
@@ -301,8 +296,7 @@ export default function ProfessorsPage() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => setShowForm(true)}
-                        disabled={dataSource === 'dummy'}
-                        className={`cursor-pointer text-white px-6 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 group ${dataSource === 'dummy' ? 'bg-zinc-400 cursor-not-allowed opacity-50' : 'bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 shadow-xl shadow-red-500/25'}`}
+                        className="cursor-pointer text-white px-6 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 group bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 shadow-xl shadow-red-500/25"
                     >
                         <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
                         Add New Professor
@@ -668,13 +662,13 @@ export default function ProfessorsPage() {
                                 >
                                     <div className="flex justify-between items-start mb-6">
                                         <div className="uppercase w-16 h-16 rounded-xl  bg-gradient-to-br from-red-500 to-rose-400  overflow-hidden flex items-center justify-center text-white font-black text-2xl group-hover:from-red-600 group-hover:to-rose-500 transition-all duration-500">
-                                            {prof.fname[0]}{prof.lname[0]}
+                                            {prof.fname?.[0] || ''}{prof.lname?.[0] || ''}
                                         </div>
                                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => handleEdit(prof)} disabled={dataSource === 'dummy'} className={`p-2 rounded-xl transition-colors ${dataSource === 'dummy' ? "text-zinc-300 cursor-not-allowed opacity-50" : "hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 cursor-pointer"}`}>
+                                            <button onClick={() => handleEdit(prof)} className="p-2 rounded-xl transition-colors hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 cursor-pointer">
                                                 <Edit size={18} />
                                             </button>
-                                            <button onClick={() => handleDelete(prof.u_id)} disabled={dataSource === 'dummy'} className={`p-2 rounded-xl transition-colors ${dataSource === 'dummy' ? "text-zinc-300 cursor-not-allowed opacity-50" : "hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"}`}>
+                                            <button onClick={() => handleDelete(prof.u_id)} className="p-2 rounded-xl transition-colors hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500">
                                                 <Trash2 size={18} />
                                             </button>
                                         </div>
@@ -741,6 +735,17 @@ export default function ProfessorsPage() {
                     )}
                 </div>
             </div>
+
+            <ConfirmDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                title="Delete Professor"
+                description="Are you sure you want to delete this professor? This action cannot be undone."
+                onConfirm={confirmDelete}
+                confirmText="Delete"
+                cancelText="Cancel"
+                variant="danger"
+            />
         </div>
     );
 }

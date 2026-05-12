@@ -25,10 +25,12 @@ from models import (
     SessionType,
     DayOfWeek,
 )
-from schemas import OfferingSchedule as OfferingScheduleSchema
 from datetime import datetime, timedelta
 from typing import List, Optional
 import random
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -112,10 +114,12 @@ def generate_schedule(semester_id: int, db: Session = Depends(get_db)):
     4. Create lecture (2hr) and seminar (2hr) sessions
     5. Allocate rooms based on group capacity
     """
+    logger.info(f"Starting schedule generation for semester_id: {semester_id}")
 
     # Verify semester exists
     semester = db.query(Semester).filter(Semester.sem_id == semester_id).first()
     if semester is None:
+        logger.warning(f"Semester not found: {semester_id}")
         raise HTTPException(status_code=404, detail="Semester not found")
 
     # Get all active course curriculum entries for this semester
@@ -127,6 +131,7 @@ def generate_schedule(semester_id: int, db: Session = Depends(get_db)):
     ).all()
 
     if not curriculum_entries:
+        logger.warning(f"No active courses found for semester: {semester_id}")
         raise HTTPException(
             status_code=404, detail="No active courses found for this semester"
         )
@@ -140,6 +145,7 @@ def generate_schedule(semester_id: int, db: Session = Depends(get_db)):
     ).first()
 
     if lecture_type is None or seminar_type is None:
+        logger.error("Session types not properly configured")
         raise HTTPException(
             status_code=500, detail="Session types not properly configured"
         )
@@ -151,6 +157,7 @@ def generate_schedule(semester_id: int, db: Session = Depends(get_db)):
         for curriculum in curriculum_entries:
             course = db.query(Course).filter(Course.c_id == curriculum.c_id).first()
             if course is None:
+                logger.warning(f"Course not found for curriculum entry: {curriculum.c_id}")
                 continue
 
             # Get all student groups matching year level and degree
@@ -190,7 +197,7 @@ def generate_schedule(semester_id: int, db: Session = Depends(get_db)):
                 professors = db.query(Prof).all()
                 if professors:
                     assigned_prof = professors[0]  # Simple assignment; can be improved
-                    
+
                     # Check if professor already assigned
                     existing_assignment = db.query(OfferingProfessors).filter(
                         and_(
@@ -278,6 +285,7 @@ def generate_schedule(semester_id: int, db: Session = Depends(get_db)):
                                 break
 
         db.commit()
+        logger.info(f"Schedule generation completed: {len(created_offerings)} offerings created")
 
         return {
             "status": "success",
@@ -289,6 +297,7 @@ def generate_schedule(semester_id: int, db: Session = Depends(get_db)):
         }
 
     except Exception as e:
+        logger.error(f"Error generating schedule: {str(e)}")
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error generating schedule: {str(e)}")
 

@@ -6,6 +6,9 @@ from models import StudentGroup as DBStudentGroup, StudentGroupAvailability as D
 from schemas import StudentGroupCreate, StudentGroup
 from typing import List
 from utils import validate_pagination
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -87,9 +90,89 @@ def update_student_group(group_id: int, item: StudentGroupCreate, db: Session = 
 
 @router.delete("/student-groups/{group_id}")
 def delete_student_group(group_id: int, db: Session = Depends(get_db)):
+    logger.info(f"Attempting to delete student group: {group_id}")
     db_item = db.query(DBStudentGroup).filter(DBStudentGroup.group_id == group_id).first()
     if db_item is None:
+        logger.warning(f"Student group not found for deletion: {group_id}")
         raise HTTPException(status_code=404, detail="Student group not found")
-    db.delete(db_item)
-    db.commit()
-    return {"message": "Student group deleted"}
+
+    try:
+        # Delete related records first
+        from models import (
+            StudentGroupAvailability, Student, StudentDegree,
+            CourseOffering, Enrollment
+        )
+
+        # Delete student group availability
+        availabilities = db.query(StudentGroupAvailability).filter(
+            StudentGroupAvailability.group_id == group_id
+        ).all()
+        if availabilities:
+            logger.info(f"Deleting {len(availabilities)} availability records for group: {group_id}")
+            for avail in availabilities:
+                db.delete(avail)
+
+        # Delete students in this group
+        students = db.query(Student).filter(Student.group_id == group_id).all()
+        if students:
+            logger.info(f"Deleting {len(students)} student records for group: {group_id}")
+            for student in students:
+                # Delete enrollments for this student
+                enrollments = db.query(Enrollment).filter(Enrollment.u_id == student.u_id).all()
+                if enrollments:
+                    logger.info(f"Deleting {len(enrollments)} enrollment records for student: {student.u_id}")
+                    for enrollment in enrollments:
+                        db.delete(enrollment)
+                db.delete(student)
+
+        # Delete student degrees for this group
+        student_degrees = db.query(StudentDegree).filter(StudentDegree.group_id == group_id).all()
+        if student_degrees:
+            logger.info(f"Deleting {len(student_degrees)} student degree records for group: {group_id}")
+            for student_degree in student_degrees:
+                db.delete(student_degree)
+
+        # Delete course offerings for this group
+        offerings = db.query(CourseOffering).filter(CourseOffering.group_id == group_id).all()
+        if offerings:
+            logger.info(f"Deleting {len(offerings)} course offerings for group: {group_id}")
+            for offering in offerings:
+                # Delete schedules for this offering
+                from models import OfferingSchedule, OfferingProfessors
+                schedules = db.query(OfferingSchedule).filter(
+                    OfferingSchedule.offering_id == offering.offering_id
+                ).all()
+                if schedules:
+                    logger.info(f"Deleting {len(schedules)} schedule records for offering: {offering.offering_id}")
+                    for schedule in schedules:
+                        db.delete(schedule)
+
+                # Delete offering professors for this offering
+                offering_profs = db.query(OfferingProfessors).filter(
+                    OfferingProfessors.offering_id == offering.offering_id
+                ).all()
+                if offering_profs:
+                    logger.info(f"Deleting {len(offering_profs)} offering professor records for offering: {offering.offering_id}")
+                    for offering_prof in offering_profs:
+                        db.delete(offering_prof)
+
+                # Delete enrollments for this offering
+                offering_enrollments = db.query(Enrollment).filter(
+                    Enrollment.offering_id == offering.offering_id
+                ).all()
+                if offering_enrollments:
+                    logger.info(f"Deleting {len(offering_enrollments)} enrollment records for offering: {offering.offering_id}")
+                    for enrollment in offering_enrollments:
+                        db.delete(enrollment)
+
+                db.delete(offering)
+
+        # Delete the student group record
+        db.delete(db_item)
+        db.commit()
+        logger.info(f"Student group deleted successfully: {group_id}")
+        return {"message": "Student group deleted"}
+    except Exception as e:
+        logger.error(f"Error deleting student group {group_id}: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete student group: {str(e)}")

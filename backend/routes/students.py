@@ -5,6 +5,9 @@ from models import Student as DBStudent, User as DBUser
 from schemas import StudentCreate, Student
 from typing import List
 from utils import validate_pagination
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -99,9 +102,36 @@ def update_student(student_id: int, student: StudentCreate, db: Session = Depend
 
 @router.delete("/students/{student_id}")
 def delete_student(student_id: int, db: Session = Depends(get_db)):
+    logger.info(f"Attempting to delete student: {student_id}")
     db_student = db.query(DBStudent).filter(DBStudent.u_id == student_id).first()
     if db_student is None:
+        logger.warning(f"Student not found for deletion: {student_id}")
         raise HTTPException(status_code=404, detail="Student not found")
-    db.delete(db_student)
-    db.commit()
-    return {"message": "Student deleted"}
+
+    try:
+        # Delete related records first
+        from models import Enrollment, StudentDegree
+
+        # Delete enrollments
+        enrollments = db.query(Enrollment).filter(Enrollment.u_id == student_id).all()
+        if enrollments:
+            logger.info(f"Deleting {len(enrollments)} enrollment records for student: {student_id}")
+            for enrollment in enrollments:
+                db.delete(enrollment)
+
+        # Delete student degrees
+        student_degrees = db.query(StudentDegree).filter(StudentDegree.group_id == db_student.group_id).all()
+        if student_degrees:
+            logger.info(f"Deleting {len(student_degrees)} student degree records for student: {student_id}")
+            for student_degree in student_degrees:
+                db.delete(student_degree)
+
+        # Delete the student record
+        db.delete(db_student)
+        db.commit()
+        logger.info(f"Student deleted successfully: {student_id}")
+        return {"message": "Student deleted"}
+    except Exception as e:
+        logger.error(f"Error deleting student {student_id}: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete student: {str(e)}")

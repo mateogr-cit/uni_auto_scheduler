@@ -1,0 +1,308 @@
+"use client";
+
+import React, { useState } from 'react';
+import { Calendar, Clock, MapPin, AlertCircle, Send, CheckCircle, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { useTheme } from 'next-themes';
+
+// Mock schedule data
+const mockSchedule = [
+    {
+        id: 1,
+        day: 'Monday',
+        time: '09:00 - 10:30',
+        course: 'Introduction to Computer Science',
+        professor: 'Dr. John Smith',
+        room: 'Room 101',
+        building: 'Main Building',
+    },
+    {
+        id: 2,
+        day: 'Monday',
+        time: '11:00 - 12:30',
+        course: 'Data Structures',
+        professor: 'Dr. Jane Doe',
+        room: 'Room 205',
+        building: 'Science Building',
+    },
+    {
+        id: 3,
+        day: 'Tuesday',
+        time: '09:00 - 10:30',
+        course: 'Algorithms',
+        professor: 'Dr. Michael Johnson',
+        room: 'Room 301',
+        building: 'Engineering Building',
+    },
+    {
+        id: 4,
+        day: 'Wednesday',
+        time: '14:00 - 15:30',
+        course: 'Database Systems',
+        professor: 'Dr. Emily Brown',
+        room: 'Room 102',
+        building: 'Main Building',
+    },
+    {
+        id: 5,
+        day: 'Thursday',
+        time: '10:00 - 11:30',
+        course: 'Software Engineering',
+        professor: 'Dr. David Wilson',
+        room: 'Room 401',
+        building: 'Tech Building',
+    },
+    {
+        id: 6,
+        day: 'Friday',
+        time: '09:00 - 10:30',
+        course: 'Computer Networks',
+        professor: 'Dr. Sarah Davis',
+        room: 'Room 201',
+        building: 'Science Building',
+    },
+];
+
+const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+
+export default function StudentViewPage() {
+    const { theme } = useTheme();
+    const [complaintOpen, setComplaintOpen] = useState(false);
+    const [complaintText, setComplaintText] = useState('');
+    const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitSuccess, setSubmitSuccess] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+
+    const handleSubmitComplaint = async () => {
+        if (!complaintText.trim()) {
+            setSubmitError('Please enter a complaint');
+            return;
+        }
+
+        setIsSubmitting(true);
+        setSubmitError(null);
+        setSubmitSuccess(false);
+
+        try {
+            const response = await fetch('http://localhost:8000/complaints/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    comp_text: complaintText,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to submit complaint');
+            }
+
+            const data = await response.json();
+            console.log('Complaint submitted:', data);
+            setSubmitSuccess(true);
+            setComplaintText('');
+            setSelectedCourse(null);
+
+            setTimeout(() => {
+                setComplaintOpen(false);
+                setSubmitSuccess(false);
+            }, 1500);
+        } catch (error) {
+            console.error('Error submitting complaint:', error);
+            setSubmitError('Failed to submit complaint. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-zinc-950 dark:to-zinc-900 p-8">
+            <div className="max-w-7xl mx-auto">
+                {/* Header */}
+                <div className="mb-8">
+                    <h1 className="text-4xl font-bold text-zinc-900 dark:text-white mb-2">
+                        Student Schedule View
+                    </h1>
+                    <p className="text-zinc-600 dark:text-zinc-400">
+                        View your weekly schedule and submit complaints if needed
+                    </p>
+                </div>
+
+                {/* Schedule Grid */}
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl overflow-hidden border border-zinc-200 dark:border-zinc-800">
+                    <div className="p-6 border-b border-zinc-200 dark:border-zinc-800">
+                        <h2 className="text-2xl font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
+                            <Calendar className="w-6 h-6 text-red-500" />
+                            Weekly Schedule
+                        </h2>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="bg-zinc-50 dark:bg-zinc-800/50">
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+                                        Time
+                                    </th>
+                                    {days.map((day) => (
+                                        <th
+                                            key={day}
+                                            className="px-6 py-4 text-center text-sm font-semibold text-zinc-700 dark:text-zinc-300"
+                                        >
+                                            {day}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {['09:00 - 10:30', '11:00 - 12:30', '14:00 - 15:30', '16:00 - 17:30'].map((time) => (
+                                    <tr key={time} className="border-t border-zinc-200 dark:border-zinc-800">
+                                        <td className="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400 font-medium whitespace-nowrap">
+                                            {time}
+                                        </td>
+                                        {days.map((day) => {
+                                            const course = mockSchedule.find(
+                                                (c) => c.day === day && c.time === time
+                                            );
+                                            return (
+                                                <td key={day} className="px-4 py-4">
+                                                    {course ? (
+                                                        <div className="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/20 dark:to-rose-950/20 rounded-xl p-4 border border-red-100 dark:border-red-900/30">
+                                                            <div className="font-semibold text-zinc-900 dark:text-white text-sm mb-2">
+                                                                {course.course}
+                                                            </div>
+                                                            <div className="space-y-1 text-xs text-zinc-600 dark:text-zinc-400">
+                                                                <div className="flex items-center gap-1">
+                                                                    <Clock className="w-3 h-3" />
+                                                                    {course.time}
+                                                                </div>
+                                                                <div className="flex items-center gap-1">
+                                                                    <MapPin className="w-3 h-3" />
+                                                                    {course.room}, {course.building}
+                                                                </div>
+                                                            </div>
+                                                            <Dialog open={complaintOpen && selectedCourse === course.course.toString()} onOpenChange={(open) => {
+                                                                setComplaintOpen(open);
+                                                                if (!open) setSelectedCourse(null);
+                                                            }}>
+                                                                <DialogTrigger asChild>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="mt-3 w-full text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/20"
+                                                                        onClick={() => setSelectedCourse(course.course.toString())}
+                                                                    >
+                                                                        <AlertCircle className="w-3 h-3 mr-1" />
+                                                                        File Complaint
+                                                                    </Button>
+                                                                </DialogTrigger>
+                                                                <DialogContent className="sm:max-w-[500px]">
+                                                                    <DialogHeader>
+                                                                        <DialogTitle className="text-zinc-900 dark:text-white">
+                                                                            File Complaint
+                                                                        </DialogTitle>
+                                                                        <DialogDescription className="text-zinc-600 dark:text-zinc-400">
+                                                                            Submit a complaint for {course.course}
+                                                                        </DialogDescription>
+                                                                    </DialogHeader>
+                                                                    <div className="space-y-4 py-4">
+                                                                        {submitSuccess ? (
+                                                                            <div className="flex flex-col items-center justify-center py-8">
+                                                                                <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
+                                                                                <p className="text-zinc-900 dark:text-white font-medium">Complaint submitted successfully!</p>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <>
+                                                                                <div className="space-y-2">
+                                                                                    <Label htmlFor="complaint" className="text-zinc-700 dark:text-zinc-300">
+                                                                                        Complaint Details
+                                                                                    </Label>
+                                                                                    <Textarea
+                                                                                        id="complaint"
+                                                                                        placeholder="Describe your complaint..."
+                                                                                        value={complaintText}
+                                                                                        onChange={(e) => setComplaintText(e.target.value)}
+                                                                                        className="min-h-[120px] resize-none"
+                                                                                        disabled={isSubmitting}
+                                                                                    />
+                                                                                </div>
+                                                                                {submitError && (
+                                                                                    <p className="text-sm text-red-600 dark:text-red-400">{submitError}</p>
+                                                                                )}
+                                                                                <div className="flex justify-end gap-3">
+                                                                                    <Button
+                                                                                        variant="outline"
+                                                                                        onClick={() => {
+                                                                                            setComplaintOpen(false);
+                                                                                            setSelectedCourse(null);
+                                                                                            setComplaintText('');
+                                                                                            setSubmitError(null);
+                                                                                        }}
+                                                                                        disabled={isSubmitting}
+                                                                                    >
+                                                                                        Cancel
+                                                                                    </Button>
+                                                                                    <Button
+                                                                                        onClick={handleSubmitComplaint}
+                                                                                        className="bg-red-600 hover:bg-red-700 text-white"
+                                                                                        disabled={isSubmitting}
+                                                                                    >
+                                                                                        {isSubmitting ? (
+                                                                                            <>
+                                                                                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                                                                Submitting...
+                                                                                            </>
+                                                                                        ) : (
+                                                                                            <>
+                                                                                                <Send className="w-4 h-4 mr-2" />
+                                                                                                Submit Complaint
+                                                                                            </>
+                                                                                        )}
+                                                                                    </Button>
+                                                                                </div>
+                                                                            </>
+                                                                        )}
+                                                                    </div>
+                                                                </DialogContent>
+                                                            </Dialog>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="h-full min-h-[140px] flex items-center justify-center">
+                                                            <span className="text-zinc-400 dark:text-zinc-600 text-sm">
+                                                                -
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Legend */}
+                <div className="mt-6 bg-white dark:bg-zinc-900 rounded-xl p-4 shadow-lg border border-zinc-200 dark:border-zinc-800">
+                    <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">Legend</h3>
+                    <div className="flex flex-wrap gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 rounded bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/20 dark:to-rose-950/20 border border-red-100 dark:border-red-900/30"></div>
+                            <span className="text-zinc-600 dark:text-zinc-400">Scheduled Class</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4 text-red-500" />
+                            <span className="text-zinc-600 dark:text-zinc-400">File Complaint</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

@@ -16,6 +16,8 @@ from routes import (
     course_offerings_router,
     enrollments_router,
     session_types_router,
+    complaints_router,
+    time_slots_router,
 )
 from routes.student_group_availability import router as student_group_availability_router
 from routes.auto_schedule import router as auto_schedule_router
@@ -23,9 +25,14 @@ from routes.migrations import router as migrations_router
 from routes.dashboard import router as dashboard_router
 from database import engine
 from models import Base
+from logging_config import setup_logging
 
-Base.metadata.drop_all(bind=engine)
+# Setup logging
+logger = setup_logging()
+logger.info("Starting Uni Auto Scheduler API")
+
 Base.metadata.create_all(bind=engine)
+logger.info("Database tables created")
 
 app = FastAPI()
 
@@ -54,9 +61,11 @@ app.include_router(course_curriculum_router)
 app.include_router(course_offerings_router)
 app.include_router(enrollments_router)
 app.include_router(session_types_router)
+app.include_router(time_slots_router)
 app.include_router(auto_schedule_router)
 app.include_router(migrations_router)
 app.include_router(dashboard_router)
+app.include_router(complaints_router)
 
 @app.get("/")
 def read_root():

@@ -6,11 +6,15 @@ from schemas import UserCreate, UserUpdate, User
 from typing import List
 from datetime import datetime
 from utils import validate_pagination
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 @router.post("/users/", response_model=User)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    logger.info(f"Creating user: {user.username}")
     now = datetime.utcnow()
     db_user = DBUser(
         **user.dict(),
@@ -20,10 +24,12 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+    logger.info(f"User created successfully: {db_user.u_id}")
     return db_user
 
 @router.post("/users/bulk", response_model=List[User])
 def create_users_bulk(users: List[UserCreate], db: Session = Depends(get_db)):
+    logger.info(f"Creating {len(users)} users in bulk")
     try:
         now = datetime.utcnow()
         result = []
@@ -38,8 +44,10 @@ def create_users_bulk(users: List[UserCreate], db: Session = Depends(get_db)):
         db.commit()
         for item in result:
             db.refresh(item)
+        logger.info(f"Bulk user creation completed: {len(result)} users created")
         return result
     except Exception as e:
+        logger.error(f"Bulk user creation failed: {str(e)}")
         db.rollback()
         raise HTTPException(status_code=400, detail=f"Bulk create failed: {str(e)}")
 
@@ -74,9 +82,72 @@ def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
 
 @router.delete("/users/{user_id}")
 def delete_user(user_id: int, db: Session = Depends(get_db)):
+    logger.info(f"Attempting to delete user: {user_id}")
     db_user = db.query(DBUser).filter(DBUser.u_id == user_id).first()
     if db_user is None:
+        logger.warning(f"User not found for deletion: {user_id}")
         raise HTTPException(status_code=404, detail="User not found")
-    db.delete(db_user)
-    db.commit()
-    return {"message": "User deleted"}
+
+    try:
+        # Delete related records first to ensure clean deletion
+        from models import (
+            Student, Prof, Enrollment, ProfessorAvailability,
+            ProfessorUnavailability, OfferingProfessors, Complaints
+        )
+
+        # Delete student record if exists
+        student = db.query(Student).filter(Student.u_id == user_id).first()
+        if student:
+            logger.info(f"Deleting student record for user: {user_id}")
+            db.delete(student)
+
+        # Delete professor record if exists
+        prof = db.query(Prof).filter(Prof.u_id == user_id).first()
+        if prof:
+            logger.info(f"Deleting professor record for user: {user_id}")
+            db.delete(pro)
+
+        # Delete enrollments
+        enrollments = db.query(Enrollment).filter(Enrollment.u_id == user_id).all()
+        if enrollments:
+            logger.info(f"Deleting {len(enrollments)} enrollment records for user: {user_id}")
+            for enrollment in enrollments:
+                db.delete(enrollment)
+
+        # Delete professor availability
+        prof_avail = db.query(ProfessorAvailability).filter(ProfessorAvailability.u_id == user_id).all()
+        if prof_avail:
+            logger.info(f"Deleting {len(prof_avail)} professor availability records for user: {user_id}")
+            for avail in prof_avail:
+                db.delete(avail)
+
+        # Delete professor unavailability
+        prof_unavail = db.query(ProfessorUnavailability).filter(ProfessorUnavailability.u_id == user_id).all()
+        if prof_unavail:
+            logger.info(f"Deleting {len(prof_unavail)} professor unavailability records for user: {user_id}")
+            for unavail in prof_unavail:
+                db.delete(unavail)
+
+        # Delete offering professors
+        offering_profs = db.query(OfferingProfessors).filter(OfferingProfessors.u_id == user_id).all()
+        if offering_profs:
+            logger.info(f"Deleting {len(offering_profs)} offering professor records for user: {user_id}")
+            for offering_prof in offering_profs:
+                db.delete(offering_prof)
+
+        # Delete complaints
+        complaints = db.query(Complaints).filter(Complaints.u_id == user_id).all()
+        if complaints:
+            logger.info(f"Deleting {len(complaints)} complaint records for user: {user_id}")
+            for complaint in complaints:
+                db.delete(complaint)
+
+        # Finally delete the user
+        db.delete(db_user)
+        db.commit()
+        logger.info(f"User deleted successfully: {user_id}")
+        return {"message": "User deleted"}
+    except Exception as e:
+        logger.error(f"Error deleting user {user_id}: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete user: {str(e)}")
