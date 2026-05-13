@@ -31,7 +31,11 @@
       "Bash(py main.py)",
       "Bash(npx tsc *)",
       "Bash(py -m uvicorn main:app --reload)",
-      "PowerShell(Get-Process *)"
+      "PowerShell(Get-Process *)",
+      "PowerShell(Get-NetTCPConnection *)",
+      "mcp__ide__getDiagnostics",
+      "Bash(Select-String -Pattern \"HTTP|error|Error\")"
     ]
-  }
+  },
+  "outputStyle": "Explanatory"
 }

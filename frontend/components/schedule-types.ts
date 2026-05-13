@@ -1,5 +1,14 @@
 export type TabId = "overview" | "setup" | "schedules" | "schedule";
 
+export type DayOfWeek = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday";
+
+export type TimeSlot = {
+  slot_id: number;
+  day_of_week: DayOfWeek;
+  start_time: string;
+  end_time: string;
+};
+
 export type StudentGroup = {
   group_id: number;
   group_name: string;
@@ -78,13 +87,13 @@ export type ScheduleDetail = {
   room: string;
   day: string;
   slot_id: number;
+  offering_id: number;
 };
 
 export type GenerateScheduleResponse = {
   status: "success" | "error";
-  year: number;
-  semester_number: number;
-  schedules_created: number;
+  semester_name: string;
+  offerings_created: number;
   schedule_details: ScheduleDetail[];
   message: string;
 };
@@ -92,6 +101,7 @@ export type GenerateScheduleResponse = {
 export type ValidateScheduleResponse = {
   year: number;
   semester_number: number;
+  total_offerings: number;
   total_schedules: number;
   issues: string[];
   warnings: string[];

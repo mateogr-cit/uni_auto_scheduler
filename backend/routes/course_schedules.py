@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from database import get_db
-from models import CourseSchedule as DBCourseSchedule, Course, StudentGroup, User, Prof, CourseSession
+from models import CourseSchedule as DBCourseSchedule, Course, StudentGroup, User, Prof, CourseSession, Rooms, TimeSlots
 from schemas import CourseSchedule, CourseScheduleCreate
 from typing import List
 from datetime import datetime

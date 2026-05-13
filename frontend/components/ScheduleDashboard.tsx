@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, type Dispatch, type SetStateAction } from "react";
-import { Zap, RefreshCcw } from "lucide-react";
+import { RefreshCcw } from "lucide-react";
 import ScheduleTabs from "./ScheduleTabs";
 import OverviewPanel from "./OverviewPanel";
 import SetupPanel from "./SetupPanel";
@@ -10,43 +10,27 @@ import AutoSchedulePanel from "./AutoSchedulePanel";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   type TabId,
+  type TimeSlot,
   type StudentGroup,
-  type Faculty,
   type Degree,
-  type Student,
-  type Course,
-  type StudentDegree,
-  type CourseCurriculum,
   type FormState,
 } from "./schedule-types";
 
 const API_BASE = "http://localhost:8000";
 
-const emptyStudentGroup = { group_name: "", deg_id: 0, year_level: 1, semester_number: 1, capacity: 0 };
-const emptyFaculty = { f_name: "", f_abbr: "" };
-const emptyDegree = { d_name: "", f_id: 0, degree_abbr: "" };
-const emptyStudentDegree = { group_id: 0, deg_id: 0, yr_lvl: 1 };
-const emptyCourseCurriculum = { c_id: 0, degree_id: 0, year_level: 1, is_active: true, semester_number: 1 };
+const emptyTimeSlot = { day_of_week: "" as any, start_time: "", end_time: "" };
 
 const ScheduleDashboard = () => {
   const [studentGroups, setStudentGroups] = useState<StudentGroup[]>([]);
-  const [faculty, setFaculty] = useState<Faculty[]>([]);
   const [degrees, setDegrees] = useState<Degree[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [studentDegrees, setStudentDegrees] = useState<StudentDegree[]>([]);
-  const [courseCurriculum, setCourseCurriculum] = useState<CourseCurriculum[]>([]);
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [loading, setLoading] = useState(true);
 
-  const [editStudentGroupId, setEditStudentGroupId] = useState<number | null>(null);
-  const [editStudentDegreeId, setEditStudentDegreeId] = useState<number | null>(null);
-  const [editCourseCurriculumId, setEditCourseCurriculumId] = useState<number | null>(null);
+  const [editTimeSlotId, setEditTimeSlotId] = useState<number | null>(null);
 
-  const [studentGroupForm, setStudentGroupForm] = useState<FormState<typeof emptyStudentGroup>>(emptyStudentGroup);
-  const [studentDegreeForm, setStudentDegreeForm] = useState<FormState<typeof emptyStudentDegree>>(emptyStudentDegree);
-  const [courseCurriculumForm, setCourseCurriculumForm] = useState<FormState<typeof emptyCourseCurriculum>>(emptyCourseCurriculum);
+  const [timeSlotForm, setTimeSlotForm] = useState<FormState<typeof emptyTimeSlot>>(emptyTimeSlot);
 
   const apiFetch = async (path: string, opts: RequestInit = {}) => {
     const response = await fetch(`${API_BASE}${path}`, {
@@ -69,12 +53,8 @@ const ScheduleDashboard = () => {
     try {
       await Promise.all([
         loadStudentGroups(),
-        loadFaculty(),
         loadDegrees(),
-        loadStudents(),
-        loadCourses(),
-        loadStudentDegrees(),
-        loadCourseCurriculum(),
+        loadTimeSlots(),
       ]);
     } finally {
       setLoading(false);
@@ -89,14 +69,6 @@ const ScheduleDashboard = () => {
     }
   };
 
-  const loadFaculty = async () => {
-    try {
-      setFaculty((await apiFetch("/faculty/")) || []);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
   const loadDegrees = async () => {
     try {
       setDegrees((await apiFetch("/degrees/")) || []);
@@ -105,33 +77,9 @@ const ScheduleDashboard = () => {
     }
   };
 
-  const loadStudents = async () => {
+  const loadTimeSlots = async () => {
     try {
-      setStudents((await apiFetch("/students/")) || []);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const loadCourses = async () => {
-    try {
-      setCourses((await apiFetch("/courses/")) || []);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const loadStudentDegrees = async () => {
-    try {
-      setStudentDegrees((await apiFetch("/student-degrees/")) || []);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const loadCourseCurriculum = async () => {
-    try {
-      setCourseCurriculum((await apiFetch("/course-curriculum/")) || []);
+      setTimeSlots((await apiFetch("/time-slots/")) || []);
     } catch (error) {
       console.error(error);
     }

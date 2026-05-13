@@ -162,7 +162,7 @@ export default function CourseSchedulesPanel() {
 
       <div className="flex items-center gap-4">
         <label className="font-medium">Select Student Group:</label>
-        <Select value={selectedGroup?.toString() || ""} onValueChange={(value) => setSelectedGroup(parseInt(value))}>
+        <Select value={selectedGroup?.toString() || ""} onValueChange={(value) => setSelectedGroup(value ? parseInt(value) : null)}>
           <SelectTrigger className="w-[300px]">
             <SelectValue placeholder="Choose a group" />
           </SelectTrigger>

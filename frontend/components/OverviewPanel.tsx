@@ -4,12 +4,11 @@ import { Users, Calendar, GraduationCap, CheckCircle, Settings, UserPlus, Grid2x
 
 type OverviewPanelProps = {
   studentGroupsCount: number;
-  semestersCount: number;
   degreesCount: number;
   onGoto: (tab: any) => void;
 };
 
-export default function OverviewPanel({ studentGroupsCount, semestersCount, degreesCount, onGoto }: OverviewPanelProps) {
+export default function OverviewPanel({ studentGroupsCount, degreesCount, onGoto }: OverviewPanelProps) {
   const router = useRouter();
   const prerequisites = [
     "Student groups defined",
@@ -43,7 +42,6 @@ export default function OverviewPanel({ studentGroupsCount, semestersCount, degr
         <div className="grid gap-4 flex-1">
           {[
             { label: "Student groups", value: studentGroupsCount, icon: Users, color: "text-red-600", bg: "bg-red-50 dark:bg-red-900/20" },
-            { label: "Semesters", value: semestersCount, icon: Calendar, color: "text-red-600", bg: "bg-red-50 dark:bg-red-900/20" },
             { label: "Degrees", value: degreesCount, icon: GraduationCap, color: "text-red-600", bg: "bg-red-50 dark:bg-red-900/20" }
           ].map((item, i) => (
             <motion.div

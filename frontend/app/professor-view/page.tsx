@@ -225,7 +225,7 @@ export default function ProfessorViewPage() {
                                                                 setUnavailabilityOpen(open);
                                                                 if (!open) setSelectedCourse(null);
                                                             }}>
-                                                                <DialogTrigger asChild>
+                                                                <DialogTrigger>
                                                                     <Button
                                                                         variant="ghost"
                                                                         size="sm"

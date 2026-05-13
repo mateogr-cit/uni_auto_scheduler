@@ -19,7 +19,6 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import type {
-  Semester,
   GenerateScheduleResponse,
   ValidateScheduleResponse,
   ScheduleDetail,
@@ -28,17 +27,14 @@ import type {
 const API_BASE = "http://localhost:8000";
 
 type AutoSchedulePanelProps = {
-  semesters: Semester[];
   onRefresh: () => void;
 };
 
 export default function AutoSchedulePanel({
-  semesters,
   onRefresh,
 }: AutoSchedulePanelProps) {
-  const [selectedSemesterId, setSelectedSemesterId] = useState<number | null>(
-    semesters.length > 0 ? semesters[0].sem_id : null
-  );
+  const [selectedYear, setSelectedYear] = useState<number>(1);
+  const [selectedSemester, setSelectedSemester] = useState<number>(1);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
@@ -52,11 +48,6 @@ export default function AutoSchedulePanel({
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
   const handleGenerateSchedule = async () => {
-    if (!selectedSemesterId) {
-      setError("Please select a semester");
-      return;
-    }
-
     setIsGenerating(true);
     setError(null);
     setScheduleResult(null);
@@ -64,7 +55,7 @@ export default function AutoSchedulePanel({
 
     try {
       const response = await fetch(
-        `${API_BASE}/auto-schedule/generate?semester_id=${selectedSemesterId}`,
+        `${API_BASE}/auto-schedule/generate?year=${selectedYear}&semester_number=${selectedSemester}`,
         { method: "POST" }
       );
 
@@ -86,12 +77,10 @@ export default function AutoSchedulePanel({
   };
 
   const validateSchedule = async () => {
-    if (!selectedSemesterId) return;
-
     setIsValidating(true);
     try {
       const response = await fetch(
-        `${API_BASE}/auto-schedule/validate/${selectedSemesterId}`
+        `${API_BASE}/auto-schedule/validate?year=${selectedYear}&semester_number=${selectedSemester}`
       );
 
       if (!response.ok) {
@@ -109,19 +98,16 @@ export default function AutoSchedulePanel({
   };
 
   const handleClearSchedule = async () => {
-    if (!selectedSemesterId) return;
     setClearDialogOpen(true);
   };
 
   const handleClearConfirm = async () => {
-    if (!selectedSemesterId) return;
-
     setIsClearing(true);
     setError(null);
 
     try {
       const response = await fetch(
-        `${API_BASE}/auto-schedule/clear/${selectedSemesterId}`,
+        `${API_BASE}/auto-schedule/clear?year=${selectedYear}&semester_number=${selectedSemester}`,
         { method: "DELETE" }
       );
 
@@ -174,27 +160,47 @@ export default function AutoSchedulePanel({
         </div>
 
         <div className="space-y-4">
-          {/* Semester Selection */}
-          <FieldGroup>
-            <Field>
-              <FieldLabel>Select Semester</FieldLabel>
-              <Select
-                value={selectedSemesterId?.toString() || ""}
-                onValueChange={(value) => setSelectedSemesterId(Number(value))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a semester" />
-                </SelectTrigger>
-                <SelectContent>
-                  {semesters.map((s) => (
-                    <SelectItem key={s.sem_id} value={s.sem_id.toString()}>
-                      {s.sem_name} ({s.week_count} weeks)
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-          </FieldGroup>
+          {/* Year and Semester Selection */}
+          <div className="grid grid-cols-2 gap-4">
+            <FieldGroup>
+              <Field>
+                <FieldLabel>Year Level</FieldLabel>
+                <Select
+                  value={selectedYear.toString()}
+                  onValueChange={(value) => setSelectedYear(Number(value))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4].map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        Year {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+            </FieldGroup>
+
+            <FieldGroup>
+              <Field>
+                <FieldLabel>Semester</FieldLabel>
+                <Select
+                  value={selectedSemester.toString()}
+                  onValueChange={(value) => setSelectedSemester(Number(value))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select semester" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Fall Semester</SelectItem>
+                    <SelectItem value="2">Spring Semester</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+            </FieldGroup>
+          </div>
 
           {/* Error Message */}
           {error && (
@@ -217,7 +223,7 @@ export default function AutoSchedulePanel({
           <div className="flex gap-3 flex-wrap">
             <Button
               onClick={handleGenerateSchedule}
-              disabled={isGenerating || !selectedSemesterId}
+              disabled={isGenerating}
             >
               {isGenerating ? (
                 <>
@@ -235,7 +241,7 @@ export default function AutoSchedulePanel({
             <Button
               variant="outline"
               onClick={validateSchedule}
-              disabled={isValidating || !selectedSemesterId}
+              disabled={isValidating}
             >
               {isValidating ? (
                 <>
@@ -253,7 +259,7 @@ export default function AutoSchedulePanel({
             <Button
               variant="outline"
               onClick={handleClearSchedule}
-              disabled={isClearing || !selectedSemesterId}
+              disabled={isClearing}
             >
               {isClearing ? (
                 <>

@@ -300,8 +300,8 @@ export default function StudentsPage() {
                             <Field>
                                 <FieldLabel htmlFor="status">Status</FieldLabel>
                                 <Select
-                                    value={formData.s_status}
-                                    onValueChange={(value) => setFormData({ ...formData, s_status: value })}
+                                    value={formData.s_status || ""}
+                                    onValueChange={(value) => setFormData({ ...formData, s_status: value || "" })}
                                 >
                                     <SelectTrigger>
                                         <InputGroup noBorder>
