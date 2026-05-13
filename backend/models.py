@@ -86,23 +86,6 @@ class Complaints(Base):
     createdAt = Column(DateTime, nullable=False)
 
 
-class Semester(Base):
-    __tablename__ = "semester"
-    sem_id = Column(Integer, primary_key=True, index=True)
-    sem_name = Column(String, nullable=False)
-    start_date = Column(Date, nullable=False)
-    end_date = Column(Date, nullable=False)
-    is_special_semester = Column(Boolean, nullable=False)
-    week_count = Column(Integer, default=15)
-
-class CourseOffering(Base):
-    __tablename__ = "course_offering"
-    offering_id = Column(Integer, primary_key=True, index=True)
-    c_id = Column(Integer, ForeignKey("course.c_id", ondelete="CASCADE"))
-    sem_id = Column(Integer, ForeignKey("semester.sem_id", ondelete="CASCADE"))
-    max_students = Column(Integer, nullable=False)
-    group_id = Column(Integer, ForeignKey("student_group.group_id", ondelete="CASCADE"))
-    hrs_per_week = Column(Integer, default=4)
 
 class Rooms(Base):
     __tablename__ = "rooms"
@@ -122,10 +105,10 @@ class SessionTypeModel(Base):
     type_name = Column(Enum(SessionType), nullable=False)
     duration_hours = Column(Integer, default=2)
 
-class OfferingSchedule(Base):
-    __tablename__ = "offering_schedule"
-    schedule_id = Column(Integer, primary_key=True, index=True)
-    offering_id = Column(Integer, ForeignKey("course_offering.offering_id", ondelete="CASCADE"))
+class CourseSession(Base):
+    __tablename__ = "course_session"
+    session_id = Column(Integer, primary_key=True, index=True)
+    schedule_id = Column(Integer, ForeignKey("course_schedule.schedule_id", ondelete="CASCADE"))
     room_id = Column(String, ForeignKey("rooms.room_id", ondelete="CASCADE"))
     slot_id = Column(Integer, ForeignKey("time_slots.slot_id", ondelete="CASCADE"))
     session_type_id = Column(Integer, ForeignKey("session_type.session_type_id", ondelete="CASCADE"))
@@ -133,11 +116,18 @@ class OfferingSchedule(Base):
     createdAt = Column(DateTime, nullable=False)
     updatedAt = Column(DateTime, nullable=False)
 
-class OfferingProfessors(Base):
-    __tablename__ = "offering_professors"
-    offering_prof_id = Column(Integer, primary_key=True, index=True)
-    offering_id = Column(Integer, ForeignKey("course_offering.offering_id", ondelete="CASCADE"))
+class CourseSchedule(Base):
+    __tablename__ = "course_schedule"
+    schedule_id = Column(Integer, primary_key=True, index=True)
+    c_id = Column(Integer, ForeignKey("course.c_id", ondelete="CASCADE"))
+    group_id = Column(Integer, ForeignKey("student_group.group_id", ondelete="CASCADE"))
+    room_id = Column(String, ForeignKey("rooms.room_id", ondelete="CASCADE"))
+    slot_id = Column(Integer, ForeignKey("time_slots.slot_id", ondelete="CASCADE"))
+    session_type_id = Column(Integer, ForeignKey("session_type.session_type_id", ondelete="CASCADE"))
     u_id = Column(Integer, ForeignKey("user.u_id", ondelete="CASCADE"))
+    s_status = Column(String, default="scheduled")
+    createdAt = Column(DateTime, nullable=False)
+    updatedAt = Column(DateTime, nullable=False)
 
 class ProfessorAvailability(Base):
     __tablename__ = "professor_availability"
@@ -167,12 +157,6 @@ class StudentGroupAvailability(Base):
     end_time = Column(Time, nullable=False)
     is_available = Column(Boolean, nullable=False)
 
-class Enrollment(Base):
-    __tablename__ = "enrollment"
-    id = Column(Integer, primary_key=True, index=True)
-    offering_id = Column(Integer, ForeignKey("course_offering.offering_id", ondelete="CASCADE"))
-    u_id = Column(Integer, ForeignKey("user.u_id", ondelete="CASCADE"))
-    enrolledAt = Column(DateTime, nullable=False)
 
 class Faculty(Base):
     __tablename__ = "faculty"

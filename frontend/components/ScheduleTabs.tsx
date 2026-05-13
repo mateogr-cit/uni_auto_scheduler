@@ -1,12 +1,11 @@
 import React from "react";
-import { BookOpen, ClipboardList, LayoutDashboard, Settings, Users, Zap } from "lucide-react";
+import { BookOpen, LayoutDashboard, Settings, Zap } from "lucide-react";
 import { TabId } from "./schedule-types";
 
 const tabList: Array<{ id: TabId; label: string; icon: typeof LayoutDashboard }> = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
-  { id: "setup", label: "Semesters", icon: Settings },
-  { id: "offerings", label: "Offerings", icon: BookOpen },
-  { id: "enrollments", label: "Enrollments", icon: ClipboardList },
+  { id: "setup", label: "Setup", icon: Settings },
+  { id: "schedules", label: "Schedules", icon: BookOpen },
   { id: "schedule", label: "Auto-Schedule", icon: Zap },
 ];
 

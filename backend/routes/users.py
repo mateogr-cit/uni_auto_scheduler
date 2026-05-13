@@ -91,8 +91,8 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
     try:
         # Delete related records first to ensure clean deletion
         from models import (
-            Student, Prof, Enrollment, ProfessorAvailability,
-            ProfessorUnavailability, OfferingProfessors, Complaints
+            Student, Prof, ProfessorAvailability,
+            ProfessorUnavailability, Complaints
         )
 
         # Delete student record if exists
@@ -105,14 +105,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
         prof = db.query(Prof).filter(Prof.u_id == user_id).first()
         if prof:
             logger.info(f"Deleting professor record for user: {user_id}")
-            db.delete(pro)
-
-        # Delete enrollments
-        enrollments = db.query(Enrollment).filter(Enrollment.u_id == user_id).all()
-        if enrollments:
-            logger.info(f"Deleting {len(enrollments)} enrollment records for user: {user_id}")
-            for enrollment in enrollments:
-                db.delete(enrollment)
+            db.delete(prof)
 
         # Delete professor availability
         prof_avail = db.query(ProfessorAvailability).filter(ProfessorAvailability.u_id == user_id).all()
@@ -127,13 +120,6 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
             logger.info(f"Deleting {len(prof_unavail)} professor unavailability records for user: {user_id}")
             for unavail in prof_unavail:
                 db.delete(unavail)
-
-        # Delete offering professors
-        offering_profs = db.query(OfferingProfessors).filter(OfferingProfessors.u_id == user_id).all()
-        if offering_profs:
-            logger.info(f"Deleting {len(offering_profs)} offering professor records for user: {user_id}")
-            for offering_prof in offering_profs:
-                db.delete(offering_prof)
 
         # Delete complaints
         complaints = db.query(Complaints).filter(Complaints.u_id == user_id).all()

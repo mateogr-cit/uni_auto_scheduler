@@ -175,39 +175,6 @@ class Course(CourseBase):
     class Config:
         from_attributes = True
 
-# Semester schemas
-class SemesterBase(BaseModel):
-    sem_name: str
-    start_date: date
-    end_date: date
-    is_special_semester: bool
-    week_count: Optional[int] = 15
-
-class SemesterCreate(SemesterBase):
-    pass
-
-class Semester(SemesterBase):
-    sem_id: int
-
-    class Config:
-        from_attributes = True
-
-# CourseOffering schemas
-class CourseOfferingBase(BaseModel):
-    c_id: int
-    sem_id: int
-    max_students: int
-    group_id: int
-    hrs_per_week: Optional[int] = 4
-
-class CourseOfferingCreate(CourseOfferingBase):
-    pass
-
-class CourseOffering(CourseOfferingBase):
-    offering_id: int
-
-    class Config:
-        from_attributes = True
 
 # Rooms schemas
 class RoomsBase(BaseModel):
@@ -250,6 +217,46 @@ class TimeSlots(TimeSlotsBase):
     class Config:
         from_attributes = True
 
+# CourseSchedule schemas
+class CourseScheduleBase(BaseModel):
+    c_id: int
+    group_id: int
+    room_id: str
+    slot_id: int
+    session_type_id: int
+    u_id: int
+    s_status: str = "scheduled"
+
+class CourseScheduleCreate(CourseScheduleBase):
+    pass
+
+class CourseSchedule(CourseScheduleBase):
+    schedule_id: int
+    createdAt: datetime
+    updatedAt: datetime
+
+    class Config:
+        from_attributes = True
+
+# CourseSession schemas
+class CourseSessionBase(BaseModel):
+    schedule_id: int
+    room_id: str
+    slot_id: int
+    session_type_id: int
+    s_status: str
+
+class CourseSessionCreate(CourseSessionBase):
+    pass
+
+class CourseSession(CourseSessionBase):
+    session_id: int
+    createdAt: datetime
+    updatedAt: datetime
+
+    class Config:
+        from_attributes = True
+
 
 
 
@@ -277,20 +284,6 @@ class StudentGroupAvailability(StudentGroupAvailabilityBase):
     class Config:
         from_attributes = True
 
-# Enrollment schemas
-class EnrollmentBase(BaseModel):
-    offering_id: int
-    u_id: int
-
-class EnrollmentCreate(EnrollmentBase):
-    pass
-
-class Enrollment(EnrollmentBase):
-    id: int
-    enrolledAt: datetime
-
-    class Config:
-        from_attributes = True
 
 # Faculty schemas
 class FacultyBase(BaseModel):

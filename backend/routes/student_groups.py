@@ -100,7 +100,7 @@ def delete_student_group(group_id: int, db: Session = Depends(get_db)):
         # Delete related records first
         from models import (
             StudentGroupAvailability, Student, StudentDegree,
-            CourseOffering, Enrollment
+            CourseSchedule, CourseSession
         )
 
         # Delete student group availability
@@ -117,12 +117,6 @@ def delete_student_group(group_id: int, db: Session = Depends(get_db)):
         if students:
             logger.info(f"Deleting {len(students)} student records for group: {group_id}")
             for student in students:
-                # Delete enrollments for this student
-                enrollments = db.query(Enrollment).filter(Enrollment.u_id == student.u_id).all()
-                if enrollments:
-                    logger.info(f"Deleting {len(enrollments)} enrollment records for student: {student.u_id}")
-                    for enrollment in enrollments:
-                        db.delete(enrollment)
                 db.delete(student)
 
         # Delete student degrees for this group
@@ -132,40 +126,20 @@ def delete_student_group(group_id: int, db: Session = Depends(get_db)):
             for student_degree in student_degrees:
                 db.delete(student_degree)
 
-        # Delete course offerings for this group
-        offerings = db.query(CourseOffering).filter(CourseOffering.group_id == group_id).all()
-        if offerings:
-            logger.info(f"Deleting {len(offerings)} course offerings for group: {group_id}")
-            for offering in offerings:
-                # Delete schedules for this offering
-                from models import OfferingSchedule, OfferingProfessors
-                schedules = db.query(OfferingSchedule).filter(
-                    OfferingSchedule.offering_id == offering.offering_id
+        # Delete course schedules for this group
+        schedules = db.query(CourseSchedule).filter(CourseSchedule.group_id == group_id).all()
+        if schedules:
+            logger.info(f"Deleting {len(schedules)} course schedules for group: {group_id}")
+            for schedule in schedules:
+                # Delete sessions for this schedule
+                sessions = db.query(CourseSession).filter(
+                    CourseSession.schedule_id == schedule.schedule_id
                 ).all()
-                if schedules:
-                    logger.info(f"Deleting {len(schedules)} schedule records for offering: {offering.offering_id}")
-                    for schedule in schedules:
-                        db.delete(schedule)
-
-                # Delete offering professors for this offering
-                offering_profs = db.query(OfferingProfessors).filter(
-                    OfferingProfessors.offering_id == offering.offering_id
-                ).all()
-                if offering_profs:
-                    logger.info(f"Deleting {len(offering_profs)} offering professor records for offering: {offering.offering_id}")
-                    for offering_prof in offering_profs:
-                        db.delete(offering_prof)
-
-                # Delete enrollments for this offering
-                offering_enrollments = db.query(Enrollment).filter(
-                    Enrollment.offering_id == offering.offering_id
-                ).all()
-                if offering_enrollments:
-                    logger.info(f"Deleting {len(offering_enrollments)} enrollment records for offering: {offering.offering_id}")
-                    for enrollment in offering_enrollments:
-                        db.delete(enrollment)
-
-                db.delete(offering)
+                if sessions:
+                    logger.info(f"Deleting {len(sessions)} session records for schedule: {schedule.schedule_id}")
+                    for session in sessions:
+                        db.delete(session)
+                db.delete(schedule)
 
         # Delete the student group record
         db.delete(db_item)

@@ -1,11 +1,17 @@
+'use client';
 import { LayoutDashboard, TrendingUp, Users, Calendar } from "lucide-react";
 import DashboardStats from "./DashboardStats";
-
-export const metadata = {
-  title: 'Dashboard',
-};
+import { Skeleton } from "@/components/ui/skeleton";
+import { useState, useEffect } from "react";
 
 export default function Home() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="flex flex-col gap-8">
       <div>
@@ -13,7 +19,19 @@ export default function Home() {
         <p className="text-zinc-500 dark:text-zinc-400 mt-1">Here's what's happening today in your scheduler.</p>
       </div>
 
-      <DashboardStats />
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-6">
+              <Skeleton className="h-10 w-10 rounded-lg mb-4" />
+              <Skeleton className="h-8 w-24 mb-2" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <DashboardStats />
+      )}
 
       {/* Main Content Area Placeholder */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -1,4 +1,4 @@
-export type TabId = "overview" | "setup" | "offerings" | "enrollments" | "schedule";
+export type TabId = "overview" | "setup" | "schedules" | "schedule";
 
 export type StudentGroup = {
   group_id: number;
@@ -7,15 +7,6 @@ export type StudentGroup = {
   year_level: number;
   semester_number: number;
   capacity: number;
-};
-
-export type Semester = {
-  sem_id: number;
-  sem_name: string;
-  start_date: string;
-  end_date: string;
-  is_special_semester: boolean;
-  week_count: number;
 };
 
 export type Faculty = {
@@ -44,6 +35,8 @@ export type Course = {
   c_name: string;
   c_abbr: string;
   c_difficulty_weight: number;
+  c_year: number;
+  c_semester: number;
 };
 
 export type StudentDegree = {
@@ -62,25 +55,23 @@ export type CourseCurriculum = {
   semester_number: number;
 };
 
-export type CourseOffering = {
-  offering_id: number;
+export type CourseSchedule = {
+  schedule_id: number;
   c_id: number;
-  sem_id: number;
-  max_students: number;
   group_id: number;
-  hrs_per_week?: number;
-};
-
-export type Enrollment = {
-  id: number;
-  offering_id: number;
+  room_id: string;
+  slot_id: number;
+  session_type_id: number;
   u_id: number;
+  s_status: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type FormState<T> = Partial<T> & { [key: string]: string | boolean | number };
 
 export type ScheduleDetail = {
-  offering_id: number;
+  schedule_id: number;
   course: string;
   group: string;
   type: "Lecture" | "Seminar";
@@ -91,17 +82,17 @@ export type ScheduleDetail = {
 
 export type GenerateScheduleResponse = {
   status: "success" | "error";
-  semester_id: number;
-  semester_name: string;
-  offerings_created: number;
+  year: number;
+  semester_number: number;
+  schedules_created: number;
   schedule_details: ScheduleDetail[];
   message: string;
 };
 
 export type ValidateScheduleResponse = {
-  semester_id: number;
-  semester_name: string;
-  total_offerings: number;
+  year: number;
+  semester_number: number;
+  total_schedules: number;
   issues: string[];
   warnings: string[];
   is_valid: boolean;

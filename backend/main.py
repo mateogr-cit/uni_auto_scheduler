@@ -8,29 +8,39 @@ from routes import (
     professor_availability_router,
     rooms_router,
     student_groups_router,
-    semesters_router,
     faculty_router,
     degrees_router,
     student_degrees_router,
     course_curriculum_router,
-    course_offerings_router,
-    enrollments_router,
     session_types_router,
     complaints_router,
     time_slots_router,
 )
 from routes.student_group_availability import router as student_group_availability_router
+from routes.course_schedules import router as course_schedules_router
 from routes.auto_schedule import router as auto_schedule_router
 from routes.migrations import router as migrations_router
 from routes.dashboard import router as dashboard_router
 from database import engine
 from models import Base
 from logging_config import setup_logging
+from sqlalchemy import text
 
 # Setup logging
 logger = setup_logging()
 logger.info("Starting Uni Auto Scheduler API")
 
+# Drop old tables that no longer exist in models
+# This is needed because drop_all() fails due to foreign key constraints
+with engine.connect() as conn:
+    conn.execute(text("DROP TABLE IF EXISTS offering_schedule CASCADE"))
+    conn.execute(text("DROP TABLE IF EXISTS offering_professors CASCADE"))
+    conn.execute(text("DROP TABLE IF EXISTS enrollment CASCADE"))
+    conn.execute(text("DROP TABLE IF EXISTS course_offering CASCADE"))
+    conn.execute(text("DROP TABLE IF EXISTS semester CASCADE"))
+    conn.commit()
+
+Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 logger.info("Database tables created")
 
@@ -53,13 +63,11 @@ app.include_router(professor_availability_router)
 app.include_router(rooms_router)
 app.include_router(student_groups_router)
 app.include_router(student_group_availability_router)
-app.include_router(semesters_router)
 app.include_router(faculty_router)
 app.include_router(degrees_router)
 app.include_router(student_degrees_router)
 app.include_router(course_curriculum_router)
-app.include_router(course_offerings_router)
-app.include_router(enrollments_router)
+app.include_router(course_schedules_router)
 app.include_router(session_types_router)
 app.include_router(time_slots_router)
 app.include_router(auto_schedule_router)

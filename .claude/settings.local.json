@@ -29,7 +29,9 @@
       "Bash(py -c \"from database import SessionLocal; from models import Course; db = SessionLocal\\(\\); courses = db.query\\(Course\\).all\\(\\); print\\(f'Courses count: {len\\(courses\\)}'\\); [print\\(f'{c.c_id}: {c.c_name}'\\) for c in courses]; db.close\\(\\)\")",
       "Bash(py -c \"from database import SessionLocal; from models import Prof, User; db = SessionLocal\\(\\); profs = db.query\\(Prof\\).all\\(\\); users = db.query\\(User\\).filter\\(User.u_role == 'professor'\\).all\\(\\); print\\(f'Professors count: {len\\(profs\\)}'\\); print\\(f'Professor users count: {len\\(users\\)}'\\); [print\\(f'Prof: {p.u_id}'\\) for p in profs]; [print\\(f'User: {u.u_id} - {u.fname} {u.lname}'\\) for u in users]; db.close\\(\\)\")",
       "Bash(py main.py)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(py -m uvicorn main:app --reload)",
+      "PowerShell(Get-Process *)"
     ]
   }
 }

@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useTheme } from 'next-themes';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Mock schedule data
 const mockSchedule = [
@@ -70,12 +71,19 @@ const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
 export default function StudentViewPage() {
     const { theme } = useTheme();
+    const [loading, setLoading] = useState(true);
     const [complaintOpen, setComplaintOpen] = useState(false);
     const [complaintText, setComplaintText] = useState('');
     const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
+
+    // Simulate loading
+    React.useEffect(() => {
+        const timer = setTimeout(() => setLoading(false), 1000);
+        return () => clearTimeout(timer);
+    }, []);
 
     const handleSubmitComplaint = async () => {
         if (!complaintText.trim()) {
@@ -133,8 +141,28 @@ export default function StudentViewPage() {
                     </p>
                 </div>
 
-                {/* Schedule Grid */}
-                <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl overflow-hidden border border-zinc-200 dark:border-zinc-800">
+                {loading ? (
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl overflow-hidden border border-zinc-200 dark:border-zinc-800">
+                        <div className="p-6 border-b border-zinc-200 dark:border-zinc-800">
+                            <Skeleton className="h-8 w-48" />
+                        </div>
+                        <div className="p-6">
+                            <div className="space-y-4">
+                                {[1, 2, 3, 4].map((i) => (
+                                    <div key={i} className="flex gap-4">
+                                        <Skeleton className="w-24 h-12 rounded-lg" />
+                                        {[1, 2, 3, 4, 5].map((j) => (
+                                            <Skeleton key={j} className="flex-1 h-32 rounded-xl" />
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        {/* Schedule Grid */}
+                        <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl overflow-hidden border border-zinc-200 dark:border-zinc-800">
                     <div className="p-6 border-b border-zinc-200 dark:border-zinc-800">
                         <h2 className="text-2xl font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
                             <Calendar className="w-6 h-6 text-red-500" />
@@ -302,7 +330,9 @@ export default function StudentViewPage() {
                         </div>
                     </div>
                 </div>
-            </div>
+                </>
+            )}
         </div>
+    </div>
     );
 }

@@ -16,7 +16,8 @@ import {
     Users2,
     Eye,
     GraduationCap,
-    Bell
+    Bell,
+    CalendarClock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -49,9 +50,10 @@ const menuGroups = [
         ],
     },
     {
-        label: 'Schedule Creation',
+        label: 'Schedule Management',
         items: [
-            { icon: History, label: 'Schedule History', href: '/history' },
+            { icon: History, label: 'Schedule Creation', href: '/history' },
+            { icon: CalendarClock, label: 'Current Schedule', href: '/current-schedule' },
         ],
     },
     {
@@ -86,7 +88,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
     return (
         <motion.aside
             initial={false}
-            animate={{ width: isCollapsed ? '80px' : '260px' }}
+            animate={{ width: isCollapsed ? '80px' : '280px' }}
             className={`fixed left-0 top-0 h-screen z-50 flex flex-col transition-all duration-300 ease-in-out shadow-xl ${
                 theme === 'dark'
                     ? 'bg-zinc-900 text-zinc-300 border-zinc-800'
@@ -130,15 +132,15 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
             {/* Toggle Button */}
             <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className={`absolute -right-3 top-20 bg-gradient-to-br from-red-600 to-rose-500 text-white rounded-full p-1 border-2 hover:from-red-500 hover:to-rose-400 transition-colors shadow-md cursor-pointer ${
+                className={`absolute -right-5 top-20 bg-gradient-to-br from-red-600 to-rose-500 text-white rounded-full p-1 border-2 hover:from-red-500 hover:to-rose-400 transition-colors shadow-md cursor-pointer ${
                     theme === 'dark' ? 'border-zinc-900' : 'border-white'
                 }`}
             >
-                {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+                {isCollapsed ? <ChevronRight size={28} /> : <ChevronLeft size={28} />}
             </button>
 
             {/* Navigation Items */}
-            <nav className="flex-1 mt-8 px-3 flex flex-col gap-6">
+            <nav className="flex-1 mt-8 px-3 flex flex-col gap-6 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-zinc-400 dark:scrollbar-thumb-zinc-600 scrollbar-track-transparent">
                 {menuGroups.map((group) => (
                     <div key={group.label} className="flex flex-col gap-2">
                         {!isCollapsed && (

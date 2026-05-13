@@ -110,14 +110,7 @@ def delete_student(student_id: int, db: Session = Depends(get_db)):
 
     try:
         # Delete related records first
-        from models import Enrollment, StudentDegree
-
-        # Delete enrollments
-        enrollments = db.query(Enrollment).filter(Enrollment.u_id == student_id).all()
-        if enrollments:
-            logger.info(f"Deleting {len(enrollments)} enrollment records for student: {student_id}")
-            for enrollment in enrollments:
-                db.delete(enrollment)
+        from models import StudentDegree
 
         # Delete student degrees
         student_degrees = db.query(StudentDegree).filter(StudentDegree.group_id == db_student.group_id).all()

@@ -9,6 +9,7 @@ import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/in
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Professor {
     u_id: number;
@@ -631,9 +632,31 @@ export default function ProfessorsPage() {
 
                 <div className="p-6">
                     {loading ? (
-                        <div className="p-20 flex flex-col items-center justify-center text-center">
-                            <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-4" />
-                            <p className="text-zinc-500">Loading faculty directory...</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {[1, 2, 3, 4, 5, 6].map((i) => (
+                                <div key={i} className="p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+                                    <div className="flex justify-between items-start mb-6">
+                                        <Skeleton className="w-16 h-16 rounded-xl" />
+                                        <div className="flex gap-2">
+                                            <Skeleton className="w-8 h-8 rounded-lg" />
+                                            <Skeleton className="w-8 h-8 rounded-lg" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <Skeleton className="h-6 w-40" />
+                                        <Skeleton className="h-4 w-48" />
+                                        <Skeleton className="h-4 w-36" />
+                                    </div>
+                                    <div className="mt-6 pt-6 border-t border-zinc-50 dark:border-zinc-800">
+                                        <Skeleton className="h-4 w-32 mb-4" />
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {[1, 2, 3, 4, 5].map((j) => (
+                                                <Skeleton key={j} className="w-8 h-8 rounded-lg" />
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     ) : filteredProfessors.length === 0 ? (
                         <div className="p-20 flex flex-col items-center justify-center text-center flex flex-col gap-6">

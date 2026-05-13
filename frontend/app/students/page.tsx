@@ -9,6 +9,7 @@ import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/in
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface User {
     u_id: number;
@@ -396,7 +397,32 @@ export default function StudentsPage() {
                 </div>
 
                 <div className="p-6">
-                    {filteredStudents.length === 0 ? (
+                    {loading ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {[1, 2, 3, 4, 5, 6].map((i) => (
+                                <div key={i} className="p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+                                    <div className="flex justify-between items-start mb-6">
+                                        <Skeleton className="w-16 h-16 rounded-xl" />
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <Skeleton className="h-6 w-32" />
+                                        <Skeleton className="h-4 w-40" />
+                                        <Skeleton className="h-4 w-36" />
+                                    </div>
+                                    <div className="mt-6 pt-6 border-t border-zinc-50 dark:border-zinc-800 flex flex-col gap-3">
+                                        <div className="flex items-center justify-between">
+                                            <Skeleton className="h-4 w-16" />
+                                            <Skeleton className="h-6 w-20 rounded-full" />
+                                        </div>
+                                        <div className="flex gap-2 mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+                                            <Skeleton className="flex-1 h-10 rounded-lg" />
+                                            <Skeleton className="flex-1 h-10 rounded-lg" />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : filteredStudents.length === 0 ? (
                         <div className="p-20 flex flex-col items-center justify-center text-center flex flex-col gap-6">
                             <div className="w-24 h-24 bg-zinc-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-300 rotate-12">
                                 <Users size={48} />

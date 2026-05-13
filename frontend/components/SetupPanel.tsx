@@ -1,6 +1,6 @@
-import { type Dispatch, type SetStateAction, useEffect } from "react";
+import { type Dispatch, type SetStateAction } from "react";
 import {
-  Calendar,
+  Users,
   Plus,
   Pencil,
   Trash2,
@@ -8,22 +8,22 @@ import {
   Hash,
   Save,
   Info,
-  CalendarDays,
-  Zap,
-  ArrowRight
+  GraduationCap,
+  Building2,
+  Calendar
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import DatePicker from "react-datepicker";
 import { SectionCard } from "./ScheduleSection";
-import { type Semester, type FormState } from "./schedule-types";
+import { type StudentGroup, type Degree, type FormState } from "./schedule-types";
 
 type SetupPanelProps = {
-  semesters: Semester[];
-  semesterForm: FormState<Semester>;
-  setSemesterForm: React.Dispatch<React.SetStateAction<FormState<Semester>>>;
-  editSemesterId: number | null;
-  setEditSemesterId: React.Dispatch<React.SetStateAction<number | null>>;
-  loadSemesters: () => void;
+  studentGroups: StudentGroup[];
+  degrees: Degree[];
+  studentGroupForm: FormState<StudentGroup>;
+  setStudentGroupForm: React.Dispatch<React.SetStateAction<FormState<StudentGroup>>>;
+  editStudentGroupId: number | null;
+  setEditStudentGroupId: React.Dispatch<React.SetStateAction<number | null>>;
+  loadStudentGroups: () => void;
   setFormValue: <T extends object>(setter: React.Dispatch<React.SetStateAction<T>>, key: string, value: string | number | boolean) => void;
   handleSave: (
     section: string,
@@ -39,128 +39,70 @@ type SetupPanelProps = {
 };
 
 export default function SetupPanel({
-  semesters,
-  semesterForm,
-  setSemesterForm,
-  editSemesterId,
-  setEditSemesterId,
-  loadSemesters,
+  studentGroups,
+  degrees,
+  studentGroupForm,
+  setStudentGroupForm,
+  editStudentGroupId,
+  setEditStudentGroupId,
+  loadStudentGroups,
   setFormValue,
   handleSave,
   handleDelete,
 }: SetupPanelProps) {
-  useEffect(() => {
-    if (semesterForm.start_date && typeof semesterForm.week_count === 'number' && semesterForm.week_count > 0) {
-      const start = new Date(semesterForm.start_date);
-      const end = new Date(start);
-      end.setDate(start.getDate() + semesterForm.week_count * 7);
-      const endDateStr = end.toISOString().split('T')[0];
-      setFormValue(setSemesterForm, "end_date", endDateStr);
-    }
-  }, [semesterForm.start_date, semesterForm.week_count, setFormValue, setSemesterForm]);
 
   return (
     <div className="grid gap-8">
-      <style>{`
-        .react-datepicker-wrapper {
-          width: 100%;
-        }
-        .react-datepicker {
-          font-family: inherit;
-          border-radius: 1rem;
-          border: 1px solid #e2e8f0;
-          box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-          overflow: hidden;
-        }
-        .dark .react-datepicker {
-          background-color: #0f172a;
-          border-color: #1e293b;
-        }
-        .react-datepicker__header {
-          background-color: #f8fafc;
-          border-bottom: 1px solid #e2e8f0;
-          padding-top: 0.75rem;
-        }
-        .dark .react-datepicker__header {
-          background-color: #1e293b;
-          border-color: #334155;
-        }
-        .react-datepicker__current-month, .react-datepicker__day-name {
-          color: #1e293b;
-        }
-        .dark .react-datepicker__current-month, .dark .react-datepicker__day-name {
-          color: #f1f5f9;
-        }
-        .react-datepicker__day {
-          color: #475569;
-        }
-        .dark .react-datepicker__day {
-          color: #94a3b8;
-        }
-        .react-datepicker__day:hover {
-          background-color: #f1f5f9;
-          border-radius: 0.5rem;
-        }
-        .dark .react-datepicker__day:hover {
-          background-color: #334155;
-          color: #f1f5f9;
-        }
-        .react-datepicker__day--selected {
-          background-color: #dc2626 !important;
-          color: white !important;
-          border-radius: 0.5rem;
-        }
-        .react-datepicker__day--keyboard-selected {
-          background-color: #818cf850;
-          border-radius: 0.5rem;
-        }
-      `}</style>
-      {/* Semesters Section */}
+      {/* Student Groups Section */}
       <SectionCard
-        title="Semesters"
-        description="Define academic periods for scheduling."
-        icon={CalendarDays}
+        title="Student Groups"
+        description="Define academic groups for scheduling."
+        icon={Users}
       >
         <div className="flex flex-col gap-6">
           {/* Form */}
           <div className="space-y-4 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 p-5 ring-1 ring-zinc-200 dark:ring-zinc-800">
             <div className="space-y-1.5">
               <label className="flex items-center gap-2 text-xs font-medium text-zinc-500 uppercase tracking-wider dark:text-zinc-400">
-                <Info size={12} /> Semester Name
+                <Info size={12} /> Group Name
               </label>
               <input
                 className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
-                value={semesterForm.sem_name}
-                placeholder="e.g. Winter 2024"
-                onChange={(event) => setFormValue(setSemesterForm, "sem_name", event.target.value)}
+                value={studentGroupForm.group_name}
+                placeholder="e.g. CS-2024-A"
+                onChange={(event) => setFormValue(setStudentGroupForm, "group_name", event.target.value)}
               />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <label className="flex items-center gap-2 text-xs font-medium text-zinc-500 uppercase tracking-wider dark:text-zinc-400">
-                  <Zap size={12} /> Special Semester?
+                  <GraduationCap size={12} /> Degree
                 </label>
                 <select
                   className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.75rem_center] bg-no-repeat"
-                  value={semesterForm.is_special_semester ? "true" : "false"}
-                  onChange={(event) => setFormValue(setSemesterForm, "is_special_semester", event.target.value === "true")}
+                  value={studentGroupForm.deg_id}
+                  onChange={(event) => setFormValue(setStudentGroupForm, "deg_id", Number(event.target.value))}
                 >
-                  <option value="false">Standard Academic Period</option>
-                  <option value="true">Special Session / Summer</option>
+                  <option value={0}>Select Degree</option>
+                  {degrees.map((degree) => (
+                    <option key={degree.d_id} value={degree.d_id}>
+                      {degree.d_name} ({degree.degree_abbr})
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="space-y-1.5">
                 <label className="flex items-center gap-2 text-xs font-medium text-zinc-500 uppercase tracking-wider dark:text-zinc-400">
-                  <Hash size={12} /> Week Count
+                  <Hash size={12} /> Capacity
                 </label>
                 <input
                   type="number"
                   min={1}
-                  placeholder="15"
+                  placeholder="30"
                   className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
-                  value={semesterForm.week_count}
-                  onChange={(event) => setFormValue(setSemesterForm, "week_count", Math.max(1, Number(event.target.value)))}
+                  value={studentGroupForm.capacity}
+                  onChange={(event) => setFormValue(setStudentGroupForm, "capacity", Math.max(1, Number(event.target.value)))}
                 />
               </div>
             </div>
@@ -168,54 +110,62 @@ export default function SetupPanel({
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <label className="flex items-center gap-2 text-xs font-medium text-zinc-500 uppercase tracking-wider dark:text-zinc-400">
-                  <Calendar size={12} /> Start Date
+                  <Layers size={12} /> Year Level
                 </label>
-                <DatePicker
-                  selected={semesterForm.start_date ? new Date(semesterForm.start_date) : null}
-                  onChange={(date:any) => setFormValue(setSemesterForm, "start_date", date ? date.toISOString().split('T')[0] : "")}
-                  dateFormat="yyyy-MM-dd"
-                  className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
-                  placeholderText="Select start date"
-                />
+                <select
+                  className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.75rem_center] bg-no-repeat"
+                  value={studentGroupForm.year_level}
+                  onChange={(event) => setFormValue(setStudentGroupForm, "year_level", Number(event.target.value))}
+                >
+                  {[1, 2, 3, 4, 5].map((year) => (
+                    <option key={year} value={year}>
+                      Year {year}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-1.5">
                 <label className="flex items-center gap-2 text-xs font-medium text-zinc-500 uppercase tracking-wider dark:text-zinc-400">
-                  <Calendar size={12} /> End Date
+                  <Calendar size={12} /> Semester Number
                 </label>
-                <DatePicker
-                  selected={semesterForm.end_date ? new Date(semesterForm.end_date) : null}
-                  onChange={(date:any) => setFormValue(setSemesterForm, "end_date", date ? date.toISOString().split('T')[0] : "")}
-                  dateFormat="yyyy-MM-dd"
-                  className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
-                  placeholderText="Select end date"
-                />
+                <select
+                  className="w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 outline-none! transition focus:border-red-500/80 focus:ring-4 focus:ring-red-500/10 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.75rem_center] bg-no-repeat"
+                  value={studentGroupForm.semester_number}
+                  onChange={(event) => setFormValue(setStudentGroupForm, "semester_number", Number(event.target.value))}
+                >
+                  {[1, 2].map((sem) => (
+                    <option key={sem} value={sem}>
+                      Semester {sem}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
             <div className="flex items-center gap-3 pt-2">
               <button
-                disabled={!semesterForm.sem_name || !semesterForm.start_date || !semesterForm.end_date}
+                disabled={!studentGroupForm.group_name || !studentGroupForm.deg_id}
                 onClick={() =>
                   handleSave(
-                    "Semester",
-                    semesterForm,
-                    "/semesters/",
-                    "/semesters",
-                    editSemesterId,
-                    setEditSemesterId,
-                    loadSemesters,
-                    () => setSemesterForm({ sem_name: "", start_date: "", end_date: "", is_special_semester: false, week_count: 15 })
+                    "Student Group",
+                    studentGroupForm,
+                    "/student-groups/",
+                    "/student-groups",
+                    editStudentGroupId,
+                    setEditStudentGroupId,
+                    loadStudentGroups,
+                    () => setStudentGroupForm({ group_name: "", deg_id: 0, year_level: 1, semester_number: 1, capacity: 0 })
                   )
                 }
                 className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-500 px-5 py-2.5 text-sm font-semibold text-white hover:from-red-500 hover:to-rose-400 transition shadow-lg shadow-red-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
-                {editSemesterId ? <Save size={16} /> : <Plus size={16} />} {editSemesterId ? "Update Semester" : "Create Semester"}
+                {editStudentGroupId ? <Save size={16} /> : <Plus size={16} />} {editStudentGroupId ? "Update Group" : "Create Group"}
               </button>
-              {editSemesterId && (
+              {editStudentGroupId && (
                 <button
                   onClick={() => {
-                    setEditSemesterId(null);
-                    setSemesterForm({ sem_name: "", start_date: "", end_date: "", is_special_semester: false, week_count: 15 });
+                    setEditStudentGroupId(null);
+                    setStudentGroupForm({ group_name: "", deg_id: 0, year_level: 1, semester_number: 1, capacity: 0 });
                   }}
                   className="rounded-xl border border-zinc-200 px-5 py-2.5 text-sm font-semibold text-zinc-700 dark:border-zinc-800 dark:text-zinc-200 hover:bg-white dark:hover:bg-zinc-800 transition active:scale-95 cursor-pointer"
                 >
@@ -231,17 +181,19 @@ export default function SetupPanel({
               <table className="w-full border-collapse text-left text-sm text-zinc-700 dark:text-zinc-300">
                 <thead className="bg-zinc-50 border-b border-zinc-200 dark:bg-zinc-900/50 dark:border-zinc-800 text-zinc-500 uppercase tracking-wider text-[11px] font-semibold">
                   <tr>
-                    <th className="px-5 py-4">Semester</th>
-                    <th className="px-5 py-4">Period</th>
-                    <th className="px-5 py-4 text-center">Weeks</th>
+                    <th className="px-5 py-4">Group</th>
+                    <th className="px-5 py-4">Degree</th>
+                    <th className="px-5 py-4 text-center">Year</th>
+                    <th className="px-5 py-4 text-center">Sem</th>
+                    <th className="px-5 py-4 text-center">Capacity</th>
                     <th className="px-5 py-4 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                   <AnimatePresence mode="popLayout">
-                    {semesters.map((item, idx) => (
+                    {studentGroups.map((item, idx) => (
                       <motion.tr
-                        key={item.sem_id}
+                        key={item.group_id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95 }}
@@ -249,36 +201,33 @@ export default function SetupPanel({
                         className="group border-t border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/30 transition-colors"
                       >
                         <td className="px-5 py-4">
-                          <div className="space-y-1">
-                            <div className="font-semibold text-zinc-900 dark:text-white">{item.sem_name}</div>
-                            {item.is_special_semester && (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-600 ring-1 ring-inset ring-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
-                                <Zap size={10} /> SPECIAL
-                              </span>
-                            )}
-                          </div>
+                          <div className="font-semibold text-zinc-900 dark:text-white">{item.group_name}</div>
                         </td>
                         <td className="px-5 py-4">
-                          <div className="flex items-center gap-2 text-xs">
-                            <span className="text-zinc-900 dark:text-white">{item.start_date ? new Date(item.start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : "-"}</span>
-                            <ArrowRight size={10} className="text-zinc-400" />
-                            <span className="text-zinc-900 dark:text-white">{item.end_date ? new Date(item.end_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : "-"}</span>
+                          <div className="text-zinc-900 dark:text-white">
+                            {degrees.find((d) => d.d_id === item.deg_id)?.d_name || "-"}
                           </div>
                         </td>
                         <td className="px-5 py-4 text-center font-mono text-xs">
-                          {item.week_count}
+                          {item.year_level}
+                        </td>
+                        <td className="px-5 py-4 text-center font-mono text-xs">
+                          {item.semester_number}
+                        </td>
+                        <td className="px-5 py-4 text-center font-mono text-xs">
+                          {item.capacity}
                         </td>
                         <td className="px-5 py-4">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => {
-                                setEditSemesterId(item.sem_id);
-                                setSemesterForm({
-                                  sem_name: item.sem_name,
-                                  start_date: item.start_date,
-                                  end_date: item.end_date,
-                                  is_special_semester: item.is_special_semester,
-                                  week_count: item.week_count,
+                                setEditStudentGroupId(item.group_id);
+                                setStudentGroupForm({
+                                  group_name: item.group_name,
+                                  deg_id: item.deg_id,
+                                  year_level: item.year_level,
+                                  semester_number: item.semester_number,
+                                  capacity: item.capacity,
                                 });
                               }}
                               className="rounded-xl p-2 text-red-600 hover:bg-red-50 transition dark:text-red-400 dark:hover:bg-red-500/10 cursor-pointer"
@@ -286,7 +235,7 @@ export default function SetupPanel({
                               <Pencil size={16} />
                             </button>
                             <button
-                              onClick={() => handleDelete(`/semesters/${item.sem_id}`, loadSemesters, item.sem_name)}
+                              onClick={() => handleDelete(`/student-groups/${item.group_id}`, loadStudentGroups, item.group_name)}
                               className="rounded-xl p-2 text-red-600 hover:bg-red-50 transition dark:text-red-400 dark:hover:bg-red-500/10 cursor-pointer"
                             >
                               <Trash2 size={16} />
@@ -296,10 +245,10 @@ export default function SetupPanel({
                       </motion.tr>
                     ))}
                   </AnimatePresence>
-                  {semesters.length === 0 && (
+                  {studentGroups.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="px-5 py-10 text-center text-zinc-400 dark:text-zinc-600 italic">
-                        No semesters defined. Create one above.
+                      <td colSpan={6} className="px-5 py-10 text-center text-zinc-400 dark:text-zinc-600 italic">
+                        No student groups defined. Create one above.
                       </td>
                     </tr>
                   )}

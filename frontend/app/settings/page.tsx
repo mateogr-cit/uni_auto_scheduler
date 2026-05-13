@@ -3,6 +3,7 @@
 import { useTheme } from 'next-themes';
 import { Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -13,7 +14,31 @@ export default function SettingsPage() {
   }, []);
 
   if (!mounted) {
-    return null;
+    return (
+      <div className="flex flex-col gap-8">
+        <div>
+          <Skeleton className="h-9 w-40 mb-2" />
+          <Skeleton className="h-5 w-64" />
+        </div>
+
+        <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-6">
+          <Skeleton className="h-6 w-32 mb-6" />
+
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+              <div className="flex items-center gap-3">
+                <Skeleton className="w-10 h-10 rounded-lg" />
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-20" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              </div>
+              <Skeleton className="h-6 w-11 rounded-full" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

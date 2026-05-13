@@ -309,7 +309,7 @@ export default function StudentGroupsPage() {
                 <FieldLabel htmlFor="deg_id">Degree Programme</FieldLabel>
                 <Select
                   value={formData.deg_id || ""}
-                  onValueChange={(value: string) => setFormData({ ...formData, deg_id: value })}
+                  onValueChange={(value: string | null) => setFormData({ ...formData, deg_id: value || "" })}
                   required
                 >
                   <SelectTrigger className="w-full">
@@ -332,7 +332,7 @@ export default function StudentGroupsPage() {
                   </InputGroupAddon>
                   <Select
                     value={formData.year_level}
-                    onValueChange={(value) => setFormData({ ...formData, year_level: value })}
+                    onValueChange={(value: string | null) => setFormData({ ...formData, year_level: value || "" })}
                     required
                   >
                     <SelectTrigger>
@@ -351,7 +351,7 @@ export default function StudentGroupsPage() {
                 <FieldLabel htmlFor="semester_number">Semester</FieldLabel>
                 <Select
                   value={formData.semester_number}
-                  onValueChange={(value) => setFormData({ ...formData, semester_number: value })}
+                  onValueChange={(value: string | null) => setFormData({ ...formData, semester_number: value || "" })}
                   required
                 >
                   <SelectTrigger className="w-full">

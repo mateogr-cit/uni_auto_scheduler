@@ -5,60 +5,48 @@ import { Zap, RefreshCcw } from "lucide-react";
 import ScheduleTabs from "./ScheduleTabs";
 import OverviewPanel from "./OverviewPanel";
 import SetupPanel from "./SetupPanel";
-import CourseOfferingsPanel from "./CourseOfferingsPanel";
-import EnrollmentsPanel from "./EnrollmentsPanel";
+import CourseSchedulesPanel from "./CourseSchedulesPanel";
 import AutoSchedulePanel from "./AutoSchedulePanel";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   type TabId,
   type StudentGroup,
-  type Semester,
   type Faculty,
   type Degree,
   type Student,
   type Course,
   type StudentDegree,
   type CourseCurriculum,
-  type CourseOffering,
-  type Enrollment,
   type FormState,
 } from "./schedule-types";
 
 const API_BASE = "http://localhost:8000";
 
 const emptyStudentGroup = { group_name: "", deg_id: 0, year_level: 1, semester_number: 1, capacity: 0 };
-const emptySemester = { sem_name: "", start_date: "", end_date: "", is_special_semester: false, week_count: 15 };
 const emptyFaculty = { f_name: "", f_abbr: "" };
 const emptyDegree = { d_name: "", f_id: 0, degree_abbr: "" };
 const emptyStudentDegree = { group_id: 0, deg_id: 0, yr_lvl: 1 };
 const emptyCourseCurriculum = { c_id: 0, degree_id: 0, year_level: 1, is_active: true, semester_number: 1 };
-const emptyEnrollment = { offering_id: 0, u_id: 0 };
 
 const ScheduleDashboard = () => {
   const [studentGroups, setStudentGroups] = useState<StudentGroup[]>([]);
-  const [semesters, setSemesters] = useState<Semester[]>([]);
   const [faculty, setFaculty] = useState<Faculty[]>([]);
   const [degrees, setDegrees] = useState<Degree[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
-  const [offerings, setOfferings] = useState<CourseOffering[]>([]);
   const [studentDegrees, setStudentDegrees] = useState<StudentDegree[]>([]);
   const [courseCurriculum, setCourseCurriculum] = useState<CourseCurriculum[]>([]);
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-  const [autoEnrollmentEnabled, setAutoEnrollmentEnabled] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>("overview");
+  const [loading, setLoading] = useState(true);
 
   const [editStudentGroupId, setEditStudentGroupId] = useState<number | null>(null);
-  const [editSemesterId, setEditSemesterId] = useState<number | null>(null);
   const [editStudentDegreeId, setEditStudentDegreeId] = useState<number | null>(null);
   const [editCourseCurriculumId, setEditCourseCurriculumId] = useState<number | null>(null);
-  const [editEnrollmentId, setEditEnrollmentId] = useState<number | null>(null);
 
   const [studentGroupForm, setStudentGroupForm] = useState<FormState<typeof emptyStudentGroup>>(emptyStudentGroup);
-  const [semesterForm, setSemesterForm] = useState<FormState<typeof emptySemester>>(emptySemester);
   const [studentDegreeForm, setStudentDegreeForm] = useState<FormState<typeof emptyStudentDegree>>(emptyStudentDegree);
   const [courseCurriculumForm, setCourseCurriculumForm] = useState<FormState<typeof emptyCourseCurriculum>>(emptyCourseCurriculum);
-  const [enrollmentForm, setEnrollmentForm] = useState<FormState<typeof emptyEnrollment>>(emptyEnrollment);
 
   const apiFetch = async (path: string, opts: RequestInit = {}) => {
     const response = await fetch(`${API_BASE}${path}`, {
@@ -76,30 +64,26 @@ const ScheduleDashboard = () => {
     return text ? JSON.parse(text) : null;
   };
 
-  const loadAll = () => {
-    loadStudentGroups();
-    loadSemesters();
-    loadFaculty();
-    loadDegrees();
-    loadStudents();
-    loadCourses();
-    loadOfferings();
-    loadStudentDegrees();
-    loadCourseCurriculum();
-    loadEnrollments();
+  const loadAll = async () => {
+    setLoading(true);
+    try {
+      await Promise.all([
+        loadStudentGroups(),
+        loadFaculty(),
+        loadDegrees(),
+        loadStudents(),
+        loadCourses(),
+        loadStudentDegrees(),
+        loadCourseCurriculum(),
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const loadStudentGroups = async () => {
     try {
       setStudentGroups((await apiFetch("/student-groups/")) || []);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const loadSemesters = async () => {
-    try {
-      setSemesters((await apiFetch("/semesters/")) || []);
     } catch (error) {
       console.error(error);
     }
@@ -137,14 +121,6 @@ const ScheduleDashboard = () => {
     }
   };
 
-  const loadOfferings = async () => {
-    try {
-      setOfferings((await apiFetch("/course-offerings/")) || []);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
   const loadStudentDegrees = async () => {
     try {
       setStudentDegrees((await apiFetch("/student-degrees/")) || []);
@@ -156,14 +132,6 @@ const ScheduleDashboard = () => {
   const loadCourseCurriculum = async () => {
     try {
       setCourseCurriculum((await apiFetch("/course-curriculum/")) || []);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const loadEnrollments = async () => {
-    try {
-      setEnrollments((await apiFetch("/enrollments/")) || []);
     } catch (error) {
       console.error(error);
     }
@@ -189,9 +157,6 @@ const ScheduleDashboard = () => {
   ) => {
     try {
       const payload = { ...form };
-      if (typeof payload.is_special_semester === "string") {
-        payload.is_special_semester = payload.is_special_semester === "true";
-      }
       const method = editId ? "PUT" : "POST";
       const path = editId ? `${updatePath}/${editId}` : createPath;
       await apiFetch(path, { method, body: JSON.stringify(payload) });
@@ -216,18 +181,6 @@ const ScheduleDashboard = () => {
     }
   };
 
-  const handleAutoEnroll = async () => {
-    try {
-      const result = await apiFetch("/enrollments/auto/", { method: "POST" });
-      setStatusMessage(result?.message || "Auto enrollment completed.");
-      setAutoEnrollmentEnabled(true);
-      loadEnrollments();
-    } catch (error) {
-      console.error(error);
-      setStatusMessage("Auto enrollment failed.");
-    }
-  };
-
   return (
     <div className="space-y-8">
       <ScheduleTabs activeTab={activeTab} onTabChange={setActiveTab} />
@@ -235,7 +188,7 @@ const ScheduleDashboard = () => {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">Schedule Builder</h1>
-            <p className="text-zinc-500 dark:text-zinc-400 mt-1">Configure your academic groups, semesters, curriculum, enrollments, and launch schedule generation.</p>
+            <p className="text-zinc-500 dark:text-zinc-400 mt-1">Configure your academic groups, curriculum, schedules, and launch schedule generation.</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <button
@@ -254,60 +207,59 @@ const ScheduleDashboard = () => {
         ) : null}
       </div>
 
-      {activeTab === "overview" && (
-        <OverviewPanel
-          studentGroupsCount={studentGroups.length}
-          semestersCount={semesters.length}
-          degreesCount={degrees.length}
-          onGoto={setActiveTab}
-        />
-      )}
+      {loading ? (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+                <div className="flex flex-col gap-3">
+                  <Skeleton className="h-6 w-32" />
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-4 w-40" />
+                </div>
+                <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex flex-col gap-2">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <>
+          {activeTab === "overview" && (
+            <OverviewPanel
+              studentGroupsCount={studentGroups.length}
+              degreesCount={degrees.length}
+              onGoto={setActiveTab}
+            />
+          )}
 
-      {activeTab === "setup" && (
-        <SetupPanel
-          semesters={semesters}
-          semesterForm={semesterForm}
-          setSemesterForm={setSemesterForm}
-          editSemesterId={editSemesterId}
-          setEditSemesterId={setEditSemesterId}
-          loadSemesters={loadSemesters}
-          setFormValue={setFormValue}
-          handleSave={handleSave}
-          handleDelete={handleDelete}
-        />
-      )}
+          {activeTab === "setup" && (
+            <SetupPanel
+              studentGroups={studentGroups}
+              degrees={degrees}
+              studentGroupForm={studentGroupForm}
+              setStudentGroupForm={setStudentGroupForm}
+              editStudentGroupId={editStudentGroupId}
+              setEditStudentGroupId={setEditStudentGroupId}
+              loadStudentGroups={loadStudentGroups}
+              setFormValue={setFormValue}
+              handleSave={handleSave}
+              handleDelete={handleDelete}
+            />
+          )}
 
-      {activeTab === "offerings" && (
-        <CourseOfferingsPanel
-          semesters={semesters}
-          onRefresh={loadAll}
-        />
-      )}
+          {activeTab === "schedules" && (
+            <CourseSchedulesPanel />
+          )}
 
-      {activeTab === "enrollments" && (
-        <EnrollmentsPanel
-          enrollments={enrollments}
-          enrollmentForm={enrollmentForm}
-          setEnrollmentForm={setEnrollmentForm}
-          editEnrollmentId={editEnrollmentId}
-          setEditEnrollmentId={setEditEnrollmentId}
-          loadEnrollments={loadEnrollments}
-          students={students}
-          studentGroups={studentGroups}
-          offerings={offerings}
-          courses={courses}
-          autoEnrollmentEnabled={autoEnrollmentEnabled}
-          handleSave={handleSave}
-          handleDelete={handleDelete}
-          handleAutoEnroll={handleAutoEnroll}
-        />
-      )}
-
-      {activeTab === "schedule" && (
-        <AutoSchedulePanel
-          semesters={semesters}
-          onRefresh={loadAll}
-        />
+          {activeTab === "schedule" && (
+            <AutoSchedulePanel
+              onRefresh={loadAll}
+            />
+          )}
+        </>
       )}
     </div>
   );

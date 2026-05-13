@@ -7,6 +7,7 @@ import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Room {
     room_id: string;
@@ -93,15 +94,58 @@ export default function RoomsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 p-6 flex items-center justify-center">
-                <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                    className="text-center"
-                >
-                    <Building className="w-12 h-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
-                    <p className="text-zinc-500 dark:text-zinc-400">Loading rooms...</p>
-                </motion.div>
+            <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 p-6">
+                <div className="max-w-7xl mx-auto">
+                    {/* Header Skeleton */}
+                    <div className="mb-8">
+                        <div className="flex items-center gap-3 mb-2">
+                            <Skeleton className="w-8 h-8 rounded-lg" />
+                            <Skeleton className="h-9 w-64" />
+                        </div>
+                        <Skeleton className="h-5 w-80" />
+                    </div>
+
+                    {/* Search and Add Skeleton */}
+                    <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                        <div className="relative flex-1">
+                            <Skeleton className="h-12 w-full rounded-lg" />
+                        </div>
+                        <Skeleton className="h-12 w-32 rounded-lg" />
+                    </div>
+
+                    {/* Rooms Table Skeleton */}
+                    <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-zinc-100 dark:bg-zinc-700/50 border-b border-zinc-200 dark:border-zinc-600">
+                                    <tr>
+                                        <th className="px-6 py-4 text-left text-xs font-medium text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Classroom</th>
+                                        <th className="px-6 py-4 text-left text-xs font-medium text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Capacity</th>
+                                        <th className="px-6 py-4 text-left text-xs font-medium text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-zinc-200 dark:divide-zinc-700">
+                                    {[1, 2, 3, 4, 5].map((i) => (
+                                        <tr key={i} className="hover:bg-zinc-100 dark:hover:bg-zinc-700/50 transition-colors duration-200">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <Skeleton className="h-5 w-32" />
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <Skeleton className="h-5 w-24" />
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex gap-2">
+                                                    <Skeleton className="w-8 h-8 rounded-md" />
+                                                    <Skeleton className="w-8 h-8 rounded-md" />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
