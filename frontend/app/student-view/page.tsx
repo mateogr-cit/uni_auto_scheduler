@@ -218,16 +218,18 @@ export default function StudentViewPage() {
                                                                 setComplaintOpen(open);
                                                                 if (!open) setSelectedCourse(null);
                                                             }}>
-                                                                <DialogTrigger>
-                                                                    <Button
-                                                                        variant="ghost"
-                                                                        size="sm"
-                                                                        className="mt-3 w-full text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/20"
-                                                                        onClick={() => setSelectedCourse(course.course.toString())}
-                                                                    >
-                                                                        <AlertCircle className="w-3 h-3 mr-1" />
-                                                                        File Complaint
-                                                                    </Button>
+                                                                <DialogTrigger
+                                                                    render={
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            className="mt-3 w-full text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/20"
+                                                                            onClick={() => setSelectedCourse(course.course.toString())}
+                                                                        />
+                                                                    }
+                                                                >
+                                                                    <AlertCircle className="w-3 h-3 mr-1" />
+                                                                    File Complaint
                                                                 </DialogTrigger>
                                                                 <DialogContent className="sm:max-w-[500px]">
                                                                     <DialogHeader>

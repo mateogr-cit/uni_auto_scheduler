@@ -35,7 +35,6 @@ const ScheduleDashboard = () => {
   const apiFetch = async (path: string, opts: RequestInit = {}) => {
     const response = await fetch(`${API_BASE}${path}`, {
       headers: { "Content-Type": "application/json" },
-      credentials: "include",
       ...opts,
     });
 
@@ -185,13 +184,12 @@ const ScheduleDashboard = () => {
 
           {activeTab === "setup" && (
             <SetupPanel
-              studentGroups={studentGroups}
-              degrees={degrees}
-              studentGroupForm={studentGroupForm}
-              setStudentGroupForm={setStudentGroupForm}
-              editStudentGroupId={editStudentGroupId}
-              setEditStudentGroupId={setEditStudentGroupId}
-              loadStudentGroups={loadStudentGroups}
+              timeSlots={timeSlots}
+              timeSlotForm={timeSlotForm}
+              setTimeSlotForm={setTimeSlotForm}
+              editTimeSlotId={editTimeSlotId}
+              setEditTimeSlotId={setEditTimeSlotId}
+              loadTimeSlots={loadTimeSlots}
               setFormValue={setFormValue}
               handleSave={handleSave}
               handleDelete={handleDelete}

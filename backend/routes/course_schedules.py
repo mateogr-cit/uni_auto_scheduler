@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from database import get_db
-from models import CourseSchedule as DBCourseSchedule, Course, StudentGroup, User, Prof, CourseSession, Rooms, TimeSlots
+from models import CourseSchedule as DBCourseSchedule, Course, StudentGroup, User, Prof, CourseSession, Rooms, TimeSlots, SessionTypeModel
 from schemas import CourseSchedule, CourseScheduleCreate
 from typing import List
 from datetime import datetime
@@ -69,7 +69,7 @@ def delete_course_schedule(schedule_id: int, db: Session = Depends(get_db)):
 
 @router.get("/course-schedules/group/{group_id}")
 def get_schedules_by_group(group_id: int, db: Session = Depends(get_db)):
-    """Get all course schedules for a specific student group."""
+    """Get all course schedules for a specific student group, with sessions nested."""
     schedules = db.query(DBCourseSchedule).filter(
         DBCourseSchedule.group_id == group_id
     ).all()
@@ -77,19 +77,34 @@ def get_schedules_by_group(group_id: int, db: Session = Depends(get_db)):
     formatted_schedules = []
     for schedule in schedules:
         course = db.query(Course).filter(Course.c_id == schedule.c_id).first()
-        room = db.query(Rooms).filter(Rooms.room_id == schedule.room_id).first()
-        slot = db.query(TimeSlots).filter(TimeSlots.slot_id == schedule.slot_id).first()
         prof = db.query(User).filter(User.u_id == schedule.u_id).first()
+
+        sessions = db.query(CourseSession).filter(
+            CourseSession.schedule_id == schedule.schedule_id
+        ).all()
+
+        formatted_sessions = []
+        for session in sessions:
+            slot = db.query(TimeSlots).filter(TimeSlots.slot_id == session.slot_id).first()
+            stype = db.query(SessionTypeModel).filter(
+                SessionTypeModel.session_type_id == session.session_type_id
+            ).first()
+            formatted_sessions.append({
+                "session_id": session.session_id,
+                "type": stype.type_name.value if stype else "Unknown",
+                "day": slot.day_of_week.value if slot else "N/A",
+                "time": f"{slot.start_time.strftime('%H:%M')}-{slot.end_time.strftime('%H:%M')}" if slot else "N/A",
+                "room": session.room_id,
+                "status": session.s_status,
+            })
 
         formatted_schedules.append({
             "schedule_id": schedule.schedule_id,
             "course": course.c_name if course else "Unknown Course",
             "course_abbr": course.c_abbr if course else "N/A",
-            "room": schedule.room_id,
-            "day": slot.day_of_week.value if slot else "N/A",
-            "time": f"{slot.start_time.strftime('%H:%M')}-{slot.end_time.strftime('%H:%M')}" if slot else "N/A",
             "professor": f"{prof.fname} {prof.lname}" if prof else "N/A",
-            "status": schedule.s_status
+            "status": schedule.s_status,
+            "sessions": formatted_sessions,
         })
 
     return {

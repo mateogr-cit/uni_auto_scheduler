@@ -225,16 +225,18 @@ export default function ProfessorViewPage() {
                                                                 setUnavailabilityOpen(open);
                                                                 if (!open) setSelectedCourse(null);
                                                             }}>
-                                                                <DialogTrigger>
-                                                                    <Button
-                                                                        variant="ghost"
-                                                                        size="sm"
-                                                                        className="mt-3 w-full text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/20"
-                                                                        onClick={() => setSelectedCourse(course.course.toString())}
-                                                                    >
-                                                                        <CalendarX className="w-3 h-3 mr-1" />
-                                                                        Request Unavailability
-                                                                    </Button>
+                                                                <DialogTrigger
+                                                                    render={
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            className="mt-3 w-full text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/20"
+                                                                            onClick={() => setSelectedCourse(course.course.toString())}
+                                                                        />
+                                                                    }
+                                                                >
+                                                                    <CalendarX className="w-3 h-3 mr-1" />
+                                                                    Request Unavailability
                                                                 </DialogTrigger>
                                                                 <DialogContent className="sm:max-w-[500px]">
                                                                     <DialogHeader>

@@ -61,6 +61,34 @@ class Prof(Base):
     user = relationship("User", backref="professor")
     courses = relationship("Course", secondary=professor_course_table, back_populates="professors")
 
+    @property
+    def fname(self):
+        return self.user.fname if self.user else None
+
+    @property
+    def lname(self):
+        return self.user.lname if self.user else None
+
+    @property
+    def email(self):
+        return self.user.email if self.user else None
+
+    @property
+    def username(self):
+        return self.user.username if self.user else None
+
+    @property
+    def u_role(self):
+        return self.user.u_role if self.user else None
+
+    @property
+    def createdAt(self):
+        return self.user.createdAt if self.user else None
+
+    @property
+    def updatedAt(self):
+        return self.user.updatedAt if self.user else None
+
 class Student(Base):
     __tablename__ = "student"
     u_id = Column(Integer, ForeignKey("user.u_id", ondelete="CASCADE"), primary_key=True)

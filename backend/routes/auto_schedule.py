@@ -1,7 +1,6 @@
 """
 Auto-scheduling service for generating course schedules.
-Automatically creates course schedules and sessions based on curriculum.
-Each course gets 2 hours lecture + 2 hours seminar as mandatory.
+Each course gets exactly 1 lecture session (2 hrs) + 1 seminar session (2 hrs) per week.
 """
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -11,21 +10,17 @@ from database import get_db
 from models import (
     CourseCurriculum,
     CourseSchedule,
+    CourseSession,
     Course,
     StudentGroup,
     TimeSlots,
     Rooms,
-    CourseSession,
     Prof,
-    ProfessorAvailability,
-    ProfessorUnavailability,
+    User,
     SessionTypeModel,
     SessionType,
-    DayOfWeek,
 )
-from datetime import datetime, timedelta
-from typing import List, Optional
-import random
+from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
@@ -33,88 +28,15 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-def get_available_slots(
-    db: Session, professor_id: int, day_of_week: DayOfWeek, duration_hours: int
-) -> List[int]:
-    """
-    Get available time slots for a professor on a specific day.
-    Filters by professor availability and avoids conflicts.
-    """
-    # Get professor's availability for the day
-    prof_availability = db.query(ProfessorAvailability).filter(
-        and_(
-            ProfessorAvailability.u_id == professor_id,
-            ProfessorAvailability.day_of_week == day_of_week,
-            ProfessorAvailability.is_available == True,
-        )
-    ).first()
-
-    if not prof_availability:
-        return []
-
-    # Get all slots for this day
-    slots = db.query(TimeSlots).filter(
-        TimeSlots.day_of_week == day_of_week
-    ).all()
-
-    available_slot_ids = []
-    for slot in slots:
-        # Check if slot fits within professor availability
-        if slot.start_time >= prof_availability.start_time and slot.end_time <= prof_availability.end_time:
-            # Check for conflicts with other schedules
-            conflict = db.query(CourseSchedule).filter(
-                and_(
-                    CourseSchedule.slot_id == slot.slot_id,
-                    CourseSchedule.s_status != "cancelled",
-                )
-            ).first()
-
-            if not conflict:
-                available_slot_ids.append(slot.slot_id)
-
-    return available_slot_ids
-
-
-def get_suitable_room(db: Session, required_capacity: int) -> Optional[str]:
-    """Get a suitable room for the required capacity with no conflicts."""
-    rooms = db.query(Rooms).filter(
-        Rooms.capacity >= required_capacity
-    ).all()
-
-    for room in rooms:
-        # Try to find an unused time slot for this room
-        conflict = db.query(CourseSchedule).filter(
-            and_(
-                CourseSchedule.room_id == room.room_id,
-                CourseSchedule.s_status != "cancelled",
-            )
-        ).first()
-
-        if not conflict:
-            return room.room_id
-
-    # If no empty room, return the smallest room that fits
-    if rooms:
-        rooms.sort(key=lambda r: r.capacity)
-        return rooms[0].room_id
-
-    return None
-
-
 @router.post("/auto-schedule/generate")
-def generate_schedule(year: int, semester_number: int, db: Session = Depends(get_db)):
+def generate_schedule(year: int, semester_number: int, max_courses_per_group: int = 5, db: Session = Depends(get_db)):
     """
-    Automatically generate a schedule for a given year and semester.
-    Process:
-    1. Get all active courses in curriculum for this year/semester
-    2. Create course schedules for each group
-    3. Assign professors automatically
-    4. Create lecture (2hr) and seminar (2hr) sessions
-    5. Allocate rooms based on group capacity
-    """
-    logger.info(f"Starting schedule generation for year={year}, semester={semester_number}")
+    Generate a conflict-free schedule for a given year and semester.
 
-    # Get all active course curriculum entries for this year and semester
+    For each course-group pair from the curriculum:
+      - Assign 1 lecture session (2 hrs) and 1 seminar session (2 hrs) per week
+      - No professor, room, or group may appear in two sessions at the same slot
+    """
     curriculum_entries = db.query(CourseCurriculum).filter(
         and_(
             CourseCurriculum.is_active == True,
@@ -124,12 +46,11 @@ def generate_schedule(year: int, semester_number: int, db: Session = Depends(get
     ).all()
 
     if not curriculum_entries:
-        logger.warning(f"No active courses found for year={year}, semester={semester_number}")
         raise HTTPException(
-            status_code=404, detail="No active courses found for this year and semester"
+            status_code=404,
+            detail="No active courses found for this year and semester",
         )
 
-    # Get session types
     lecture_type = db.query(SessionTypeModel).filter(
         SessionTypeModel.type_name == SessionType.Lecture
     ).first()
@@ -137,23 +58,121 @@ def generate_schedule(year: int, semester_number: int, db: Session = Depends(get
         SessionTypeModel.type_name == SessionType.Seminar
     ).first()
 
-    if lecture_type is None or seminar_type is None:
-        logger.error("Session types not properly configured")
-        raise HTTPException(
-            status_code=500, detail="Session types not properly configured"
-        )
+    if not lecture_type or not seminar_type:
+        raise HTTPException(status_code=500, detail="Session types not configured")
+
+    all_slots = db.query(TimeSlots).all()
+    if not all_slots:
+        raise HTTPException(status_code=400, detail="No time slots configured")
+
+    all_rooms = db.query(Rooms).order_by(Rooms.capacity).all()
+    if not all_rooms:
+        raise HTTPException(status_code=400, detail="No rooms configured")
+
+    # In-memory conflict sets: (id, slot_id)
+    prof_slot_used: set = set()
+    room_slot_used: set = set()
+    group_slot_used: set = set()
+
+    # Track how many sessions each group has per day: (group_id, day_value) -> count
+    group_day_count: dict = {}
+
+    # Pre-load existing session conflicts so we skip already-scheduled slots
+    for session in db.query(CourseSession).all():
+        sched = db.query(CourseSchedule).filter(
+            CourseSchedule.schedule_id == session.schedule_id
+        ).first()
+        if sched:
+            prof_slot_used.add((sched.u_id, session.slot_id))
+            room_slot_used.add((session.room_id, session.slot_id))
+            group_slot_used.add((sched.group_id, session.slot_id))
+            slot_obj = next((s for s in all_slots if s.slot_id == session.slot_id), None)
+            if slot_obj:
+                key = (sched.group_id, slot_obj.day_of_week.value)
+                group_day_count[key] = group_day_count.get(key, 0) + 1
+
+    # Track professor session load for fair distribution
+    prof_load: dict = {}
+
+    # Track how many courses have been scheduled per group
+    group_course_count: dict = {}
 
     schedule_details = []
-    created_schedules = []
+    created_count = 0
+
+    # Build a slot lookup by slot_id for quick access
+    slot_by_id = {s.slot_id: s for s in all_slots}
+
+    def day_session_score(group_id: int, day_value: str) -> int:
+        """
+        Score a day for a group — lower is better.
+          1 existing session → score 0 (fills to a 4-hour day, most preferred)
+          0 existing sessions → score 1 (opens a new day)
+          2 existing sessions → score 2 (would create a 6-hour day, least preferred)
+          3+ sessions → score 99 (hard avoid — would exceed 6 hours)
+        """
+        count = group_day_count.get((group_id, day_value), 0)
+        if count == 1:
+            return 0
+        if count == 0:
+            return 1
+        if count == 2:
+            return 2
+        return 99
+
+    def find_slot_and_room(
+        prof_id: int,
+        group_id: int,
+        group_capacity: int,
+        exclude_slot_id: int | None = None,
+    ):
+        """Return (slot, room) with no conflicts, preferring days that give ~4-hour student days."""
+        candidates = []
+        for slot in all_slots:
+            if slot.slot_id == exclude_slot_id:
+                continue
+            if (prof_id, slot.slot_id) in prof_slot_used:
+                continue
+            if (group_id, slot.slot_id) in group_slot_used:
+                continue
+            score = day_session_score(group_id, slot.day_of_week.value)
+            if score == 99:
+                continue  # Skip days that would give more than 6 hours
+            for room in all_rooms:
+                if room.capacity < group_capacity:
+                    continue
+                if (room.room_id, slot.slot_id) not in room_slot_used:
+                    candidates.append((score, slot, room))
+                    break  # One room per slot is enough
+
+        if not candidates:
+            # Fallback: allow any day including already-full ones
+            for slot in all_slots:
+                if slot.slot_id == exclude_slot_id:
+                    continue
+                if (prof_id, slot.slot_id) in prof_slot_used:
+                    continue
+                if (group_id, slot.slot_id) in group_slot_used:
+                    continue
+                for room in all_rooms:
+                    if room.capacity < group_capacity:
+                        continue
+                    if (room.room_id, slot.slot_id) not in room_slot_used:
+                        return slot, room
+
+        if not candidates:
+            return None, None
+
+        candidates.sort(key=lambda x: x[0])
+        _, best_slot, best_room = candidates[0]
+        return best_slot, best_room
 
     try:
         for curriculum in curriculum_entries:
             course = db.query(Course).filter(Course.c_id == curriculum.c_id).first()
-            if course is None:
-                logger.warning(f"Course not found for curriculum entry: {curriculum.c_id}")
+            if not course:
                 continue
 
-            # Get all student groups matching year level and degree
             student_groups = db.query(StudentGroup).filter(
                 and_(
                     StudentGroup.deg_id == curriculum.degree_id,
@@ -162,176 +181,206 @@ def generate_schedule(year: int, semester_number: int, db: Session = Depends(get
                 )
             ).all()
 
+            # All professors assigned to this course
+            professors = (
+                db.query(Prof)
+                .filter(Prof.courses.any(Course.c_id == course.c_id))
+                .all()
+            )
+            if not professors:
+                logger.warning(f"No professor for course {course.c_abbr}, skipping")
+                continue
+
             for group in student_groups:
-                # Create course schedule for this group
-                existing_schedule = db.query(CourseSchedule).filter(
+                existing = db.query(CourseSchedule).filter(
                     and_(
                         CourseSchedule.c_id == course.c_id,
                         CourseSchedule.group_id == group.group_id,
                     )
                 ).first()
 
-                if existing_schedule:
-                    schedule = existing_schedule
+                existing_sessions = (
+                    db.query(CourseSession)
+                    .filter(CourseSession.schedule_id == existing.schedule_id)
+                    .all()
+                    if existing else []
+                )
+
+                # Skip only if both lecture and seminar sessions already exist
+                has_lecture = any(s.session_type_id == lecture_type.session_type_id for s in existing_sessions)
+                has_seminar = any(s.session_type_id == seminar_type.session_type_id for s in existing_sessions)
+                if has_lecture and has_seminar:
+                    group_course_count[group.group_id] = group_course_count.get(group.group_id, 0) + 1
+                    continue
+
+                # Enforce max courses per group
+                if group_course_count.get(group.group_id, 0) >= max_courses_per_group:
+                    logger.info(f"Group {group.group_name} already has {max_courses_per_group} courses, skipping {course.c_abbr}")
+                    continue
+
+                # Pick professor with lowest current load
+                prof = min(professors, key=lambda p: prof_load.get(p.u_id, 0))
+
+                lec_slot, lec_room = find_slot_and_room(
+                    prof.u_id, group.group_id, group.capacity
+                )
+                if not lec_slot:
+                    logger.warning(f"No lecture slot for {course.c_abbr} / {group.group_name}")
+                    continue
+
+                sem_slot, sem_room = find_slot_and_room(
+                    prof.u_id, group.group_id, group.capacity,
+                    exclude_slot_id=lec_slot.slot_id,
+                )
+                if not sem_slot:
+                    logger.warning(f"No seminar slot for {course.c_abbr} / {group.group_name}")
+                    continue
+
+                # Reuse existing offering record or create a new one
+                if existing:
+                    offering = existing
+                    offering.u_id = prof.u_id
+                    offering.room_id = lec_room.room_id
+                    offering.slot_id = lec_slot.slot_id
+                    offering.updatedAt = datetime.now()
+                    # Remove any partial sessions so we start clean
+                    for s in existing_sessions:
+                        db.delete(s)
+                    db.flush()
                 else:
-                    # Get a professor for this course
-                    professors = db.query(Prof).join(User).filter(
-                        Prof.courses.any(Course.c_id == course.c_id)
-                    ).all()
-
-                    if not professors:
-                        logger.warning(f"No professor found for course {course.c_abbr}")
-                        continue
-
-                    assigned_prof = professors[0]
-
-                    # Get a suitable room
-                    room_id = get_suitable_room(db, group.capacity)
-                    if not room_id:
-                        logger.warning(f"No suitable room for group {group.group_name}")
-                        continue
-
-                    # Get a time slot
-                    available_slots = get_available_slots(db, assigned_prof.u_id, DayOfWeek.Monday, 2)
-                    if not available_slots:
-                        logger.warning(f"No available slots for professor {assigned_prof.u_id}")
-                        continue
-
-                    slot_id = available_slots[0]
-
-                    # Create schedule
-                    schedule = CourseSchedule(
+                    offering = CourseSchedule(
                         c_id=course.c_id,
                         group_id=group.group_id,
-                        room_id=room_id,
-                        slot_id=slot_id,
+                        room_id=lec_room.room_id,
+                        slot_id=lec_slot.slot_id,
                         session_type_id=lecture_type.session_type_id,
-                        u_id=assigned_prof.u_id,
+                        u_id=prof.u_id,
                         s_status="scheduled",
                         createdAt=datetime.now(),
                         updatedAt=datetime.now(),
                     )
-                    db.add(schedule)
+                    db.add(offering)
                     db.flush()
-                    created_schedules.append(schedule)
 
-                # Create lecture sessions (2 hours)
-                for day in [DayOfWeek.Monday, DayOfWeek.Wednesday, DayOfWeek.Friday]:
-                    available_slots = get_available_slots(
-                        db, schedule.u_id, day, 2
-                    )
+                db.add(CourseSession(
+                    schedule_id=offering.schedule_id,
+                    room_id=lec_room.room_id,
+                    slot_id=lec_slot.slot_id,
+                    session_type_id=lecture_type.session_type_id,
+                    s_status="scheduled",
+                    createdAt=datetime.now(),
+                    updatedAt=datetime.now(),
+                ))
+                db.add(CourseSession(
+                    schedule_id=offering.schedule_id,
+                    room_id=sem_room.room_id,
+                    slot_id=sem_slot.slot_id,
+                    session_type_id=seminar_type.session_type_id,
+                    s_status="scheduled",
+                    createdAt=datetime.now(),
+                    updatedAt=datetime.now(),
+                ))
+                db.flush()
 
-                    if available_slots:
-                        slot_id = available_slots[0]
-                        room_id = get_suitable_room(db, group.capacity)
+                # Mark slots used
+                for slot_id in (lec_slot.slot_id, sem_slot.slot_id):
+                    prof_slot_used.add((prof.u_id, slot_id))
+                    group_slot_used.add((group.group_id, slot_id))
+                room_slot_used.add((lec_room.room_id, lec_slot.slot_id))
+                room_slot_used.add((sem_room.room_id, sem_slot.slot_id))
+                prof_load[prof.u_id] = prof_load.get(prof.u_id, 0) + 2
 
-                        if room_id:
-                            lecture_session = CourseSession(
-                                schedule_id=schedule.schedule_id,
-                                room_id=room_id,
-                                slot_id=slot_id,
-                                session_type_id=lecture_type.session_type_id,
-                                s_status="scheduled",
-                                createdAt=datetime.now(),
-                                updatedAt=datetime.now(),
-                            )
-                            db.add(lecture_session)
-                            db.flush()
-                            schedule_details.append(
-                                {
-                                    "schedule_id": schedule.schedule_id,
-                                    "course": course.c_name,
-                                    "group": group.group_name,
-                                    "type": "Lecture",
-                                    "room": room_id,
-                                    "day": day.value,
-                                    "slot_id": slot_id,
-                                }
-                            )
-                            break
+                # Update per-day session counts and course count for the group
+                lec_day_key = (group.group_id, lec_slot.day_of_week.value)
+                sem_day_key = (group.group_id, sem_slot.day_of_week.value)
+                group_day_count[lec_day_key] = group_day_count.get(lec_day_key, 0) + 1
+                group_day_count[sem_day_key] = group_day_count.get(sem_day_key, 0) + 1
+                group_course_count[group.group_id] = group_course_count.get(group.group_id, 0) + 1
 
-                # Create seminar sessions (2 hours)
-                for day in [DayOfWeek.Tuesday, DayOfWeek.Thursday]:
-                    available_slots = get_available_slots(
-                        db, schedule.u_id, day, 2
-                    )
-
-                    if available_slots:
-                        slot_id = available_slots[0]
-                        room_id = get_suitable_room(db, group.capacity)
-
-                        if room_id:
-                            seminar_session = CourseSession(
-                                schedule_id=schedule.schedule_id,
-                                room_id=room_id,
-                                slot_id=slot_id,
-                                session_type_id=seminar_type.session_type_id,
-                                s_status="scheduled",
-                                createdAt=datetime.now(),
-                                updatedAt=datetime.now(),
-                            )
-                            db.add(seminar_session)
-                            db.flush()
-                            schedule_details.append(
-                                {
-                                    "schedule_id": schedule.schedule_id,
-                                    "course": course.c_name,
-                                    "group": group.group_name,
-                                    "type": "Seminar",
-                                    "room": room_id,
-                                    "day": day.value,
-                                    "slot_id": slot_id,
-                                }
-                            )
-                            break
+                created_count += 1
+                schedule_details += [
+                    {
+                        "offering_id": offering.schedule_id,
+                        "schedule_id": offering.schedule_id,
+                        "course": course.c_name,
+                        "group": group.group_name,
+                        "type": "Lecture",
+                        "day": lec_slot.day_of_week.value,
+                        "room": lec_room.room_id,
+                        "slot_id": lec_slot.slot_id,
+                    },
+                    {
+                        "offering_id": offering.schedule_id,
+                        "schedule_id": offering.schedule_id,
+                        "course": course.c_name,
+                        "group": group.group_name,
+                        "type": "Seminar",
+                        "day": sem_slot.day_of_week.value,
+                        "room": sem_room.room_id,
+                        "slot_id": sem_slot.slot_id,
+                    },
+                ]
 
         db.commit()
-        logger.info(f"Schedule generation completed: {len(created_schedules)} schedules created")
+        logger.info(f"Generated {created_count} offerings")
 
         return {
             "status": "success",
             "year": year,
             "semester_number": semester_number,
-            "schedules_created": len(created_schedules),
+            "semester_name": f"Year {year}, Semester {semester_number}",
+            "schedules_created": created_count,
+            "offerings_created": created_count,
             "schedule_details": schedule_details,
-            "message": f"Successfully generated schedule with {len(created_schedules)} schedules",
+            "message": f"Successfully generated {created_count} course offerings",
         }
 
     except Exception as e:
-        logger.error(f"Error generating schedule: {str(e)}")
+        logger.error(f"Schedule generation error: {e}")
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error generating schedule: {str(e)}")
 
 
+def _get_schedule_ids_for_semester(db: Session, year: int, semester_number: int) -> list[int]:
+    """
+    Return all CourseSchedule IDs whose course appears in the curriculum
+    for the given year_level + semester_number.
+    """
+    curriculum = db.query(CourseCurriculum).filter(
+        and_(
+            CourseCurriculum.year_level == year,
+            CourseCurriculum.semester_number == semester_number,
+        )
+    ).all()
+    course_ids = {c.c_id for c in curriculum}
+    schedules = db.query(CourseSchedule).filter(
+        CourseSchedule.c_id.in_(course_ids)
+    ).all()
+    return [s.schedule_id for s in schedules], [s for s in schedules]
+
+
 @router.get("/auto-schedule/validate")
 def validate_schedule(year: int, semester_number: int, db: Session = Depends(get_db)):
-    """
-    Validate the current schedule for a year and semester.
-    Checks for conflicts and ensures all requirements are met.
-    """
     issues = []
     warnings = []
 
-    schedules = db.query(CourseSchedule).join(Course).filter(
-        and_(
-            Course.c_year == year,
-            Course.c_semester == semester_number,
-        )
-    ).all()
+    _, schedules = _get_schedule_ids_for_semester(db, year, semester_number)
 
     for schedule in schedules:
         sessions = db.query(CourseSession).filter(
             CourseSession.schedule_id == schedule.schedule_id
         ).all()
 
-        # Check if each schedule has both lecture and seminar
-        session_types = [s.session_type_id for s in sessions]
-        if len(set(session_types)) < 2:
+        if not sessions:
+            warnings.append(f"Schedule {schedule.schedule_id} has no sessions at all")
+            continue
+
+        session_type_ids = [s.session_type_id for s in sessions]
+        if len(set(session_type_ids)) < 2:
             warnings.append(
-                f"Schedule {schedule.schedule_id} missing lecture or seminar"
+                f"Schedule {schedule.schedule_id} is missing a lecture or seminar session"
             )
 
-        # Check for room conflicts
         for session in sessions:
             conflicts = db.query(CourseSession).filter(
                 and_(
@@ -341,15 +390,15 @@ def validate_schedule(year: int, semester_number: int, db: Session = Depends(get
                     CourseSession.s_status != "cancelled",
                 )
             ).all()
-
             if conflicts:
                 issues.append(
-                    f"Room conflict in {session.room_id} at slot {session.slot_id}"
+                    f"Room conflict: {session.room_id} at slot {session.slot_id}"
                 )
 
     return {
         "year": year,
         "semester_number": semester_number,
+        "total_offerings": len(schedules),
         "total_schedules": len(schedules),
         "issues": issues,
         "warnings": warnings,
@@ -359,31 +408,20 @@ def validate_schedule(year: int, semester_number: int, db: Session = Depends(get
 
 @router.delete("/auto-schedule/clear")
 def clear_schedule(year: int, semester_number: int, db: Session = Depends(get_db)):
-    """Clear all scheduled sessions for a given year and semester."""
-    # Delete all course sessions for this year/semester
-    schedules = db.query(CourseSchedule).join(Course).filter(
-        and_(
-            Course.c_year == year,
-            Course.c_semester == semester_number,
-        )
-    ).all()
+    """Clear all CourseSchedule + CourseSession records for the given curriculum year/semester."""
+    _, schedules = _get_schedule_ids_for_semester(db, year, semester_number)
 
-    deleted_count = 0
+    deleted_sessions = 0
     for schedule in schedules:
-        # Delete sessions for this schedule
-        sessions = db.query(CourseSession).filter(
+        for session in db.query(CourseSession).filter(
             CourseSession.schedule_id == schedule.schedule_id
-        ).all()
-        for session in sessions:
+        ).all():
             db.delete(session)
-            deleted_count += 1
-
-        # Delete the schedule
+            deleted_sessions += 1
         db.delete(schedule)
 
     db.commit()
-
     return {
         "status": "success",
-        "message": f"Cleared {deleted_count} session entries for year {year}, semester {semester_number}",
+        "message": f"Cleared {len(schedules)} offerings and {deleted_sessions} sessions for year {year}, semester {semester_number}",
     }

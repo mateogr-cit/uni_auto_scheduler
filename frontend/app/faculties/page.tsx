@@ -31,7 +31,6 @@ export default function FacultiesPage() {
   const apiFetch = async (path: string, opts: RequestInit = {}) => {
     const response = await fetch(`${API_BASE}${path}`, {
       headers: { "Content-Type": "application/json" },
-      credentials: "include",
       ...opts,
     });
 
