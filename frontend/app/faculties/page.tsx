@@ -7,7 +7,7 @@ import { RefreshCcw, School } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const API_BASE = "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 const emptyFaculty = { f_name: "", f_abbr: "" };
 const emptyDegree = { d_name: "", f_id: 0, degree_abbr: "" };

@@ -17,7 +17,7 @@ export default function DashboardStats() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch("http://localhost:8000/dashboard/stats");
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/dashboard/stats`);
         if (response.ok) {
           const data = await response.json();
           setStats(data);
@@ -50,7 +50,6 @@ export default function DashboardStats() {
               <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
                 <stat.icon size={24} />
               </div>
-              <span className="text-xs font-medium text-emerald-600 dark:text-emerald-500 bg-emerald-100 dark:bg-emerald-500/10 px-2.5 py-1 rounded-full">+12%</span>
             </div>
             <h3 className="text-zinc-500 dark:text-zinc-400 text-sm font-medium">{stat.label}</h3>
             <p className="text-2xl font-bold text-zinc-900 dark:text-white mt-1">{stat.value}</p>

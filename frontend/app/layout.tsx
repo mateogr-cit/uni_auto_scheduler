@@ -17,7 +17,6 @@ export const metadata: Metadata = {
 };
 
 import MainLayout from "@/components/MainLayout";
-import { DataSourceProvider } from "@/contexts/DataSourceContext";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -32,9 +31,7 @@ export default function RootLayout({
         className={`${inter.variable} antialiased selection:bg-red-500/30`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <DataSourceProvider>
-            <MainLayout>{children}</MainLayout>
-          </DataSourceProvider>
+          <MainLayout>{children}</MainLayout>
           <Toaster />
         </ThemeProvider>
       </body>

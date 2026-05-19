@@ -21,6 +21,7 @@ from routes.course_schedules import router as course_schedules_router
 from routes.auto_schedule import router as auto_schedule_router
 from routes.migrations import router as migrations_router
 from routes.dashboard import router as dashboard_router
+from routes.benchmark import router as benchmark_router
 from database import engine
 from models import Base
 from logging_config import setup_logging
@@ -74,6 +75,7 @@ app.include_router(auto_schedule_router)
 app.include_router(migrations_router)
 app.include_router(dashboard_router)
 app.include_router(complaints_router)
+app.include_router(benchmark_router)
 
 @app.get("/")
 def read_root():

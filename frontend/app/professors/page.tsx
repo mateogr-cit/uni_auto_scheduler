@@ -428,7 +428,7 @@ export default function ProfessorsPage() {
                                         </InputGroupAddon>
                                         <InputGroupInput
                                             id="courses"
-                                            placeholder={selectedCourseIds.length > 0 ? `${selectedCourseIds.length} course${selectedCourseIds.length !== 1 ? 's' : ''} selected – search to refine` : "Click to select courses..."}
+                                            placeholder="Search and select courses..."
                                             value={courseSearchQuery}
                                             onFocus={() => { setCourseDropdownOpen(true); setShowAllCourses(false); }}
                                             onBlur={() => setTimeout(() => setCourseDropdownOpen(false), 150)}
@@ -439,6 +439,30 @@ export default function ProfessorsPage() {
                                             <ChevronDown className={`transition-transform duration-200 ${courseDropdownOpen ? 'rotate-180' : ''}`} />
                                         </InputGroupAddon>
                                     </InputGroup>
+
+                                    {selectedCourseIds.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {selectedCourseIds.map(id => {
+                                                const course = courses.find(c => c.c_id === id);
+                                                if (!course) return null;
+                                                return (
+                                                    <span
+                                                        key={id}
+                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800"
+                                                    >
+                                                        {course.c_abbr}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleCourseSelection(selectedCourseIds.filter(i => i !== id).map(String))}
+                                                            className="hover:text-red-900 dark:hover:text-red-100 transition-colors cursor-pointer"
+                                                        >
+                                                            <X size={12} />
+                                                        </button>
+                                                    </span>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
 
                                     <AnimatePresence>
                                         {courseDropdownOpen && (
@@ -509,12 +533,6 @@ export default function ProfessorsPage() {
                                                     })()}
                                                 </div>
 
-                                                {selectedCourseIds.length > 0 && (
-                                                    <div className="px-3 py-2 border-t border-zinc-100 dark:border-zinc-700 flex items-center gap-2 text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50/60 dark:bg-red-900/10">
-                                                        <Check size={12} />
-                                                        {selectedCourseIds.length} course{selectedCourseIds.length !== 1 ? 's' : ''} selected
-                                                    </div>
-                                                )}
                                             </motion.div>
                                         )}
                                     </AnimatePresence>

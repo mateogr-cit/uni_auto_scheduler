@@ -358,10 +358,25 @@ class ComplaintBase(BaseModel):
 
 class ComplaintCreate(BaseModel):
     comp_text: str
+    course_name: Optional[str] = None
+    time_slot: Optional[str] = None
 
 class Complaint(ComplaintBase):
     comp_id: int
     createdAt: datetime
+
+    class Config:
+        from_attributes = True
+
+class ComplaintWithUser(BaseModel):
+    comp_id: int
+    u_id: int
+    comp_text: str
+    createdAt: datetime
+    student_name: Optional[str] = None
+    student_group: Optional[str] = None
+    course_name: Optional[str] = None
+    time_slot: Optional[str] = None
 
     class Config:
         from_attributes = True

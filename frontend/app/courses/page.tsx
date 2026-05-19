@@ -3,7 +3,6 @@
 import { BookOpen, Plus, Grid, List as ListIcon, Edit, Trash2, Tag, Scale, Calendar, Search, Check, ChevronDown } from "lucide-react";
 import { useState, useEffect, type FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useDataSource } from "@/contexts/DataSourceContext";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
@@ -41,7 +40,6 @@ interface Course {
 }
 
 export default function CoursesPage() {
-    const { dataSource } = useDataSource();
     const [courses, setCourses] = useState<Course[]>([]);
     const [degrees, setDegrees] = useState<Degree[]>([]);
     const [showForm, setShowForm] = useState(false);
@@ -76,16 +74,9 @@ export default function CoursesPage() {
     const fetchCourses = async () => {
         setLoading(true);
         try {
-            let data;
-            if (dataSource === 'dummy') {
-                const response = await fetch("/courses-dummy.json");
-                if (!response.ok) throw new Error("Failed to load dummy data");
-                data = await response.json();
-            } else {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/courses/`);
-                if (!response.ok) throw new Error(`Server error: ${response.status}`);
-                data = await response.json();
-            }
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/courses/`);
+            if (!response.ok) throw new Error(`Server error: ${response.status}`);
+            const data = await response.json();
             setCourses(data);
             setError(null);
         } catch (err) {
@@ -98,14 +89,10 @@ export default function CoursesPage() {
     useEffect(() => {
         fetchCourses();
         fetchDegrees();
-    }, [dataSource]);
+    }, []);
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (dataSource === 'dummy') {
-            setError("Cannot modify courses while using dummy data. Switch to database mode.");
-            return;
-        }
         const url = editingCourse ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/courses/${editingCourse.c_id}` : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/courses/`;
         const method = editingCourse ? "PUT" : "POST";
         await fetch(url, {
@@ -127,10 +114,6 @@ export default function CoursesPage() {
     };
 
     const handleEdit = (course: Course) => {
-        if (dataSource === 'dummy') {
-            setError("Cannot edit courses while using dummy data. Switch to database mode.");
-            return;
-        }
         setEditingCourse(course);
         // Get degree IDs from degrees array if available, otherwise use degree_id for backward compatibility
         const degreeIds = course.degrees && course.degrees.length > 0 
@@ -149,10 +132,6 @@ export default function CoursesPage() {
     };
 
     const handleToggleActive = async (courseId: number, isActive: boolean) => {
-        if (dataSource === 'dummy') {
-            setError("Cannot modify courses while using dummy data. Switch to database mode.");
-            return;
-        }
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/courses/${courseId}/toggle-active`, {
                 method: "PATCH",
@@ -169,10 +148,6 @@ export default function CoursesPage() {
     };
 
     const handleDelete = async (id: number) => {
-        if (dataSource === 'dummy') {
-            setError("Cannot delete courses while using dummy data. Switch to database mode.");
-            return;
-        }
         setCourseToDelete(id);
         setDeleteDialogOpen(true);
     };
@@ -203,7 +178,7 @@ export default function CoursesPage() {
                         <button className="cursor-pointer p-2 bg-white dark:bg-zinc-700 shadow-sm rounded-lg text-red-600"><Grid size={18} /></button>
                         <button className="cursor-pointer p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"><ListIcon size={18} /></button>
                     </div>
-                    <button onClick={() => setShowForm(true)} disabled={dataSource === 'dummy'} className={`${dataSource === 'dummy' ? "opacity-50 cursor-not-allowed" : "bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 shadow-lg shadow-red-500/25 cursor-pointer"} text-white px-5 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2`}>
+                    <button onClick={() => setShowForm(true)} className="bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 shadow-lg shadow-red-500/25 cursor-pointer text-white px-5 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2">
                         <Plus size={20} />
                         Add Course
                     </button>
@@ -476,13 +451,12 @@ export default function CoursesPage() {
                             <span className="text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 px-2.5 py-1 rounded-full">{course.c_abbr}</span>
                             <button
                                 onClick={() => handleToggleActive(course.c_id, course.is_active)}
-                                disabled={dataSource === 'dummy'}
                                 title={course.is_active ? "Deactivate course" : "Activate course"}
-                                className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
+                                className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors cursor-pointer ${
                                     course.is_active
                                         ? "bg-gradient-to-r from-red-500 to-rose-400 hover:from-red-600 hover:to-rose-500"
                                         : "bg-zinc-300 dark:bg-zinc-600 hover:bg-zinc-400 dark:hover:bg-zinc-500"
-                                } ${dataSource === 'dummy' ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                                }`}
                             >
                                 <span
                                     className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform ${
@@ -514,14 +488,14 @@ export default function CoursesPage() {
                                 </div>
                             ) : null}
                             <div className="flex gap-2 mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
-                                <button onClick={() => handleEdit(course)} disabled={dataSource === 'dummy'} className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${dataSource === 'dummy' ? "bg-zinc-200 dark:bg-zinc-700 cursor-not-allowed opacity-50 text-zinc-400" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer"}`}><Edit size={16} /> Edit</button>
-                                <button onClick={() => handleDelete(course.c_id)} disabled={dataSource === 'dummy'} className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${dataSource === 'dummy' ? "bg-zinc-200 dark:bg-zinc-700 cursor-not-allowed opacity-50 text-zinc-400" : "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 cursor-pointer"}`}><Trash2 size={16} /> Delete</button>
+                                <button onClick={() => handleEdit(course)} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer"><Edit size={16} /> Edit</button>
+                                <button onClick={() => handleDelete(course.c_id)} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 cursor-pointer"><Trash2 size={16} /> Delete</button>
                             </div>
                         </div>
                     </div>
                 ))}
 
-                <button onClick={() => setShowForm(true)} disabled={dataSource === 'dummy'} className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-zinc-400 group flex flex-col gap-2 ${dataSource === 'dummy' ? "hidden" : "border-zinc-200 dark:border-zinc-800 hover:border-red-500/50 hover:text-red-500 transition-all cursor-pointer"}`}>
+                <button onClick={() => setShowForm(true)} className="border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-zinc-400 group flex flex-col gap-2 border-zinc-200 dark:border-zinc-800 hover:border-red-500/50 hover:text-red-500 transition-all cursor-pointer">
                     <div className="w-10 h-10 rounded-full border-2 border-dashed border-zinc-200 dark:border-zinc-800 flex items-center justify-center group-hover:border-red-500/50">
                         <Plus size={24} />
                     </div>

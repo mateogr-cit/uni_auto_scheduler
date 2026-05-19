@@ -102,36 +102,6 @@ def batch_update_professor_availability(u_id: int, availabilities: List[Professo
 
 # Professor Unavailability Routes
 
-@router.post("/professor-unavailability/", response_model=ProfessorUnavailability)
-def create_professor_unavailability(unavailability: ProfessorUnavailabilityCreate, db: Session = Depends(get_db)):
-    """
-    Create a new professor unavailability request.
-    Note: In a real application, u_id should come from authentication context.
-    For now, we'll use a default u_id of 1 (this should be updated with proper auth).
-    """
-    # TODO: Get u_id from authentication context
-    u_id = 1  # Default user ID - should be replaced with authenticated user
-
-    # Verify user exists and is a professor
-    professor_user = db.query(DBUser).filter(DBUser.u_id == u_id, DBUser.u_role == "professor").first()
-    if not professor_user:
-        raise HTTPException(status_code=404, detail="Professor not found")
-
-    db_unavailability = DBProfessorUnavailability(
-        u_id=u_id,
-        date=unavailability.date,
-        start_time=unavailability.start_time,
-        end_time=unavailability.end_time,
-        reason=unavailability.reason,
-        createdAt=datetime.utcnow()
-    )
-    db.add(db_unavailability)
-    db.commit()
-    db.refresh(db_unavailability)
-    logger.info(f"Professor unavailability created: {db_unavailability.id} for professor {u_id}")
-    return db_unavailability
-
-
 @router.post("/professor-unavailability/{user_id}", response_model=ProfessorUnavailability)
 def create_professor_unavailability_for_user(user_id: int, unavailability: ProfessorUnavailabilityCreate, db: Session = Depends(get_db)):
     """

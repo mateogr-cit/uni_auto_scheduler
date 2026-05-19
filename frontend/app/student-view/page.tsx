@@ -74,7 +74,7 @@ export default function StudentViewPage() {
     const [loading, setLoading] = useState(true);
     const [complaintOpen, setComplaintOpen] = useState(false);
     const [complaintText, setComplaintText] = useState('');
-    const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
+    const [selectedCourse, setSelectedCourse] = useState<{ course: string; time: string } | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
@@ -96,13 +96,16 @@ export default function StudentViewPage() {
         setSubmitSuccess(false);
 
         try {
-            const response = await fetch('http://localhost:8000/complaints/', {
+            const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+            const response = await fetch(`${API_BASE}/complaints/1`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     comp_text: complaintText,
+                    course_name: selectedCourse?.course ?? null,
+                    time_slot: selectedCourse?.time ?? null,
                 }),
             });
 
@@ -214,7 +217,7 @@ export default function StudentViewPage() {
                                                                     {course.room}, {course.building}
                                                                 </div>
                                                             </div>
-                                                            <Dialog open={complaintOpen && selectedCourse === course.course.toString()} onOpenChange={(open) => {
+                                                            <Dialog open={complaintOpen && selectedCourse?.course === course.course} onOpenChange={(open) => {
                                                                 setComplaintOpen(open);
                                                                 if (!open) setSelectedCourse(null);
                                                             }}>
@@ -224,7 +227,7 @@ export default function StudentViewPage() {
                                                                             variant="ghost"
                                                                             size="sm"
                                                                             className="mt-3 w-full text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/20"
-                                                                            onClick={() => setSelectedCourse(course.course.toString())}
+                                                                            onClick={() => setSelectedCourse({ course: course.course, time: course.time })}
                                                                         />
                                                                     }
                                                                 >
@@ -237,7 +240,7 @@ export default function StudentViewPage() {
                                                                             File Complaint
                                                                         </DialogTitle>
                                                                         <DialogDescription className="text-zinc-600 dark:text-zinc-400">
-                                                                            Submit a complaint for {course.course}
+                                                                            Submit a complaint for {selectedCourse?.course ?? course.course}
                                                                         </DialogDescription>
                                                                     </DialogHeader>
                                                                     <div className="space-y-4 py-4">

@@ -14,6 +14,8 @@ interface Room {
     capacity: number;
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "${API_BASE}";
+
 export default function RoomsPage() {
     const [rooms, setRooms] = useState<Room[]>([]);
     const [showForm, setShowForm] = useState(false);
@@ -26,7 +28,7 @@ export default function RoomsPage() {
 
     const fetchRooms = async () => {
         try {
-            const response = await fetch('http://localhost:8000/rooms/');
+            const response = await fetch('${API_BASE}/rooms/');
             if (!response.ok) throw new Error('Failed to fetch rooms');
             const data = await response.json();
             setRooms(data);
@@ -44,7 +46,7 @@ export default function RoomsPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const url = editingRoom ? `http://localhost:8000/rooms/${editingRoom.room_id}` : 'http://localhost:8000/rooms/';
+            const url = editingRoom ? `${API_BASE}/rooms/${editingRoom.room_id}` : '${API_BASE}/rooms/';
             const method = editingRoom ? 'PUT' : 'POST';
             const response = await fetch(url, {
                 method,
@@ -76,7 +78,7 @@ export default function RoomsPage() {
     const confirmDelete = async () => {
         if (!roomToDelete) return;
         try {
-            const response = await fetch(`http://localhost:8000/rooms/${roomToDelete}`, { method: 'DELETE' });
+            const response = await fetch(`${API_BASE}/rooms/${roomToDelete}`, { method: 'DELETE' });
             if (response.ok) {
                 fetchRooms();
             }

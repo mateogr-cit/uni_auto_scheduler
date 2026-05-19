@@ -29,7 +29,7 @@ router = APIRouter()
 
 
 @router.post("/auto-schedule/generate")
-def generate_schedule(year: int, semester_number: int, max_courses_per_group: int = 5, db: Session = Depends(get_db)):
+def generate_schedule(year: int, semester_number: int, max_courses_per_group: int = 5, mode: str = "full", db: Session = Depends(get_db)):
     """
     Generate a conflict-free schedule for a given year and semester.
 
@@ -126,7 +126,23 @@ def generate_schedule(year: int, semester_number: int, max_courses_per_group: in
         group_capacity: int,
         exclude_slot_id: int | None = None,
     ):
-        """Return (slot, room) with no conflicts, preferring days that give ~4-hour student days."""
+        """Return (slot, room) with no conflicts.
+        In 'full' mode prefers days that give ~4-hour student days; 'baseline' takes first valid slot."""
+        if mode == "baseline":
+            for slot in all_slots:
+                if slot.slot_id == exclude_slot_id:
+                    continue
+                if (prof_id, slot.slot_id) in prof_slot_used:
+                    continue
+                if (group_id, slot.slot_id) in group_slot_used:
+                    continue
+                for room in all_rooms:
+                    if room.capacity < group_capacity:
+                        continue
+                    if (room.room_id, slot.slot_id) not in room_slot_used:
+                        return slot, room
+            return None, None
+
         candidates = []
         for slot in all_slots:
             if slot.slot_id == exclude_slot_id:
@@ -218,8 +234,11 @@ def generate_schedule(year: int, semester_number: int, max_courses_per_group: in
                     logger.info(f"Group {group.group_name} already has {max_courses_per_group} courses, skipping {course.c_abbr}")
                     continue
 
-                # Pick professor with lowest current load
-                prof = min(professors, key=lambda p: prof_load.get(p.u_id, 0))
+                # Pick professor: load-balanced in 'full', first available in 'baseline'
+                if mode == "baseline":
+                    prof = professors[0]
+                else:
+                    prof = min(professors, key=lambda p: prof_load.get(p.u_id, 0))
 
                 lec_slot, lec_room = find_slot_and_room(
                     prof.u_id, group.group_id, group.capacity

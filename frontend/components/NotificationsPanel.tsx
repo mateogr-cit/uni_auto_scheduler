@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, CalendarX, Loader2, RefreshCw } from 'lucide-react';
+import { AlertCircle, CalendarX, Loader2, RefreshCw, BookOpen, Clock, Users, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
 
@@ -10,6 +10,10 @@ interface Complaint {
     u_id: number;
     comp_text: string;
     createdAt: string;
+    student_name: string | null;
+    student_group: string | null;
+    course_name: string | null;
+    time_slot: string | null;
 }
 
 interface Unavailability {
@@ -33,10 +37,11 @@ export default function NotificationsPanel() {
         setLoading(true);
         setError(null);
 
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
         try {
             const [complaintsRes, unavailabilitiesRes] = await Promise.all([
-                fetch('http://localhost:8000/complaints/'),
-                fetch('http://localhost:8000/professor-unavailability/'),
+                fetch(`${API_BASE}/complaints/`),
+                fetch(`${API_BASE}/professor-unavailability/`),
             ]);
 
             if (!complaintsRes.ok || !unavailabilitiesRes.ok) {
@@ -66,9 +71,15 @@ export default function NotificationsPanel() {
             month: 'short',
             day: 'numeric',
             year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
         });
+    };
+
+    const formatDateTime = (dateString: string) => {
+        const date = new Date(dateString);
+        return {
+            date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            time: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        };
     };
 
     const formatTime = (timeString: string) => {
@@ -132,15 +143,53 @@ export default function NotificationsPanel() {
                                                 : 'bg-zinc-50 border-zinc-200'
                                         }`}
                                     >
-                                        <div className="flex items-start justify-between gap-3">
+                                        <div className="flex items-start gap-3">
                                             <div className="flex-1">
+                                                {/* Student name + group */}
+                                                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                                    <span className="font-semibold text-sm text-zinc-900 dark:text-white">
+                                                        {complaint.student_name ?? `User #${complaint.u_id}`}
+                                                    </span>
+                                                    {complaint.student_group && (
+                                                        <span className="inline-flex items-center gap-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">
+                                                            <Users className="w-3 h-3" />
+                                                            {complaint.student_group}
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {/* Course + time slot metadata */}
+                                                {(complaint.course_name || complaint.time_slot) && (
+                                                    <div className="flex flex-wrap gap-2 mb-2">
+                                                        {complaint.course_name && (
+                                                            <span className="inline-flex items-center gap-1 text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full">
+                                                                <BookOpen className="w-3 h-3" />
+                                                                {complaint.course_name}
+                                                            </span>
+                                                        )}
+                                                        {complaint.time_slot && (
+                                                            <span className="inline-flex items-center gap-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-0.5 rounded-full">
+                                                                <Clock className="w-3 h-3" />
+                                                                {complaint.time_slot}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {/* Complaint text */}
                                                 <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-2">
                                                     {complaint.comp_text}
                                                 </p>
-                                                <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-                                                    <span>User ID: {complaint.u_id}</span>
-                                                    <span>•</span>
-                                                    <span>{formatDate(complaint.createdAt)}</span>
+
+                                                <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                                                    <span className="flex items-center gap-1">
+                                                        <Calendar className="w-3 h-3" />
+                                                        {formatDateTime(complaint.createdAt).date}
+                                                    </span>
+                                                    <span className="flex items-center gap-1">
+                                                        <Clock className="w-3 h-3" />
+                                                        {formatDateTime(complaint.createdAt).time}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -186,10 +235,15 @@ export default function NotificationsPanel() {
                                                         {unavailability.reason}
                                                     </p>
                                                 )}
-                                                <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-                                                    <span>Professor ID: {unavailability.u_id}</span>
-                                                    <span>•</span>
-                                                    <span>{formatDate(unavailability.createdAt)}</span>
+                                                <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                                                    <span className="flex items-center gap-1">
+                                                        <Calendar className="w-3 h-3" />
+                                                        {formatDateTime(unavailability.createdAt).date}
+                                                    </span>
+                                                    <span className="flex items-center gap-1">
+                                                        <Clock className="w-3 h-3" />
+                                                        {formatDateTime(unavailability.createdAt).time}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
