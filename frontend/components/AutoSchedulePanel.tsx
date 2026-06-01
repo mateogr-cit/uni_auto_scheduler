@@ -22,9 +22,9 @@ import type {
   GenerateScheduleResponse,
   ValidateScheduleResponse,
   ScheduleDetail,
+  SkippedEntry,
 } from "./schedule-types";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { API_BASE } from "@/lib/constants";
 
 type AutoSchedulePanelProps = {
   onRefresh: () => void;
@@ -412,12 +412,24 @@ export default function AutoSchedulePanel({
                 {scheduleResult.schedule_details.length}
               </div>
             </div>
-            <div className="bg-rose-50 dark:bg-rose-900/20 rounded-lg p-4 border border-rose-200 dark:border-rose-800">
-              <div className="text-sm text-rose-600 dark:text-rose-400 font-medium">
-                Status
+            <div className={`rounded-lg p-4 border ${
+              (scheduleResult.skipped_count ?? 0) > 0
+                ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"
+                : "bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800"
+            }`}>
+              <div className={`text-sm font-medium ${
+                (scheduleResult.skipped_count ?? 0) > 0
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-rose-600 dark:text-rose-400"
+              }`}>
+                Skipped
               </div>
-              <div className="text-2xl font-bold text-rose-900 dark:text-rose-100">
-                Ready
+              <div className={`text-2xl font-bold ${
+                (scheduleResult.skipped_count ?? 0) > 0
+                  ? "text-amber-900 dark:text-amber-100"
+                  : "text-rose-900 dark:text-rose-100"
+              }`}>
+                {scheduleResult.skipped_count ?? 0}
               </div>
             </div>
           </div>
@@ -508,6 +520,64 @@ export default function AutoSchedulePanel({
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-4">
                 📅 Each course has 1 lecture (2 hrs) + 1 seminar (2 hrs) session
               </p>
+            </motion.div>
+          )}
+
+          {/* Skipped Entries */}
+          {(scheduleResult.skipped?.length ?? 0) > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              className="mt-4 border border-amber-200 dark:border-amber-800 rounded-xl overflow-hidden"
+            >
+              <div className="flex items-center gap-2 px-4 py-3 bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-800">
+                <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                <span className="font-semibold text-amber-800 dark:text-amber-200 text-sm">
+                  {scheduleResult.skipped.length} course-group pair(s) could not be scheduled
+                </span>
+              </div>
+              <div className="divide-y divide-amber-100 dark:divide-amber-900/40 max-h-80 overflow-y-auto">
+                {scheduleResult.skipped.map((entry, i) => (
+                  <div key={i} className="px-4 py-3 bg-white dark:bg-zinc-900">
+                    <div className="flex items-start justify-between gap-3 mb-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-zinc-900 dark:text-white text-sm">
+                          {entry.course}
+                        </span>
+                        <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                          ({entry.course_abbr})
+                        </span>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">
+                          {entry.group}
+                        </span>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">
+                          {entry.session_type}
+                        </span>
+                      </div>
+                      {entry.missing.length > 0 && (
+                        <div className="flex gap-1 flex-shrink-0 flex-wrap justify-end">
+                          {entry.missing.map((m) => (
+                            <span
+                              key={m}
+                              className="text-xs px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 font-medium"
+                            >
+                              {m.replace(/_/g, " ")}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {entry.professor && (
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
+                        Professor: {entry.professor}
+                      </p>
+                    )}
+                    <p className="text-xs text-amber-700 dark:text-amber-300">
+                      {entry.reason}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </motion.div>
           )}
         </motion.div>

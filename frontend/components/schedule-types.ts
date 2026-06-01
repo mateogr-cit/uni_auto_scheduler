@@ -51,8 +51,6 @@ export type Course = {
 export type StudentDegree = {
   student_degree_id: number;
   group_id: number;
-  deg_id: number;
-  yr_lvl: number;
 };
 
 export type CourseCurriculum = {
@@ -90,11 +88,30 @@ export type ScheduleDetail = {
   offering_id: number;
 };
 
+export type SkippedEntry = {
+  course: string;
+  course_abbr: string;
+  group: string;
+  year_level: number;
+  semester_number: number;
+  session_type: string;
+  professor?: string;
+  reason: string;
+  missing: string[];
+  lecture_assigned?: {
+    day: string;
+    slot_id: number;
+    room: string;
+  };
+};
+
 export type GenerateScheduleResponse = {
   status: "success" | "error";
   semester_name: string;
   offerings_created: number;
+  skipped_count: number;
   schedule_details: ScheduleDetail[];
+  skipped: SkippedEntry[];
   message: string;
 };
 

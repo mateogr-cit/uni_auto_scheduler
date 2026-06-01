@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Cinzel } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -8,15 +8,23 @@ const inter = Inter({
   display: "swap",
 });
 
+const cinzel = Cinzel({
+  variable: "--font-cinzel",
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "900"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: {
-    template: "%s | Uni Auto Scheduler",
-    default: "Uni Auto Scheduler",
+    template: "%s | Kronos",
+    default: "Kronos",
   },
   description: "University course auto-scheduling application",
 };
 
-import MainLayout from "@/components/MainLayout";
+import ConditionalLayout from "@/components/ConditionalLayout";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -28,11 +36,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} antialiased selection:bg-red-500/30`}
+        className={`${inter.variable} ${cinzel.variable} antialiased selection:bg-red-500/30`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <MainLayout>{children}</MainLayout>
-          <Toaster />
+          <AuthProvider>
+            <ConditionalLayout>{children}</ConditionalLayout>
+            <Toaster />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

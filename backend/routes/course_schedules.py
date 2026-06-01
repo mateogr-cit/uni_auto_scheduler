@@ -2,13 +2,40 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from database import get_db
-from models import CourseSchedule as DBCourseSchedule, Course, StudentGroup, User, Prof, CourseSession, Rooms, TimeSlots, SessionTypeModel
+from models import CourseSchedule as DBCourseSchedule, Course, StudentGroup, User, CourseSession, TimeSlots, SessionTypeModel
 from schemas import CourseSchedule, CourseScheduleCreate
-from typing import List
+from pydantic import BaseModel
+from typing import List, Optional
 from datetime import datetime
 from utils import validate_pagination
 
+
+class CourseSessionUpdate(BaseModel):
+    slot_id: int
+    room_id: str
+
 router = APIRouter()
+
+
+def _format_sessions(sessions: list, db: Session) -> list:
+    """Shared helper: convert CourseSession rows into the standard display dict."""
+    result = []
+    for session in sessions:
+        slot = db.query(TimeSlots).filter(TimeSlots.slot_id == session.slot_id).first()
+        stype = db.query(SessionTypeModel).filter(
+            SessionTypeModel.session_type_id == session.session_type_id
+        ).first()
+        result.append({
+            "session_id": session.session_id,
+            "slot_id": session.slot_id,
+            "type": stype.type_name.value if stype else "Unknown",
+            "day": slot.day_of_week.value if slot else "N/A",
+            "time": f"{slot.start_time.strftime('%H:%M')}-{slot.end_time.strftime('%H:%M')}" if slot else "N/A",
+            "room": session.room_id,
+            "status": session.s_status,
+        })
+    return result
+
 
 @router.post("/course-schedules/", response_model=CourseSchedule)
 def create_course_schedule(item: CourseScheduleCreate, db: Session = Depends(get_db)):
@@ -83,28 +110,13 @@ def get_schedules_by_group(group_id: int, db: Session = Depends(get_db)):
             CourseSession.schedule_id == schedule.schedule_id
         ).all()
 
-        formatted_sessions = []
-        for session in sessions:
-            slot = db.query(TimeSlots).filter(TimeSlots.slot_id == session.slot_id).first()
-            stype = db.query(SessionTypeModel).filter(
-                SessionTypeModel.session_type_id == session.session_type_id
-            ).first()
-            formatted_sessions.append({
-                "session_id": session.session_id,
-                "type": stype.type_name.value if stype else "Unknown",
-                "day": slot.day_of_week.value if slot else "N/A",
-                "time": f"{slot.start_time.strftime('%H:%M')}-{slot.end_time.strftime('%H:%M')}" if slot else "N/A",
-                "room": session.room_id,
-                "status": session.s_status,
-            })
-
         formatted_schedules.append({
             "schedule_id": schedule.schedule_id,
             "course": course.c_name if course else "Unknown Course",
             "course_abbr": course.c_abbr if course else "N/A",
             "professor": f"{prof.fname} {prof.lname}" if prof else "N/A",
             "status": schedule.s_status,
-            "sessions": formatted_sessions,
+            "sessions": _format_sessions(sessions, db),
         })
 
     return {
@@ -112,9 +124,87 @@ def get_schedules_by_group(group_id: int, db: Session = Depends(get_db)):
         "schedules": formatted_schedules
     }
 
+@router.put("/course-sessions/{session_id}")
+def update_course_session(session_id: int, payload: CourseSessionUpdate, db: Session = Depends(get_db)):
+    """Move a session to a different time slot and/or room, with conflict checking."""
+    session = db.query(CourseSession).filter(CourseSession.session_id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    schedule = db.query(DBCourseSchedule).filter(
+        DBCourseSchedule.schedule_id == session.schedule_id
+    ).first()
+    if not schedule:
+        raise HTTPException(status_code=404, detail="Parent schedule not found")
+
+    slot = db.query(TimeSlots).filter(TimeSlots.slot_id == payload.slot_id).first()
+    if not slot:
+        raise HTTPException(status_code=404, detail="Time slot not found")
+
+    room = db.query(Rooms).filter(Rooms.room_id == payload.room_id).first()
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+
+    conflicts = []
+
+    room_conflict = db.query(CourseSession).filter(
+        CourseSession.room_id == payload.room_id,
+        CourseSession.slot_id == payload.slot_id,
+        CourseSession.session_id != session_id,
+        CourseSession.s_status != "cancelled",
+    ).first()
+    if room_conflict:
+        conflicts.append(f"Room {payload.room_id} is already booked at that time")
+
+    prof_conflict = db.query(CourseSession).join(
+        DBCourseSchedule, CourseSession.schedule_id == DBCourseSchedule.schedule_id
+    ).filter(
+        DBCourseSchedule.u_id == schedule.u_id,
+        CourseSession.slot_id == payload.slot_id,
+        CourseSession.session_id != session_id,
+        CourseSession.s_status != "cancelled",
+    ).first()
+    if prof_conflict:
+        conflicts.append("Professor is already teaching at that time")
+
+    group_conflict = db.query(CourseSession).join(
+        DBCourseSchedule, CourseSession.schedule_id == DBCourseSchedule.schedule_id
+    ).filter(
+        DBCourseSchedule.group_id == schedule.group_id,
+        CourseSession.slot_id == payload.slot_id,
+        CourseSession.session_id != session_id,
+        CourseSession.s_status != "cancelled",
+    ).first()
+    if group_conflict:
+        conflicts.append("This group already has a session at that time")
+
+    if conflicts:
+        raise HTTPException(status_code=409, detail="; ".join(conflicts))
+
+    session.slot_id = payload.slot_id
+    session.room_id = payload.room_id
+    session.updatedAt = datetime.now()
+    db.commit()
+    db.refresh(session)
+
+    stype = db.query(SessionTypeModel).filter(
+        SessionTypeModel.session_type_id == session.session_type_id
+    ).first()
+
+    return {
+        "session_id": session.session_id,
+        "slot_id": session.slot_id,
+        "type": stype.type_name.value if stype else "Unknown",
+        "day": slot.day_of_week.value,
+        "time": f"{slot.start_time.strftime('%H:%M')}-{slot.end_time.strftime('%H:%M')}",
+        "room": session.room_id,
+        "status": session.s_status,
+    }
+
+
 @router.get("/course-schedules/professor/{u_id}")
 def get_schedules_by_professor(u_id: int, db: Session = Depends(get_db)):
-    """Get all course schedules for a specific professor."""
+    """Get all course schedules for a specific professor, with sessions nested."""
     schedules = db.query(DBCourseSchedule).filter(
         DBCourseSchedule.u_id == u_id
     ).all()
@@ -123,18 +213,18 @@ def get_schedules_by_professor(u_id: int, db: Session = Depends(get_db)):
     for schedule in schedules:
         course = db.query(Course).filter(Course.c_id == schedule.c_id).first()
         group = db.query(StudentGroup).filter(StudentGroup.group_id == schedule.group_id).first()
-        room = db.query(Rooms).filter(Rooms.room_id == schedule.room_id).first()
-        slot = db.query(TimeSlots).filter(TimeSlots.slot_id == schedule.slot_id).first()
+
+        sessions = db.query(CourseSession).filter(
+            CourseSession.schedule_id == schedule.schedule_id
+        ).all()
 
         formatted_schedules.append({
             "schedule_id": schedule.schedule_id,
             "course": course.c_name if course else "Unknown Course",
             "course_abbr": course.c_abbr if course else "N/A",
             "group": group.group_name if group else "Unknown Group",
-            "room": schedule.room_id,
-            "day": slot.day_of_week.value if slot else "N/A",
-            "time": f"{slot.start_time.strftime('%H:%M')}-{slot.end_time.strftime('%H:%M')}" if slot else "N/A",
-            "status": schedule.s_status
+            "status": schedule.s_status,
+            "sessions": _format_sessions(sessions, db),
         })
 
     return {
@@ -142,116 +232,3 @@ def get_schedules_by_professor(u_id: int, db: Session = Depends(get_db)):
         "schedules": formatted_schedules
     }
 
-@router.post("/course-schedules/auto-generate")
-def auto_generate_schedules(db: Session = Depends(get_db)):
-    """
-    Automatically generate course schedules based on course curriculum.
-    Creates schedules for all active courses in the curriculum.
-    """
-    from models import CourseCurriculum, Rooms, TimeSlots, SessionTypeModel, SessionType
-
-    # Get all active course curriculum entries
-    curriculum_entries = db.query(CourseCurriculum).filter(
-        CourseCurriculum.is_active == True
-    ).all()
-
-    if not curriculum_entries:
-        raise HTTPException(status_code=404, detail="No active courses found in curriculum")
-
-    created_schedules = []
-    skipped_schedules = []
-
-    for curriculum in curriculum_entries:
-        course = db.query(Course).filter(Course.c_id == curriculum.c_id).first()
-        if not course:
-            skipped_schedules.append(f"Course {curriculum.c_id} not found")
-            continue
-
-        # Get student groups matching year level and degree
-        student_groups = db.query(StudentGroup).filter(
-            and_(
-                StudentGroup.deg_id == curriculum.degree_id,
-                StudentGroup.year_level == curriculum.year_level,
-                StudentGroup.semester_number == curriculum.semester_number
-            )
-        ).all()
-
-        for group in student_groups:
-            # Check if schedule already exists
-            existing = db.query(DBCourseSchedule).filter(
-                and_(
-                    DBCourseSchedule.c_id == course.c_id,
-                    DBCourseSchedule.group_id == group.group_id
-                )
-            ).first()
-
-            if existing:
-                skipped_schedules.append(f"{course.c_abbr} for {group.group_name} already exists")
-                continue
-
-            # Get a professor for this course
-            prof = db.query(Prof).join(User).filter(
-                Prof.courses.any(Course.c_id == course.c_id)
-            ).first()
-
-            if not prof:
-                skipped_schedules.append(f"No professor found for {course.c_abbr}")
-                continue
-
-            # Get a suitable room
-            room = db.query(Rooms).filter(
-                Rooms.capacity >= group.capacity
-            ).first()
-
-            if not room:
-                skipped_schedules.append(f"No suitable room for {group.group_name}")
-                continue
-
-            # Get a time slot
-            slot = db.query(TimeSlots).first()
-
-            if not slot:
-                skipped_schedules.append(f"No time slots available")
-                continue
-
-            # Get session type
-            session_type = db.query(SessionTypeModel).filter(
-                SessionTypeModel.type_name == SessionType.Lecture
-            ).first()
-
-            if not session_type:
-                skipped_schedules.append(f"No session types configured")
-                continue
-
-            # Create schedule
-            schedule = DBCourseSchedule(
-                c_id=course.c_id,
-                group_id=group.group_id,
-                room_id=room.room_id,
-                slot_id=slot.slot_id,
-                session_type_id=session_type.session_type_id,
-                u_id=prof.u_id,
-                s_status="scheduled",
-                createdAt=datetime.utcnow(),
-                updatedAt=datetime.utcnow()
-            )
-            db.add(schedule)
-            db.flush()
-            created_schedules.append({
-                "schedule_id": schedule.schedule_id,
-                "course": course.c_name,
-                "course_abbr": course.c_abbr,
-                "group": group.group_name,
-                "professor": f"{prof.user.fname} {prof.user.lname}",
-                "room": room.room_id
-            })
-
-    db.commit()
-
-    return {
-        "status": "success",
-        "created_count": len(created_schedules),
-        "created_schedules": created_schedules,
-        "skipped_count": len(skipped_schedules),
-        "skipped_schedules": skipped_schedules
-    }

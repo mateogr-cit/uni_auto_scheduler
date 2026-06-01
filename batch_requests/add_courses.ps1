@@ -37,11 +37,11 @@ $sharedCourses = @(
     @{ name = "Business Communication"; abbr = "ENG102"; weight = 2; year = 1; semester = 2; degrees = @("SE", "CEIT", "AID", "TE", "RME", "EE", "DM", "FI", "BA", "IFE", "BAIT") },
 
     # Statistics - Engineering, Economics, Business Analytics
-    @{ name = "Probability and Statistics"; abbr = "STAT101"; weight = 3; year = 1; semester = 1; degrees = @("SE", "CEIT", "AID", "TE", "RME", "EE", "BA", "FI", "IFE") },
+    @{ name = "Probability and Statistics"; abbr = "STAT101"; weight = 3; year = 1; semester = 1; degrees = @("SE", "CEIT", "AID", "TE", "RME", "EE") },
     @{ name = "Applied Statistics"; abbr = "STAT201"; weight = 3; year = 2; semester = 1; degrees = @("SE", "CEIT", "AID", "BA", "FI", "IFE") },
 
     # Computer Literacy - All degrees
-    @{ name = "Computer Literacy"; abbr = "COMP101"; weight = 2; year = 1; semester = 1; degrees = @("SE", "CEIT", "AID", "TE", "RME", "EE", "DM", "FI", "BA", "IFE", "BAIT") },
+    @{ name = "Computer Literacy"; abbr = "COMP101"; weight = 2; year = 1; semester = 1; degrees = @("DM", "FI", "BA", "IFE", "BAIT") },
 
     # Economics - Economics degrees
     @{ name = "Microeconomics"; abbr = "ECON101"; weight = 3; year = 1; semester = 1; degrees = @("DM", "FI", "BA", "IFE", "BAIT") },

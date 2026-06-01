@@ -1,6 +1,6 @@
 'use client';
 
-import { BookOpen, Plus, Grid, List as ListIcon, Edit, Trash2, Tag, Scale, Calendar, Search, Check, ChevronDown } from "lucide-react";
+import { BookOpen, Plus, Grid, List as ListIcon, Tag, Scale, Calendar, Search, Check, ChevronDown } from "lucide-react";
 import { useState, useEffect, type FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Field, FieldLabel } from "@/components/ui/field";
@@ -10,6 +10,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeader } from "@/components/ui/page-header";
+import { CardActions } from "@/components/ui/card-actions";
+import { API_BASE } from "@/lib/constants";
 
 interface Degree {
     d_id: number;
@@ -62,7 +65,7 @@ export default function CoursesPage() {
 
     const fetchDegrees = async () => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/degrees/`);
+            const response = await fetch(`${API_BASE}/degrees/`);
             if (!response.ok) throw new Error(`Server error: ${response.status}`);
             const data = await response.json();
             setDegrees(data);
@@ -74,7 +77,7 @@ export default function CoursesPage() {
     const fetchCourses = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/courses/`);
+            const response = await fetch(`${API_BASE}/courses/`);
             if (!response.ok) throw new Error(`Server error: ${response.status}`);
             const data = await response.json();
             setCourses(data);
@@ -93,7 +96,7 @@ export default function CoursesPage() {
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const url = editingCourse ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/courses/${editingCourse.c_id}` : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/courses/`;
+        const url = editingCourse ? `${API_BASE}/courses/${editingCourse.c_id}` : `${API_BASE}/courses/`;
         const method = editingCourse ? "PUT" : "POST";
         await fetch(url, {
             method,
@@ -133,7 +136,7 @@ export default function CoursesPage() {
 
     const handleToggleActive = async (courseId: number, isActive: boolean) => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/courses/${courseId}/toggle-active`, {
+            const response = await fetch(`${API_BASE}/courses/${courseId}/toggle-active`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
             });
@@ -155,7 +158,7 @@ export default function CoursesPage() {
     const confirmDelete = async () => {
         if (!courseToDelete) return;
         try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/courses/${courseToDelete}`, { method: "DELETE" });
+            await fetch(`${API_BASE}/courses/${courseToDelete}`, { method: "DELETE" });
             fetchCourses();
         } catch (err) {
             console.error("Failed to delete course:", err);
@@ -168,22 +171,17 @@ export default function CoursesPage() {
 
     return (
         <div className="flex flex-col gap-8">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">Courses</h1>
-                    <p className="text-zinc-500 dark:text-zinc-400 mt-2">See syllabus, credits, and prerequisites for each course.</p>
+            <PageHeader
+                title="Courses"
+                subtitle="See syllabus, credits, and prerequisites for each course."
+                buttonLabel="Add Course"
+                onAdd={() => setShowForm(true)}
+            >
+                <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
+                    <button className="cursor-pointer p-2 bg-white dark:bg-zinc-700 shadow-sm rounded-lg text-red-600"><Grid size={18} /></button>
+                    <button className="cursor-pointer p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"><ListIcon size={18} /></button>
                 </div>
-                <div className="flex gap-3">
-                    <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
-                        <button className="cursor-pointer p-2 bg-white dark:bg-zinc-700 shadow-sm rounded-lg text-red-600"><Grid size={18} /></button>
-                        <button className="cursor-pointer p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"><ListIcon size={18} /></button>
-                    </div>
-                    <button onClick={() => setShowForm(true)} className="bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 shadow-lg shadow-red-500/25 cursor-pointer text-white px-5 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2">
-                        <Plus size={20} />
-                        Add Course
-                    </button>
-                </div>
-            </div>
+            </PageHeader>
 
             {error && (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-5 py-4 rounded-xl text-sm font-medium">
@@ -487,10 +485,10 @@ export default function CoursesPage() {
                                     <span>{course.degree.d_name}</span>
                                 </div>
                             ) : null}
-                            <div className="flex gap-2 mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
-                                <button onClick={() => handleEdit(course)} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer"><Edit size={16} /> Edit</button>
-                                <button onClick={() => handleDelete(course.c_id)} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 cursor-pointer"><Trash2 size={16} /> Delete</button>
-                            </div>
+                            <CardActions
+                                onEdit={() => handleEdit(course)}
+                                onDelete={() => handleDelete(course.c_id)}
+                            />
                         </div>
                     </div>
                 ))}

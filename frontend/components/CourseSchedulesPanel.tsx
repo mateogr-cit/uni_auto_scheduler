@@ -1,14 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Calendar, Clock, MapPin, User, RefreshCw, Trash2 } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Calendar, Clock, MapPin, User, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { API_BASE, DAYS } from "@/lib/constants";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface Session {
   session_id: number;
+  slot_id: number;
   type: "Lecture" | "Seminar";
   day: string;
   time: string;
@@ -30,9 +39,21 @@ interface StudentGroup {
   group_name: string;
   year_level: number;
   semester_number: number;
+  capacity: number;
 }
 
-// Each flat entry maps to one grid cell
+interface TimeSlot {
+  slot_id: number;
+  day_of_week: string;
+  start_time: string;
+  end_time: string;
+}
+
+interface Room {
+  room_id: string;
+  capacity: number;
+}
+
 interface GridEntry {
   schedule_id: number;
   course: string;
@@ -41,26 +62,50 @@ interface GridEntry {
   session: Session;
 }
 
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+interface EditTarget {
+  session: Session;
+  schedule_id: number;
+  group_capacity: number;
+}
 
 const SESSION_BADGE: Record<string, string> = {
   Lecture: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
   Seminar: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+function formatTime(t: string) {
+  // "09:00:00" → "09:00"
+  return t.slice(0, 5);
+}
 
 export default function CourseSchedulesPanel() {
   const [selectedGroup, setSelectedGroup] = useState<number | null>(null);
   const [schedules, setSchedules] = useState<CourseSchedule[]>([]);
   const [groups, setGroups] = useState<StudentGroup[]>([]);
+  const [allSlots, setAllSlots] = useState<TimeSlot[]>([]);
+  const [allRooms, setAllRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Delete state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [scheduleToDelete, setScheduleToDelete] = useState<number | null>(null);
 
-  useEffect(() => { loadGroups(); }, []);
-  useEffect(() => { if (selectedGroup) loadSchedules(); }, [selectedGroup]);
+  // Edit state
+  const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
+  const [editSlotId, setEditSlotId] = useState<number | null>(null);
+  const [editRoomId, setEditRoomId] = useState<string>("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadGroups();
+    loadSlotsAndRooms();
+  }, []);
+
+  useEffect(() => {
+    if (selectedGroup) loadSchedules();
+  }, [selectedGroup]);
 
   const loadGroups = async () => {
     try {
@@ -69,6 +114,19 @@ export default function CourseSchedulesPanel() {
       setGroups(await res.json());
     } catch {
       setMessage({ type: "error", text: "Failed to load student groups" });
+    }
+  };
+
+  const loadSlotsAndRooms = async () => {
+    try {
+      const [slotsRes, roomsRes] = await Promise.all([
+        fetch(`${API_BASE}/time-slots/`),
+        fetch(`${API_BASE}/rooms/`),
+      ]);
+      if (slotsRes.ok) setAllSlots(await slotsRes.json());
+      if (roomsRes.ok) setAllRooms(await roomsRes.json());
+    } catch {
+      // non-fatal — edit modal will just be empty
     }
   };
 
@@ -102,27 +160,80 @@ export default function CourseSchedulesPanel() {
     }
   };
 
-  // Flatten all sessions into grid entries
-  const gridEntries: GridEntry[] = schedules.flatMap((s) =>
-    s.sessions.map((session) => ({
-      schedule_id: s.schedule_id,
-      course: s.course,
-      course_abbr: s.course_abbr,
-      professor: s.professor,
-      session,
-    }))
-  );
+  const openEdit = (entry: GridEntry) => {
+    const group = groups.find((g) => g.group_id === selectedGroup);
+    setEditTarget({
+      session: entry.session,
+      schedule_id: entry.schedule_id,
+      group_capacity: group?.capacity ?? 0,
+    });
+    setEditSlotId(entry.session.slot_id);
+    setEditRoomId(entry.session.room);
+    setEditError(null);
+  };
 
-  // Collect unique time labels, sorted
-  const timeRows = Array.from(new Set(gridEntries.map((e) => e.session.time))).sort();
+  const saveEdit = async () => {
+    if (!editTarget || !editSlotId || !editRoomId) return;
+    setIsSaving(true);
+    setEditError(null);
+    try {
+      const res = await fetch(`${API_BASE}/course-sessions/${editTarget.session.session_id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slot_id: editSlotId, room_id: editRoomId }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Failed to save");
+      }
+      setEditTarget(null);
+      setMessage({ type: "success", text: "Session updated" });
+      loadSchedules();
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
-  // Lookup: (day, time) → GridEntry[]
-  const cellMap = new Map<string, GridEntry[]>();
-  for (const entry of gridEntries) {
-    const key = `${entry.session.day}|${entry.session.time}`;
-    if (!cellMap.has(key)) cellMap.set(key, []);
-    cellMap.get(key)!.push(entry);
-  }
+  const gridEntries = useMemo<GridEntry[]>(() =>
+    schedules.flatMap((s) =>
+      s.sessions.map((session) => ({
+        schedule_id: s.schedule_id,
+        course: s.course,
+        course_abbr: s.course_abbr,
+        professor: s.professor,
+        session,
+      }))
+    ),
+  [schedules]);
+
+  const timeRows = useMemo(() =>
+    Array.from(new Set(gridEntries.map((e) => e.session.time))).sort(),
+  [gridEntries]);
+
+  const cellMap = useMemo(() => {
+    const map = new Map<string, GridEntry[]>();
+    for (const entry of gridEntries) {
+      const key = `${entry.session.day}|${entry.session.time}`;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(entry);
+    }
+    return map;
+  }, [gridEntries]);
+
+  const slotsByDay = useMemo(() =>
+    allSlots.reduce((acc, s) => {
+      if (!acc[s.day_of_week]) acc[s.day_of_week] = [];
+      acc[s.day_of_week].push(s);
+      return acc;
+    }, {} as Record<string, TimeSlot[]>),
+  [allSlots]);
+
+  const group_capacity = editTarget?.group_capacity ?? 0;
+  const suitableRooms = useMemo(() =>
+    allRooms.filter((r) => r.capacity >= group_capacity),
+  [allRooms, group_capacity]);
 
   return (
     <div className="space-y-6">
@@ -134,10 +245,6 @@ export default function CourseSchedulesPanel() {
             Weekly timetable — each course has 1 lecture + 1 seminar per week
           </p>
         </div>
-        <Button onClick={loadSchedules} variant="outline" disabled={loading || !selectedGroup} className="gap-2">
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
       </div>
 
       {/* Message */}
@@ -161,7 +268,12 @@ export default function CourseSchedulesPanel() {
           onValueChange={(v) => { setSchedules([]); setSelectedGroup(v ? parseInt(v) : null); }}
         >
           <SelectTrigger className="w-72">
-            <SelectValue placeholder="Choose a group…" />
+            <SelectValue placeholder="Choose a group…">
+              {(() => {
+                const g = groups.find((g) => g.group_id === selectedGroup);
+                return g ? `${g.group_name} — Year ${g.year_level}, Sem ${g.semester_number}` : null;
+              })()}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {groups.map((g) => (
@@ -173,14 +285,12 @@ export default function CourseSchedulesPanel() {
         </Select>
       </div>
 
-      {/* No group selected */}
       {!selectedGroup && (
         <div className="text-center py-16 text-zinc-400 dark:text-zinc-600">
           Select a student group above to view its timetable.
         </div>
       )}
 
-      {/* Loading skeleton */}
       {selectedGroup && loading && (
         <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl overflow-hidden border border-zinc-200 dark:border-zinc-800">
           <div className="p-6 border-b border-zinc-200 dark:border-zinc-800">
@@ -199,7 +309,6 @@ export default function CourseSchedulesPanel() {
         </div>
       )}
 
-      {/* Empty state */}
       {selectedGroup && !loading && schedules.length === 0 && (
         <div className="text-center py-16 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-800">
           <Calendar className="w-10 h-10 text-zinc-300 dark:text-zinc-600 mx-auto mb-3" />
@@ -254,7 +363,6 @@ export default function CourseSchedulesPanel() {
                                     key={entry.session.session_id}
                                     className="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/20 dark:to-rose-950/20 rounded-xl p-3 border border-red-100 dark:border-red-900/30 group relative"
                                   >
-                                    {/* Session type badge */}
                                     <span className={`inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded mb-1.5 ${SESSION_BADGE[entry.session.type] ?? ""}`}>
                                       {entry.session.type}
                                     </span>
@@ -274,14 +382,23 @@ export default function CourseSchedulesPanel() {
                                       </div>
                                     </div>
 
-                                    {/* Delete — appears on hover */}
-                                    <button
-                                      onClick={() => { setScheduleToDelete(entry.schedule_id); setDeleteDialogOpen(true); }}
-                                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                      title="Delete schedule"
-                                    >
-                                      <Trash2 className="w-3 h-3" />
-                                    </button>
+                                    {/* Action buttons — appear on hover */}
+                                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <button
+                                        onClick={() => openEdit(entry)}
+                                        className="p-1 rounded text-zinc-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                        title="Edit session"
+                                      >
+                                        <Pencil className="w-3 h-3" />
+                                      </button>
+                                      <button
+                                        onClick={() => { setScheduleToDelete(entry.schedule_id); setDeleteDialogOpen(true); }}
+                                        className="p-1 rounded text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                        title="Delete schedule"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </button>
+                                    </div>
                                   </div>
                                 ))}
                               </div>
@@ -310,11 +427,103 @@ export default function CourseSchedulesPanel() {
               </div>
             ))}
             <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-              <Trash2 className="w-3 h-3" /> Hover a card to delete
+              <Pencil className="w-3 h-3" /> / <Trash2 className="w-3 h-3" /> Hover a card to edit or delete
             </div>
           </div>
         </>
       )}
+
+      {/* Edit session dialog */}
+      <Dialog open={!!editTarget} onOpenChange={(open) => { if (!open) setEditTarget(null); }}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>
+              Edit {editTarget?.session.type} — {
+                schedules.find((s) => s.schedule_id === editTarget?.schedule_id)?.course
+              }
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {/* Time slot picker */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                Time Slot
+              </label>
+              <Select
+                value={editSlotId?.toString() ?? ""}
+                onValueChange={(v) => { if (v) setEditSlotId(parseInt(v)); }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a slot…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DAYS.filter((d) => slotsByDay[d]?.length).map((day) => (
+                    <div key={day}>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                        {day}
+                      </div>
+                      {slotsByDay[day].map((slot) => (
+                        <SelectItem key={slot.slot_id} value={slot.slot_id.toString()}>
+                          {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
+                        </SelectItem>
+                      ))}
+                    </div>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Room picker */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                Room
+                {group_capacity > 0 && (
+                  <span className="ml-2 text-xs font-normal text-zinc-400">
+                    (capacity ≥ {group_capacity})
+                  </span>
+                )}
+              </label>
+              <Select
+                value={editRoomId}
+                onValueChange={(v) => { if (v) setEditRoomId(v); }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a room…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {suitableRooms.map((room) => (
+                    <SelectItem key={room.room_id} value={room.room_id}>
+                      Room {room.room_id} (capacity {room.capacity})
+                    </SelectItem>
+                  ))}
+                  {suitableRooms.length === 0 && (
+                    <div className="px-2 py-3 text-sm text-zinc-400 text-center">
+                      No rooms with capacity ≥ {group_capacity}
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Conflict error */}
+            {editError && (
+              <div className="px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300">
+                {editError}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditTarget(null)}>
+              Cancel
+            </Button>
+            <Button onClick={saveEdit} disabled={isSaving || !editSlotId || !editRoomId}>
+              {isSaving ? "Saving…" : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         open={deleteDialogOpen}

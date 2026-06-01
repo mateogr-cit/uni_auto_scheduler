@@ -1,6 +1,6 @@
 'use client';
 
-import { User, Plus, Search, Edit, Trash2, CheckCircle, Users, Mail, Eye, EyeOff, GraduationCap, ChevronLeft, ChevronRight } from "lucide-react";
+import { User, Plus, Edit, Trash2, CheckCircle, Users, Mail, Eye, EyeOff, GraduationCap, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -10,6 +10,11 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeader } from "@/components/ui/page-header";
+import { SearchBar } from "@/components/ui/search-bar";
+import { EmptyState } from "@/components/ui/empty-state";
+import { CardActions } from "@/components/ui/card-actions";
+import { API_BASE } from "@/lib/constants";
 
 interface User {
     u_id: number;
@@ -57,9 +62,9 @@ export default function StudentsPage() {
         setLoading(true);
         try {
             const skip = currentPage * ITEMS_PER_PAGE;
-            const usersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/?skip=${skip}&limit=${ITEMS_PER_PAGE}`);
+            const usersResponse = await fetch(`${API_BASE}/users/?skip=${skip}&limit=${ITEMS_PER_PAGE}`);
             const users: User[] = await usersResponse.json();
-            const studentsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/students/`);
+            const studentsResponse = await fetch(`${API_BASE}/students/`);
             const studentsData: Student[] = await studentsResponse.json();
             const studentUsers = users.filter(u => u.u_role === "student").map(u => {
                 const student = studentsData.find(s => s.u_id === u.u_id);
@@ -75,7 +80,7 @@ export default function StudentsPage() {
     };
 
     const fetchGroups = async () => {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/student-groups/`);
+        const response = await fetch(`${API_BASE}/student-groups/`);
         const data: StudentGroup[] = await response.json();
         setGroups(data);
     };
@@ -103,7 +108,7 @@ export default function StudentsPage() {
             if (formData.password || !editingStudent) {
                 userData.password = formData.password;
             }
-            const url = editingStudent ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/${editingStudent.u_id}` : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/`;
+            const url = editingStudent ? `${API_BASE}/users/${editingStudent.u_id}` : `${API_BASE}/users/`;
             const method = editingStudent ? "PUT" : "POST";
             const userResponse = await fetch(url, {
                 method,
@@ -119,7 +124,7 @@ export default function StudentsPage() {
                 if (formData.group_id !== null) {
                     studentData.group_id = formData.group_id;
                 }
-                const studentResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/students/`, {
+                const studentResponse = await fetch(`${API_BASE}/students/`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(studentData),
@@ -132,7 +137,7 @@ export default function StudentsPage() {
                 if (formData.group_id !== null) {
                     studentData.group_id = formData.group_id;
                 }
-                const studentResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/students/${user.u_id}`, {
+                const studentResponse = await fetch(`${API_BASE}/students/${user.u_id}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(studentData),
@@ -166,7 +171,7 @@ export default function StudentsPage() {
     const handleDeleteConfirm = async () => {
         if (studentToDelete === null) return;
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/${studentToDelete}`, {
+            const response = await fetch(`${API_BASE}/users/${studentToDelete}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
             });
@@ -189,27 +194,12 @@ export default function StudentsPage() {
 
     return (
         <div className="flex flex-col gap-8 pb-12">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
-                        Students
-                    </h1>
-                    <p className="text-zinc-500 dark:text-zinc-400 mt-2">
-                        Manage student registrations, groups, and academic status.
-                    </p>
-                </div>
-                <div className="flex gap-3">
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => setShowForm(true)}
-                        className="cursor-pointer text-white px-6 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 group bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 shadow-xl shadow-red-500/25"
-                    >
-                        <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
-                        Register Student
-                    </motion.button>
-                </div>
-            </div>
+            <PageHeader
+                title="Students"
+                subtitle="Manage student registrations, groups, and academic status."
+                buttonLabel="Register Student"
+                onAdd={() => setShowForm(true)}
+            />
 
             {showForm && (
                 <motion.div
@@ -382,18 +372,12 @@ export default function StudentsPage() {
 
             <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
                 <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 flex flex-col md:flex-row gap-6 items-center justify-between bg-zinc-50/50 dark:bg-zinc-800/30">
-                    <div className="relative w-full md:w-[450px]">
-                        <InputGroup>
-                            <InputGroupAddon align="inline-start">
-                                <Search data-icon="inline-start" />
-                            </InputGroupAddon>
-                            <InputGroupInput
-                                placeholder="Find a student by name or email..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                        </InputGroup>
-                    </div>
+                    <SearchBar
+                        placeholder="Find a student by name or email..."
+                        value={searchQuery}
+                        onChange={setSearchQuery}
+                        className="w-full md:w-[450px]"
+                    />
                 </div>
 
                 <div className="p-6">
@@ -423,17 +407,11 @@ export default function StudentsPage() {
                             ))}
                         </div>
                     ) : filteredStudents.length === 0 ? (
-                        <div className="p-20 flex flex-col items-center justify-center text-center flex flex-col gap-6">
-                            <div className="w-24 h-24 bg-zinc-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-300 rotate-12">
-                                <Users size={48} />
-                            </div>
-                            <div>
-                                <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">No students found</h2>
-                                <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto mt-2">
-                                    {searchQuery ? `We couldn't find any results for "${searchQuery}"` : "Your student directory is empty. Start by registering your first student."}
-                                </p>
-                            </div>
-                        </div>
+                        <EmptyState
+                            icon={Users}
+                            title="No students found"
+                            description={searchQuery ? `We couldn't find any results for "${searchQuery}"` : "Your student directory is empty. Start by registering your first student."}
+                        />
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {filteredStudents.map((student) => {
@@ -484,10 +462,10 @@ export default function StudentsPage() {
                                                     </span>
                                                 </div>
                                             )}
-                                            <div className="flex gap-2 mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
-                                                <button onClick={() => handleEdit(student)} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer"><Edit size={16} /> Edit</button>
-                                                <button onClick={() => handleDelete(student.u_id)} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 cursor-pointer"><Trash2 size={16} /> Delete</button>
-                                            </div>
+                                            <CardActions
+                                                onEdit={() => handleEdit(student)}
+                                                onDelete={() => handleDelete(student.u_id)}
+                                            />
                                         </div>
                                     </motion.div>
                                 );

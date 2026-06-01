@@ -3,11 +3,10 @@
 import { useState, useEffect, useCallback, type Dispatch, type SetStateAction } from "react";
 import FacultyPanel from "@/components/FacultyPanel";
 import { type Faculty, type Degree, type FormState } from "@/components/schedule-types";
-import { RefreshCcw, School } from "lucide-react";
+import { School } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { API_BASE } from "@/lib/constants";
 
 const emptyFaculty = { f_name: "", f_abbr: "" };
 const emptyDegree = { d_name: "", f_id: 0, degree_abbr: "" };
@@ -135,14 +134,6 @@ export default function FacultiesPage() {
               <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">Faculty & Degrees</h1>
             </div>
             <p className="text-zinc-500 dark:text-zinc-400">Manage your university's faculties and their associated degree programmes.</p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              onClick={loadAll}
-              className="cursor-pointer inline-flex items-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
-            >
-              <RefreshCcw size={16} /> Refresh Data
-            </button>
           </div>
         </div>
 

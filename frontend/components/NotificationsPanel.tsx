@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, CalendarX, Loader2, RefreshCw, BookOpen, Clock, Users, Calendar } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useTheme } from 'next-themes';
+import { AlertCircle, CalendarX, BookOpen, Clock, Users, Calendar, Loader2 } from 'lucide-react';
+import { API_BASE } from "@/lib/constants";
 
 interface Complaint {
     comp_id: number;
@@ -27,7 +26,6 @@ interface Unavailability {
 }
 
 export default function NotificationsPanel() {
-    const { theme } = useTheme();
     const [complaints, setComplaints] = useState<Complaint[]>([]);
     const [unavailabilities, setUnavailabilities] = useState<Unavailability[]>([]);
     const [loading, setLoading] = useState(true);
@@ -37,7 +35,6 @@ export default function NotificationsPanel() {
         setLoading(true);
         setError(null);
 
-        const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
         try {
             const [complaintsRes, unavailabilitiesRes] = await Promise.all([
                 fetch(`${API_BASE}/complaints/`),
@@ -53,8 +50,7 @@ export default function NotificationsPanel() {
 
             setComplaints(complaintsData);
             setUnavailabilities(unavailabilitiesData);
-        } catch (err) {
-            console.error('Error fetching notifications:', err);
+        } catch {
             setError('Failed to load notifications');
         } finally {
             setLoading(false);
@@ -92,23 +88,7 @@ export default function NotificationsPanel() {
 
     return (
         <div className="flex-1 overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={fetchNotifications}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : (
-                            <RefreshCw className="w-4 h-4 mr-2" />
-                        )}
-                        Refresh
-                    </Button>
-                </div>
-            </div>
+
 
             {error && (
                 <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-lg p-4 mb-4">
@@ -137,11 +117,7 @@ export default function NotificationsPanel() {
                                 {complaints.map((complaint) => (
                                     <div
                                         key={complaint.comp_id}
-                                        className={`p-4 rounded-lg border ${
-                                            theme === 'dark'
-                                                ? 'bg-zinc-800/50 border-zinc-700'
-                                                : 'bg-zinc-50 border-zinc-200'
-                                        }`}
+                                        className="p-4 rounded-lg border bg-zinc-50 border-zinc-200 dark:bg-zinc-800/50 dark:border-zinc-700"
                                     >
                                         <div className="flex items-start gap-3">
                                             <div className="flex-1">
@@ -214,11 +190,7 @@ export default function NotificationsPanel() {
                                 {unavailabilities.map((unavailability) => (
                                     <div
                                         key={unavailability.id}
-                                        className={`p-4 rounded-lg border ${
-                                            theme === 'dark'
-                                                ? 'bg-zinc-800/50 border-zinc-700'
-                                                : 'bg-zinc-50 border-zinc-200'
-                                        }`}
+                                        className="p-4 rounded-lg border bg-zinc-50 border-zinc-200 dark:bg-zinc-800/50 dark:border-zinc-700"
                                     >
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="flex-1">

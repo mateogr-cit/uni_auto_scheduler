@@ -6,6 +6,7 @@ from schemas import UserCreate, UserUpdate, User
 from typing import List
 from datetime import datetime
 from utils import validate_pagination
+from core.security import hash_password
 import logging
 
 logger = logging.getLogger(__name__)
@@ -16,8 +17,10 @@ router = APIRouter()
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     logger.info(f"Creating user: {user.username}")
     now = datetime.utcnow()
+    user_data = user.dict()
+    user_data["password"] = hash_password(user_data["password"])
     db_user = DBUser(
-        **user.dict(),
+        **user_data,
         createdAt=now,
         updatedAt=now,
     )
@@ -34,8 +37,10 @@ def create_users_bulk(users: List[UserCreate], db: Session = Depends(get_db)):
         now = datetime.utcnow()
         result = []
         for user in users:
+            user_data = user.dict()
+            user_data["password"] = hash_password(user_data["password"])
             db_user = DBUser(
-                **user.dict(),
+                **user_data,
                 createdAt=now,
                 updatedAt=now,
             )
@@ -70,6 +75,8 @@ def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     update_data = user.dict(exclude_unset=True)
+    if "password" in update_data and update_data["password"]:
+        update_data["password"] = hash_password(update_data["password"])
     for key, value in update_data.items():
         if value is not None:
             setattr(db_user, key, value)

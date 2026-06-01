@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users2, Plus, Edit, Trash2, GraduationCap, Calendar, RefreshCcw, Clock, ChevronDown } from 'lucide-react';
+import { Users2, Plus, Edit, Trash2, GraduationCap, Calendar, Clock, ChevronDown } from 'lucide-react';
 import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from 'sonner';
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { API_BASE, DAYS } from "@/lib/constants";
 
 interface Degree {
   d_id: number;
@@ -39,8 +40,6 @@ interface StudentGroupAvailability {
   is_available: boolean;
 }
 
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] as const;
-
 export default function StudentGroupsPage() {
   const [groups, setGroups] = useState<StudentGroup[]>([]);
   const [degrees, setDegrees] = useState<Degree[]>([]);
@@ -68,8 +67,6 @@ export default function StudentGroupsPage() {
     semester_number: '',
     capacity: '',
   });
-
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
     fetchGroups();
@@ -258,16 +255,6 @@ export default function StudentGroupsPage() {
           </p>
         </div>
         <div className="flex gap-3">
-          <button
-            onClick={() => {
-              fetchGroups();
-              fetchDegrees();
-            }}
-            className="cursor-pointer inline-flex items-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
-          >
-            <RefreshCcw size={16} />
-            Refresh
-          </button>
           <button
             onClick={() => {
               setShowForm(true);

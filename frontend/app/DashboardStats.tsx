@@ -2,6 +2,7 @@
 
 import { LayoutDashboard, TrendingUp, Users, Calendar } from "lucide-react";
 import { useEffect, useState } from "react";
+import { API_BASE } from "@/lib/constants";
 
 interface DashboardStats {
   total_students: number;
@@ -17,7 +18,7 @@ export default function DashboardStats() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/dashboard/stats`);
+        const response = await fetch(`${API_BASE}/dashboard/stats`);
         if (response.ok) {
           const data = await response.json();
           setStats(data);

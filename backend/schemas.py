@@ -7,6 +7,7 @@ import enum
 class UserRole(str, enum.Enum):
     student = "student"
     professor = "professor"
+    admin = "admin"
 
 class StudentStatus(str, enum.Enum):
     active = "active"
@@ -318,9 +319,7 @@ class Degree(DegreeBase):
 
 # StudentDegree schemas
 class StudentDegreeBase(BaseModel):
-    u_id: int
-    deg_id: int
-    yr_lvl: int
+    group_id: int
 
 class StudentDegreeCreate(StudentDegreeBase):
     pass
@@ -404,3 +403,16 @@ class ProfessorUnavailability(ProfessorUnavailabilityBase):
 
 Prof.update_forward_refs()
 Course.update_forward_refs()
+
+
+# Auth schemas
+class TokenData(BaseModel):
+    username: str
+    u_id: int
+    u_role: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+    user: "User"

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback, type Dispatch, type SetStateAction } from "react";
-import { RefreshCcw } from "lucide-react";
 import ScheduleTabs from "./ScheduleTabs";
 import OverviewPanel from "./OverviewPanel";
 import SetupPanel from "./SetupPanel";
@@ -15,8 +14,7 @@ import {
   type Degree,
   type FormState,
 } from "./schedule-types";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { API_BASE } from "@/lib/constants";
 
 const emptyTimeSlot = { day_of_week: "" as any, start_time: "", end_time: "" };
 
@@ -136,14 +134,6 @@ const ScheduleDashboard = () => {
           <div>
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">Schedule Builder</h1>
             <p className="text-zinc-500 dark:text-zinc-400 mt-1">Configure your academic groups, curriculum, schedules, and launch schedule generation.</p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              onClick={loadAll}
-              className="cursor-pointer inline-flex items-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
-            >
-              <RefreshCcw size={16} /> Refresh Data
-            </button>
           </div>
         </div>
 

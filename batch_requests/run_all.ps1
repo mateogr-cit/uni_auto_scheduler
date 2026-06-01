@@ -54,9 +54,34 @@ foreach ($script in $scripts) {
     }
 }
 
+# Create the admin user using the backend venv Python
+Write-Host "Creating admin user..." -ForegroundColor Cyan
+Write-Host "----------------------------------------" -ForegroundColor Gray
+$pythonPath = Join-Path $scriptDir "../backend/venv/bin/python"
+$adminScript = Join-Path $scriptDir "../backend/create_admin.py"
+if (Test-Path $pythonPath) {
+    try {
+        & $pythonPath $adminScript
+        Write-Host "Admin user created." -ForegroundColor Green
+    } catch {
+        Write-Host "Warning: Could not create admin user: $_" -ForegroundColor Yellow
+        Write-Host "  Run manually: cd backend && python create_admin.py" -ForegroundColor Yellow
+        $failedScripts += "create_admin.py"
+    }
+} else {
+    Write-Host "Warning: venv Python not found at $pythonPath" -ForegroundColor Yellow
+    Write-Host "  Run manually: cd backend && python create_admin.py" -ForegroundColor Yellow
+}
+Write-Host ""
+
 Write-Host "========================================" -ForegroundColor Gray
 if ($failedScripts.Count -eq 0) {
     Write-Host "All scripts completed successfully!" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Login credentials:" -ForegroundColor Cyan
+    Write-Host "  Admin:     username=admin       password=admin123" -ForegroundColor White
+    Write-Host "  Professor: username=johnson.robert  password=johnson.123" -ForegroundColor White
+    Write-Host "  Student:   username=se11.student    password=se11.123" -ForegroundColor White
 } else {
     Write-Host "Some scripts failed:" -ForegroundColor Red
     foreach ($script in $failedScripts) {

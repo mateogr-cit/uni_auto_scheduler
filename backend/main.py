@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes import (
@@ -22,6 +25,8 @@ from routes.auto_schedule import router as auto_schedule_router
 from routes.migrations import router as migrations_router
 from routes.dashboard import router as dashboard_router
 from routes.benchmark import router as benchmark_router
+from routes.ai_suggestions import router as ai_suggestions_router
+from routes.auth import router as auth_router
 from database import engine
 from models import Base
 from logging_config import setup_logging
@@ -49,8 +54,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    # allow_origins=["http://localhost:3000"],  # No trailing slash
-    allow_origins=["*"],  # No trailing slash
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -76,6 +80,8 @@ app.include_router(migrations_router)
 app.include_router(dashboard_router)
 app.include_router(complaints_router)
 app.include_router(benchmark_router)
+app.include_router(ai_suggestions_router)
+app.include_router(auth_router)
 
 @app.get("/")
 def read_root():

@@ -6,6 +6,7 @@ import enum
 class UserRole(enum.Enum):
     student = "student"
     professor = "professor"
+    admin = "admin"
 
 class StudentStatus(enum.Enum):
     active = "active"
@@ -205,8 +206,6 @@ class StudentDegree(Base):
     __tablename__ = "student_degree"
     student_degree_id = Column(Integer, primary_key=True, index=True)
     group_id = Column(Integer, ForeignKey("student_group.group_id", ondelete="CASCADE"))
-    deg_id = Column(Integer, ForeignKey("degree.d_id", ondelete="CASCADE"))
-    yr_lvl = Column(Integer, nullable=False)
     createdAt = Column(DateTime, nullable=False)
     updatedAt = Column(DateTime, nullable=False)
 

@@ -34,7 +34,12 @@
       "PowerShell(Get-Process *)",
       "PowerShell(Get-NetTCPConnection *)",
       "mcp__ide__getDiagnostics",
-      "Bash(Select-String -Pattern \"HTTP|error|Error\")"
+      "Bash(Select-String -Pattern \"HTTP|error|Error\")",
+      "WebSearch",
+      "Skill(humanizer)",
+      "Skill(update-config)",
+      "WebFetch(domain:www.mdpi.com)",
+      "WebFetch(domain:arxiv.org)"
     ]
   },
   "outputStyle": "Explanatory"

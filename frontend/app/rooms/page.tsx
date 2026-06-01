@@ -1,6 +1,6 @@
 'use client';
 
-import { Building, Plus, Search, Edit, Trash2 } from "lucide-react";
+import { Building, Plus, Edit, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
@@ -8,13 +8,13 @@ import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/in
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SearchBar } from "@/components/ui/search-bar";
+import { API_BASE } from "@/lib/constants";
 
 interface Room {
     room_id: string;
     capacity: number;
 }
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "${API_BASE}";
 
 export default function RoomsPage() {
     const [rooms, setRooms] = useState<Room[]>([]);
@@ -28,7 +28,7 @@ export default function RoomsPage() {
 
     const fetchRooms = async () => {
         try {
-            const response = await fetch('${API_BASE}/rooms/');
+            const response = await fetch(`${API_BASE}/rooms/`);
             if (!response.ok) throw new Error('Failed to fetch rooms');
             const data = await response.json();
             setRooms(data);
@@ -46,7 +46,7 @@ export default function RoomsPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const url = editingRoom ? `${API_BASE}/rooms/${editingRoom.room_id}` : '${API_BASE}/rooms/';
+            const url = editingRoom ? `${API_BASE}/rooms/${editingRoom.room_id}` : `${API_BASE}/rooms/`;
             const method = editingRoom ? 'PUT' : 'POST';
             const response = await fetch(url, {
                 method,
@@ -176,18 +176,12 @@ export default function RoomsPage() {
                     transition={{ duration: 0.5, delay: 0.1 }}
                     className="flex flex-col sm:flex-row gap-4 mb-6"
                 >
-                    <div className="relative flex-1">
-                        <InputGroup>
-                            <InputGroupAddon align="inline-start">
-                                <Search data-icon="inline-start" />
-                            </InputGroupAddon>
-                            <InputGroupInput
-                                placeholder="Search rooms..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                        </InputGroup>
-                    </div>
+                    <SearchBar
+                        placeholder="Search rooms..."
+                        value={searchQuery}
+                        onChange={setSearchQuery}
+                        className="flex-1"
+                    />
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}

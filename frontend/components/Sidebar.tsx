@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     LayoutDashboard,
     Users,
@@ -17,17 +17,41 @@ import {
     Eye,
     GraduationCap,
     Bell,
-    CalendarClock
+    CalendarClock,
+    Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { useEffect, useState as useClientState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import NotificationsPanel from './NotificationsPanel';
+import { useAuth } from '@/contexts/AuthContext';
 
-const menuGroups = [
+function LogoMark({ size = 36 }: { size?: number }) {
+    return (
+        <Link href="/">
+            <div
+                className="rounded-full flex items-center justify-center cursor-pointer shrink-0 bg-gradient-to-br from-[#991b1b] to-[#c2185b] hover:opacity-90 transition-opacity"
+                style={{ width: size, height: size, filter: 'drop-shadow(0 1px 3px rgba(153,27,27,0.2))' }}
+            >
+                <span
+                    className="text-white select-none"
+                    style={{
+                        fontFamily: "var(--font-cinzel), 'Cinzel', Georgia, serif",
+                        fontWeight: 700,
+                        fontSize: size * 0.38,
+                        lineHeight: 1,
+                    }}
+                >
+                    K
+                </span>
+            </div>
+        </Link>
+    );
+}
+
+const adminMenuGroups = [
     {
         label: 'Main',
         items: [
@@ -64,6 +88,30 @@ const menuGroups = [
             { icon: School, label: 'Faculty & Degrees', href: '/faculties' },
         ],
     },
+    {
+        label: 'AI',
+        items: [
+            { icon: Sparkles, label: 'AI Suggestions', href: '/ai-suggestions' },
+        ],
+    },
+];
+
+const professorMenuGroups = [
+    {
+        label: 'Views',
+        items: [
+            { icon: Eye, label: 'My Schedule', href: '/professor-view' },
+        ],
+    },
+];
+
+const studentMenuGroups = [
+    {
+        label: 'Views',
+        items: [
+            { icon: GraduationCap, label: 'My Schedule', href: '/student-view' },
+        ],
+    },
 ];
 
 interface SidebarProps {
@@ -73,17 +121,27 @@ interface SidebarProps {
 
 export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
     const pathname = usePathname();
+    const router = useRouter();
     const { theme } = useTheme();
-    const [mounted, setMounted] = useClientState(false);
+    const { user, logout } = useAuth();
+    const [mounted, setMounted] = useState(false);
     const [notificationsOpen, setNotificationsOpen] = useState(false);
 
     useEffect(() => {
         setMounted(true);
     }, []);
 
-    if (!mounted) {
-        return null;
-    }
+    if (!mounted) return null;
+
+    const menuGroups =
+        user?.u_role === 'professor' ? professorMenuGroups :
+        user?.u_role === 'student' ? studentMenuGroups :
+        adminMenuGroups;
+
+    const handleLogout = () => {
+        logout();
+        router.push('/login');
+    };
 
     return (
         <motion.aside
@@ -102,20 +160,23 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2.5"
                     >
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-600 to-rose-500 flex items-center justify-center font-bold text-white shadow-lg shadow-red-500/30">
-                            S
-                        </div>
-                        <span className={`font-semibold text-xl tracking-wide ${theme === 'dark' ? 'text-white' : 'text-zinc-900'}`}>Scheduler</span>
+                        <LogoMark size={36} />
+                        <span
+                            className={`text-base font-semibold tracking-[0.18em] uppercase ${theme === 'dark' ? 'text-white' : 'text-zinc-900'}`}
+                            style={{ fontFamily: "var(--font-cinzel), 'Cinzel', Georgia, serif" }}
+                        >
+                            Kronos
+                        </span>
                     </motion.div>
                 )}
                 {isCollapsed && (
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-600 to-rose-500 flex items-center justify-center font-bold text-white mx-auto shadow-lg shadow-red-500/30">
-                        S
+                    <div className="mx-auto">
+                        <LogoMark size={34} />
                     </div>
                 )}
-                {!isCollapsed && (
+                {!isCollapsed && user?.u_role === 'admin' && (
                     <button
                         onClick={() => setNotificationsOpen(true)}
                         className={`p-2 rounded-lg transition-colors ${
@@ -200,45 +261,63 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
             {/* Footer Section */}
             <div className={`p-3 mt-auto flex flex-col gap-1 ${theme === 'dark' ? 'border-t border-zinc-800/50' : 'border-t border-zinc-200/50'}`}>
-                <Link href="/settings">
-                    <motion.div
-                        whileHover={{ x: 4 }}
-                        whileTap={{ scale: 0.98 }}
-                        className={`flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 group relative
-                        ${pathname === '/settings'
-                            ? 'bg-red-600/10 text-red-400'
-                            : theme === 'dark'
-                                ? 'hover:bg-zinc-800/50 hover:text-white'
-                                : 'hover:bg-zinc-100/50 hover:text-zinc-900'
-                        }`}
-                    >
-                        <Settings size={22} className={`${pathname === '/settings' ? 'text-red-400' : theme === 'dark' ? 'group-hover:text-white' : 'group-hover:text-zinc-900'} transition-colors`} />
-                        <AnimatePresence>
-                            {!isCollapsed && (
-                                <motion.span
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -10 }}
-                                    className="font-medium whitespace-nowrap"
-                                >
-                                    Settings
-                                </motion.span>
+                {/* User display */}
+                {!isCollapsed && user && (
+                    <div className={`px-3 py-2 mb-1 rounded-xl ${theme === 'dark' ? 'bg-zinc-800/50' : 'bg-zinc-100/80'}`}>
+                        <p className={`text-xs font-semibold truncate ${theme === 'dark' ? 'text-white' : 'text-zinc-900'}`}>
+                            {user.fname} {user.lname}
+                        </p>
+                        <p className={`text-xs capitalize ${theme === 'dark' ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                            {user.u_role}
+                        </p>
+                    </div>
+                )}
+
+                {user?.u_role === 'admin' && (
+                    <Link href="/settings">
+                        <motion.div
+                            whileHover={{ x: 4 }}
+                            whileTap={{ scale: 0.98 }}
+                            className={`flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 group relative
+                            ${pathname === '/settings'
+                                ? 'bg-red-600/10 text-red-400'
+                                : theme === 'dark'
+                                    ? 'hover:bg-zinc-800/50 hover:text-white'
+                                    : 'hover:bg-zinc-100/50 hover:text-zinc-900'
+                            }`}
+                        >
+                            <Settings size={22} className={`${pathname === '/settings' ? 'text-red-400' : theme === 'dark' ? 'group-hover:text-white' : 'group-hover:text-zinc-900'} transition-colors`} />
+                            <AnimatePresence>
+                                {!isCollapsed && (
+                                    <motion.span
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -10 }}
+                                        className="font-medium whitespace-nowrap"
+                                    >
+                                        Settings
+                                    </motion.span>
+                                )}
+                            </AnimatePresence>
+                            {pathname === '/settings' && (
+                                <motion.div
+                                    layoutId="active-pill-settings"
+                                    className="absolute left-0 w-1 h-6 bg-gradient-to-b from-red-500 to-rose-400 rounded-r-full"
+                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                />
                             )}
-                        </AnimatePresence>
-                        {pathname === '/settings' && (
-                            <motion.div
-                                layoutId="active-pill"
-                                className="absolute left-0 w-1 h-6 bg-gradient-to-b from-red-500 to-rose-400 rounded-r-full"
-                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            />
-                        )}
-                    </motion.div>
-                </Link>
-                <button className={`cursor-pointer w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group ${
-                    theme === 'dark'
-                        ? 'hover:bg-red-500/10 hover:text-red-400'
-                        : 'hover:bg-red-50 hover:text-red-600'
-                }`}>
+                        </motion.div>
+                    </Link>
+                )}
+
+                <button
+                    onClick={handleLogout}
+                    className={`cursor-pointer w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group ${
+                        theme === 'dark'
+                            ? 'hover:bg-red-500/10 hover:text-red-400'
+                            : 'hover:bg-red-50 hover:text-red-600'
+                    }`}
+                >
                     <LogOut size={22} className={theme === 'dark' ? 'group-hover:text-red-400' : 'group-hover:text-red-600'} />
                     {!isCollapsed && <span className="font-medium text-sm">Logout</span>}
                 </button>

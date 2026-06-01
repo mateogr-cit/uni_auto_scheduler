@@ -1,7 +1,7 @@
 'use client';
 
-import { Users, Plus, Search, Edit, Trash2, Mail, User, Calendar, Clock, X, Check, ArrowRight, Settings, ChevronDown, Eye, EyeOff, UserIcon } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Users, Plus, Search, Edit, Trash2, Mail, User, Calendar, Clock, X, Check, Settings, ChevronDown, Eye, EyeOff, UserIcon } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { Field, FieldLabel } from "@/components/ui/field";
@@ -10,6 +10,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeader } from "@/components/ui/page-header";
+import { SearchBar } from "@/components/ui/search-bar";
+import { EmptyState } from "@/components/ui/empty-state";
+import { API_BASE, DAYS } from "@/lib/constants";
 
 interface Professor {
     u_id: number;
@@ -40,8 +44,6 @@ interface ProfessorAvailability {
     is_available: boolean;
 }
 
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] as const;
-
 export default function ProfessorsPage() {
     const [professors, setProfessors] = useState<Professor[]>([]);
     const [courses, setCourses] = useState<Course[]>([]);
@@ -68,50 +70,37 @@ export default function ProfessorsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        fetchCourses();
-        fetchProfessors();
+    const fetchCourses = useCallback(async () => {
+        try {
+            const response = await fetch(`${API_BASE}/courses/`);
+            if (!response.ok) {
+                setError(`Failed to fetch courses: ${response.status}`);
+                return;
+            }
+            setCourses(await response.json());
+            setError(null);
+        } catch (error) {
+            console.error("Failed to fetch courses:", error);
+            setError("Failed to connect to server. Please check if the backend is running.");
+        }
     }, []);
 
-   const fetchCourses = async () => {
-    try {
-        const url = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/courses/`;
-        console.log("Fetching from:", url);
-
-        const response = await fetch(url);
-
-        if (!response.ok) {
-            console.error(`HTTP error! status: ${response.status}`);
-            setError(`Failed to fetch courses: ${response.status}`);
-            return;
-        }
-
-        const data: Course[] = await response.json();
-        console.log("Courses fetched:", data);
-        setCourses(data);
-        setError(null);
-    } catch (error) {
-        console.error("Failed to fetch courses:", error);
-        setError("Failed to connect to server. Please check if the backend is running.");
-    }
-};
-    const fetchProfessors = async () => {
+    const fetchProfessors = useCallback(async () => {
         setLoading(true);
         try {
-            const profsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professors/`);
+            const profsResponse = await fetch(`${API_BASE}/professors/`);
             if (!profsResponse.ok) {
                 throw new Error(`Failed to fetch professors: ${profsResponse.status}`);
             }
             const profsData = await profsResponse.json();
 
+            // Fetch all availability in parallel — one request per professor, but bounded
             const professorsWithDetails = await Promise.all(profsData.map(async (prof: any) => {
                 try {
-                    const availResp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professor-availability?u_id=${prof.u_id}`);
+                    const availResp = await fetch(`${API_BASE}/professor-availability?u_id=${prof.u_id}`);
                     const availData = availResp.ok ? await availResp.json() : [];
-
                     return { ...prof, availability: availData };
-                } catch (err) {
-                    console.error(`Error fetching availability for professor ${prof.u_id}:`, err);
+                } catch {
                     return { ...prof, availability: [] };
                 }
             }));
@@ -124,7 +113,12 @@ export default function ProfessorsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchCourses();
+        fetchProfessors();
+    }, [fetchCourses, fetchProfessors]);
 
     const handleFormChange = (field: string, value: string) => {
         setFormData(prev => {
@@ -149,7 +143,7 @@ export default function ProfessorsPage() {
             userData.password = formData.password;
         }
 
-        const userUrl = editingProfessor ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/${editingProfessor.u_id}` : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/`;
+        const userUrl = editingProfessor ? `${API_BASE}/users/${editingProfessor.u_id}` : `${API_BASE}/users/`;
         const userMethod = editingProfessor ? "PUT" : "POST";
         
         try {
@@ -168,7 +162,7 @@ export default function ProfessorsPage() {
             const u_id = user.u_id;
 
             const professorPayload = { u_id, course_ids: selectedCourseIds };
-            const professorUrl = editingProfessor ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professors/${u_id}` : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professors/`;
+            const professorUrl = editingProfessor ? `${API_BASE}/professors/${u_id}` : `${API_BASE}/professors/`;
             const professorMethod = editingProfessor ? "PUT" : "POST";
 
             const profResponse = await fetch(professorUrl, {
@@ -190,7 +184,7 @@ export default function ProfessorsPage() {
                 end_time: a.end_time.length === 5 ? `${a.end_time}:00` : a.end_time
             }));
 
-            const availResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professor-availability/batch/?u_id=${u_id}`, {
+            const availResponse = await fetch(`${API_BASE}/professor-availability/batch/?u_id=${u_id}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(availabilityList),
@@ -229,10 +223,10 @@ export default function ProfessorsPage() {
         setFormData({ fname: prof.fname, lname: prof.lname, email: prof.email, username: prof.username, password: "" });
 
         try {
-            const availResp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professor-availability?u_id=${prof.u_id}`);
+            const availResp = await fetch(`${API_BASE}/professor-availability?u_id=${prof.u_id}`);
             const availData: ProfessorAvailability[] = await availResp.json();
 
-            const profResp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/professors/${prof.u_id}`);
+            const profResp = await fetch(`${API_BASE}/professors/${prof.u_id}`);
             const profData = await profResp.json();
             setSelectedCourseIds(profData.courses?.map((course: Course) => course.c_id) || []);
 
@@ -266,7 +260,7 @@ export default function ProfessorsPage() {
         if (!professorToDelete) return;
 
         try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/${professorToDelete}`, { method: "DELETE" });
+            await fetch(`${API_BASE}/users/${professorToDelete}`, { method: "DELETE" });
             fetchProfessors();
         } catch (error) {
             console.error("Error deleting professor:", error);
@@ -276,34 +270,21 @@ export default function ProfessorsPage() {
         }
     };
 
-    const filteredProfessors = professors.filter(p => 
-        (p.fname + " " + p.lname).toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.email.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredProfessors = useMemo(() =>
+        professors.filter(p =>
+            (p.fname + " " + p.lname).toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.email.toLowerCase().includes(searchQuery.toLowerCase())
+        ),
+    [professors, searchQuery]);
 
     return (
         <div className="flex flex-col gap-8 pb-12">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
-                        Professors
-                    </h1>
-                    <p className="text-zinc-500 dark:text-zinc-400 mt-2">
-                        Manage faculty members and their weekly availability schedules.
-                    </p>
-                </div>
-                <div className="flex gap-3">
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => setShowForm(true)}
-                        className="cursor-pointer text-white px-6 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 group bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 shadow-xl shadow-red-500/25"
-                    >
-                        <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
-                        Add New Professor
-                    </motion.button>
-                </div>
-            </div>
+            <PageHeader
+                title="Professors"
+                subtitle="Manage faculty members and their weekly availability schedules."
+                buttonLabel="Add New Professor"
+                onAdd={() => setShowForm(true)}
+            />
 
             <AnimatePresence>
                 {showForm && (
@@ -634,18 +615,12 @@ export default function ProfessorsPage() {
                     </div>
                 )}
                 <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 flex flex-col md:flex-row gap-6 items-center justify-between bg-zinc-50/50 dark:bg-zinc-800/30">
-                    <div className="relative w-full md:w-[450px]">
-                        <InputGroup>
-                            <InputGroupAddon align="inline-start">
-                                <Search data-icon="inline-start" />
-                            </InputGroupAddon>
-                            <InputGroupInput
-                                placeholder="Find a professor by name or email..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                        </InputGroup>
-                    </div>
+                    <SearchBar
+                        placeholder="Find a professor by name or email..."
+                        value={searchQuery}
+                        onChange={setSearchQuery}
+                        className="w-full md:w-[450px]"
+                    />
                 </div>
 
                 <div className="p-6">
@@ -677,27 +652,17 @@ export default function ProfessorsPage() {
                             ))}
                         </div>
                     ) : filteredProfessors.length === 0 ? (
-                        <div className="p-20 flex flex-col items-center justify-center text-center flex flex-col gap-6">
-                            <div className="w-24 h-24 bg-zinc-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-300 rotate-12">
-                                <Users size={48} />
-                            </div>
-                            <div>
-                                <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">No professors found</h2>
-                                <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto mt-2">
-                                    {searchQuery ? `We couldn't find any results for "${searchQuery}"` : "Your faculty directory is empty. Start by adding your first professor."}
-                                </p>
-                            </div>
-                            {!searchQuery && (
-                                <button onClick={() => setShowForm(true)} className="text-red-600 font-bold flex items-center gap-2 hover:gap-3 transition-all">
-                                    Add your first professor <ArrowRight size={20} />
-                                </button>
-                            )}
-                        </div>
+                        <EmptyState
+                            icon={Users}
+                            title="No professors found"
+                            description={searchQuery ? `We couldn't find any results for "${searchQuery}"` : "Your faculty directory is empty. Start by adding your first professor."}
+                            actionLabel={!searchQuery ? "Add your first professor" : undefined}
+                            onAction={!searchQuery ? () => setShowForm(true) : undefined}
+                        />
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {filteredProfessors.map((prof) => (
                                 <motion.div
-                                    layout
                                     key={prof.u_id}
                                     className="group p-6 rounded-xl border border-zinc-300 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-red-500/30 dark:hover:border-red-500/30 transition-all hover:shadow-md relative overflow-hidden cursor-pointer"
                                 >
