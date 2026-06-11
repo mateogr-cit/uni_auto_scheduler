@@ -49,7 +49,37 @@ $sharedCourses = @(
 
     # Business Fundamentals - Economics and Business degrees
     @{ name = "Introduction to Business"; abbr = "BUS101"; weight = 3; year = 1; semester = 1; degrees = @("DM", "FI", "BA", "IFE", "BAIT") },
-    @{ name = "Business Law"; abbr = "BUS102"; weight = 3; year = 1; semester = 2; degrees = @("DM", "FI", "BA", "IFE", "BAIT") }
+    @{ name = "Business Law"; abbr = "BUS102"; weight = 3; year = 1; semester = 2; degrees = @("DM", "FI", "BA", "IFE", "BAIT") },
+
+    # ── Cross-cutting shared courses ── added to balance course count across all years/semesters
+    # Each (year, semester) pair targets 55 course-group pairs total.
+    # Counts below are (courses x degrees) needed to reach 55.
+
+    # Y1 S2: +11  (1 x 11)
+    @{ name = "Professional Communication"; abbr = "PROF102"; weight = 2; year = 1; semester = 2; degrees = @("SE", "CEIT", "AID", "TE", "RME", "EE", "DM", "FI", "BA", "IFE", "BAIT") },
+
+    # Y2 S1: +32  (2 x 11 = 22) + (1 x 10 = 10)
+    @{ name = "Research Methods I";          abbr = "RES201";  weight = 2; year = 2; semester = 1; degrees = @("SE", "CEIT", "AID", "TE", "RME", "EE", "DM", "FI", "BA", "IFE", "BAIT") },
+    @{ name = "Applied Data Analysis";        abbr = "DATA201"; weight = 3; year = 2; semester = 1; degrees = @("SE", "CEIT", "AID", "TE", "RME", "EE", "DM", "FI", "BA", "IFE", "BAIT") },
+    @{ name = "Interdisciplinary Studies I";  abbr = "INT201";  weight = 2; year = 2; semester = 1; degrees = @("SE", "CEIT", "AID", "TE", "RME", "EE", "DM", "FI", "BA", "IFE") },
+
+    # Y2 S2: +41  (3 x 11 = 33) + (1 x 8 = 8)
+    @{ name = "Research Methods II";          abbr = "RES202";  weight = 2; year = 2; semester = 2; degrees = @("SE", "CEIT", "AID", "TE", "RME", "EE", "DM", "FI", "BA", "IFE", "BAIT") },
+    @{ name = "Innovation and Entrepreneurship"; abbr = "ENT202"; weight = 3; year = 2; semester = 2; degrees = @("SE", "CEIT", "AID", "TE", "RME", "EE", "DM", "FI", "BA", "IFE", "BAIT") },
+    @{ name = "Professional Ethics";          abbr = "ETH202";  weight = 2; year = 2; semester = 2; degrees = @("SE", "CEIT", "AID", "TE", "RME", "EE", "DM", "FI", "BA", "IFE", "BAIT") },
+    @{ name = "Interdisciplinary Studies II"; abbr = "INT202";  weight = 2; year = 2; semester = 2; degrees = @("SE", "CEIT", "AID", "TE", "DM", "FI", "BA", "IFE") },
+
+    # Y3 S1: +44  (4 x 11)
+    @{ name = "Capstone Project I";      abbr = "CAP301";  weight = 4; year = 3; semester = 1; degrees = @("SE", "CEIT", "AID", "TE", "RME", "EE", "DM", "FI", "BA", "IFE", "BAIT") },
+    @{ name = "Industry Internship";     abbr = "INTR301"; weight = 3; year = 3; semester = 1; degrees = @("SE", "CEIT", "AID", "TE", "RME", "EE", "DM", "FI", "BA", "IFE", "BAIT") },
+    @{ name = "Advanced Topics I";       abbr = "ADV301";  weight = 3; year = 3; semester = 1; degrees = @("SE", "CEIT", "AID", "TE", "RME", "EE", "DM", "FI", "BA", "IFE", "BAIT") },
+    @{ name = "Leadership and Management"; abbr = "LDR301"; weight = 2; year = 3; semester = 1; degrees = @("SE", "CEIT", "AID", "TE", "RME", "EE", "DM", "FI", "BA", "IFE", "BAIT") },
+
+    # Y3 S2: +44  (4 x 11)
+    @{ name = "Capstone Project II";     abbr = "CAP302";  weight = 4; year = 3; semester = 2; degrees = @("SE", "CEIT", "AID", "TE", "RME", "EE", "DM", "FI", "BA", "IFE", "BAIT") },
+    @{ name = "Thesis Preparation";      abbr = "THES302"; weight = 3; year = 3; semester = 2; degrees = @("SE", "CEIT", "AID", "TE", "RME", "EE", "DM", "FI", "BA", "IFE", "BAIT") },
+    @{ name = "Advanced Topics II";      abbr = "ADV302";  weight = 3; year = 3; semester = 2; degrees = @("SE", "CEIT", "AID", "TE", "RME", "EE", "DM", "FI", "BA", "IFE", "BAIT") },
+    @{ name = "Career Development";      abbr = "CDV302";  weight = 2; year = 3; semester = 2; degrees = @("SE", "CEIT", "AID", "TE", "RME", "EE", "DM", "FI", "BA", "IFE", "BAIT") }
 )
 
 # Degree-specific courses

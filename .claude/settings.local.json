@@ -39,7 +39,16 @@
       "Skill(humanizer)",
       "Skill(update-config)",
       "WebFetch(domain:www.mdpi.com)",
-      "WebFetch(domain:arxiv.org)"
+      "WebFetch(domain:arxiv.org)",
+      "Bash(python -m py_compile backend/routes/schedule_benchmark.py)",
+      "Bash(python -m py_compile generate_benchmark_graphs.py)",
+      "Bash(python3 -m py_compile backend/routes/schedule_benchmark.py)",
+      "Bash(python3 -m py_compile generate_benchmark_graphs.py)",
+      "Bash(python3 -m py_compile backend/routes/schedule_benchmark.py backend/routes/auto_schedule.py)",
+      "Bash(backend/venv/bin/python -m py_compile backend/main.py run_full_benchmark.py)",
+      "Bash(backend/venv/bin/python -m py_compile generate_benchmark_graphs.py)",
+      "Bash(python3 make_bib_automatic.py)",
+      "Bash(python3)"
     ]
   },
   "outputStyle": "Explanatory"

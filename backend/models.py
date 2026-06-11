@@ -175,6 +175,7 @@ class ProfessorUnavailability(Base):
     start_time = Column(Time, nullable=False)
     end_time = Column(Time, nullable=False)
     reason = Column(String)
+    approved = Column(Boolean, nullable=False, default=False)
     createdAt = Column(DateTime, nullable=False)
 
 class StudentGroupAvailability(Base):
@@ -220,3 +221,18 @@ class CourseCurriculum(Base):
     createdAt = Column(DateTime, nullable=False)
     course = relationship("Course", back_populates="course_curricula")
     degree = relationship("Degree")
+
+
+class ResolutionLog(Base):
+    """
+    Audit log of administrative resolutions: when a complaint is deleted, an
+    unavailability request is approved/rejected, or an AI-suggested weight
+    adjustment is applied. The `summary` column is a free-form JSON-encoded
+    snapshot so the source record can later be deleted without losing context.
+    """
+    __tablename__ = "resolution_log"
+    id = Column(Integer, primary_key=True, index=True)
+    kind = Column(String, nullable=False, index=True)
+    ref_id = Column(Integer, nullable=True)
+    summary = Column(String, nullable=False)
+    resolved_at = Column(DateTime, nullable=False, index=True)

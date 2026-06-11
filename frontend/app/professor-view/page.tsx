@@ -127,6 +127,33 @@ export default function ProfessorViewPage() {
 
     const today = new Date().toISOString().split('T')[0];
 
+    // Given a weekday name ("Monday"..."Friday") return the next occurrence as YYYY-MM-DD.
+    // If today matches the weekday, returns today.
+    const nextDateForDay = (dayName: string): string => {
+        const order = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const targetIdx = order.indexOf(dayName);
+        if (targetIdx === -1) return '';
+        const now = new Date();
+        const diff = (targetIdx - now.getDay() + 7) % 7;
+        const target = new Date(now);
+        target.setDate(now.getDate() + diff);
+        const y = target.getFullYear();
+        const m = String(target.getMonth() + 1).padStart(2, '0');
+        const d = String(target.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    };
+
+    // Prefill the unavailability form from a clicked schedule entry.
+    const prefillFromEntry = (entry: ScheduleEntry) => {
+        setSelectedCourseKey(entry.key);
+        setSelectedDate(nextDateForDay(entry.day));
+        const [s, e] = (entry.time || '').split('-').map((t) => t.trim());
+        if (s) setStartTime(s);
+        if (e) setEndTime(e);
+        setReason('');
+        setSubmitError(null);
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-zinc-950 dark:to-zinc-900 p-8">
             <div className="max-w-7xl mx-auto">
@@ -244,7 +271,7 @@ export default function ProfessorViewPage() {
                                                                                             variant="ghost"
                                                                                             size="sm"
                                                                                             className="mt-3 w-full text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/20"
-                                                                                            onClick={() => setSelectedCourseKey(entry.key)}
+                                                                                            onClick={() => prefillFromEntry(entry)}
                                                                                         />
                                                                                     }
                                                                                 >

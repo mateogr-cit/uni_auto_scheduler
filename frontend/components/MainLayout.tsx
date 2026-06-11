@@ -13,6 +13,9 @@ const ROLE_HOME: Record<string, string> = {
     admin: '/',
 };
 
+// Routes that any signed-in user may visit, regardless of role.
+const SHARED_ROUTES = ['/settings'];
+
 export default function MainLayout({ children }: { children: React.ReactNode }) {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { user, isLoading } = useAuth();
@@ -27,7 +30,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         }
         if (user.u_role !== 'admin') {
             const home = ROLE_HOME[user.u_role];
-            if (pathname !== home) {
+            const isShared = SHARED_ROUTES.some(
+                (route) => pathname === route || pathname.startsWith(route + '/')
+            );
+            if (pathname !== home && !isShared) {
                 router.push(home);
             }
         }

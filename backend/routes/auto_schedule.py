@@ -412,6 +412,7 @@ def generate_schedule(year: int, semester_number: int, max_courses_per_group: in
             professors = (
                 db.query(Prof)
                 .filter(Prof.courses.any(Course.c_id == course.c_id))
+                .order_by(Prof.u_id)
                 .all()
             )
             if not professors:

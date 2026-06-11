@@ -387,12 +387,17 @@ class ProfessorUnavailabilityBase(BaseModel):
     start_time: time
     end_time: time
     reason: Optional[str] = None
+    approved: bool = False
 
 class ProfessorUnavailabilityCreate(BaseModel):
     date: date
     start_time: time
     end_time: time
     reason: Optional[str] = None
+    approved: bool = False
+
+class ProfessorUnavailabilityUpdate(BaseModel):
+    approved: bool
 
 class ProfessorUnavailability(ProfessorUnavailabilityBase):
     id: int

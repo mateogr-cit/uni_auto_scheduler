@@ -82,7 +82,28 @@ $economicsProfessors = @(
     @{ fname = "Larry"; lname = "Green"; email = "larry.green@cit.edu.al"; username = "green.larry"; courses = @("COMP101") }
 )
 
-$allProfessors = $engineeringProfessors + $economicsProfessors
+# Cross-cutting professors — teach the 16 new shared courses that balance year coverage.
+# Two professors per subject group so the load-balancer has something to distribute.
+$crossCuttingProfessors = @(
+    # Research & Interdisciplinary — 3 professors needed for Y2S1 load
+    # (RES201 x11 + DATA201 x11 + INT201 x10 = 32 pairs = 64 sessions; 3 profs x 25 slots = 75 > 64)
+    @{ fname = "Rachel"; lname = "Adams";  email = "rachel.adams@cit.edu.al";  username = "adams.rachel";  courses = @("PROF102", "RES201", "RES202", "INT201", "INT202", "DATA201") },
+    @{ fname = "Samuel"; lname = "Torres"; email = "samuel.torres@cit.edu.al"; username = "torres.samuel"; courses = @("PROF102", "RES201", "RES202", "INT201", "INT202", "DATA201") },
+    @{ fname = "Sophia"; lname = "Chen";   email = "sophia.chen@cit.edu.al";   username = "chen.sophia";   courses = @("PROF102", "RES201", "RES202", "INT201", "INT202", "DATA201") },
+
+    # Capstone & Advanced Topics — 3 professors needed for Y3S1/Y3S2 load
+    # (CAP x11 + INTR x11 + ADV x11 = 33 pairs = 66 sessions; 3 profs x 25 slots = 75 > 66)
+    @{ fname = "Laura";  lname = "Evans";   email = "laura.evans@cit.edu.al";   username = "evans.laura";   courses = @("CAP301", "CAP302", "INTR301", "ADV301", "ADV302", "THES302") },
+    @{ fname = "Peter";  lname = "Scott";   email = "peter.scott@cit.edu.al";   username = "scott.peter";   courses = @("CAP301", "CAP302", "INTR301", "ADV301", "ADV302", "THES302") },
+    @{ fname = "Oliver"; lname = "Morgan";  email = "oliver.morgan@cit.edu.al"; username = "morgan.oliver"; courses = @("CAP301", "CAP302", "INTR301", "ADV301", "ADV302", "THES302") },
+
+    # Professional Development — 2 professors sufficient
+    # (max load: ENT202 x11 + ETH202 x11 = 22 pairs = 44 sessions; 2 profs x 25 = 50 > 44)
+    @{ fname = "Amy";    lname = "Nelson";  email = "amy.nelson@cit.edu.al";    username = "nelson.amy";    courses = @("ENT202", "ETH202", "LDR301", "CDV302") },
+    @{ fname = "Chris";  lname = "Roberts"; email = "chris.roberts@cit.edu.al"; username = "roberts.chris"; courses = @("ENT202", "ETH202", "LDR301", "CDV302") }
+)
+
+$allProfessors = $engineeringProfessors + $economicsProfessors + $crossCuttingProfessors
 $professorsCreated = 0
 
 Write-Host "Creating $($allProfessors.Count) professors..."
@@ -106,7 +127,7 @@ try {
 foreach ($prof in $allProfessors) {
     try {
         # Create the professor user
-        $password = "$($prof.lname).123"
+        $password = "$($prof.lname.ToLower()).123"
         $response = Invoke-RestMethod -Method Post -Uri "http://localhost:8000/users/" `
           -ContentType "application/json" `
           -Body "{""fname"": ""$($prof.fname)"", ""lname"": ""$($prof.lname)"", ""email"": ""$($prof.email)"", ""username"": ""$($prof.username)"", ""password"": ""$password"", ""u_role"": ""professor""}"
@@ -146,7 +167,7 @@ Write-Host "Successfully created $professorsCreated professors!"
 Write-Host ""
 Write-Host "Course coverage:"
 Write-Host "  - Each degree-specific course: 2 professors"
-Write-Host "  - Shared courses (Math, Physics, English, Stats, Econ, Business, Comp): 2-3 professors"
+Write-Host "  - Shared year-1/2 courses (Math, Physics, English, Stats, Econ, Business, Comp): 2-3 professors"
+Write-Host "  - Cross-cutting year-balance courses (Research, Capstone, Ethics, etc.): 2 professors each"
 Write-Host ""
-Write-Host "This ensures every course has at least 1 professor, with shared courses having"
-Write-Host "multiple professors to support different class sections."
+Write-Host "Total: 37 original + 8 cross-cutting = 45 professors"

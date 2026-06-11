@@ -1,13 +1,18 @@
-# Batch API Requests for Adding Student Groups
-# API Base URL: http://localhost:8000
+# Creates student groups for all degrees across 3 years x 2 semesters (66 total).
+# Naming: {ABBR}_Y{year}S{semester}_{currentYear}  e.g. SE_Y1S1_2026
+# The auto-scheduler matches groups by (deg_id, year_level, semester_number) so
+# a separate group must exist for every (year, semester) pair you want to schedule.
 
 $currentYear = 2026
+$years       = @(1, 2, 3)
+$semesters   = @(1, 2)
+$capacity    = 30
 
 Write-Host "Adding student groups..."
-Write-Host "Format: {degree_abbr}1_{current_year}"
+Write-Host "Format : {ABBR}_Y{year}S{semester}_${currentYear}"
+Write-Host "Coverage: $($years.Count) years x $($semesters.Count) semesters = $($years.Count * $semesters.Count) groups per degree"
 Write-Host ""
 
-# Fetch all degrees
 $degrees = Invoke-RestMethod -Method Get -Uri "http://localhost:8000/degrees/"
 
 if ($degrees.Count -eq 0) {
@@ -22,26 +27,25 @@ $groupsCreated = 0
 
 foreach ($degree in $degrees) {
     $abbr = $degree.degree_abbr
-    $groupName = "${abbr}1_${currentYear}"
+    Write-Host "Degree: $abbr ($($degree.d_name))"
 
-    try {
-        $response = Invoke-RestMethod -Method Post -Uri "http://localhost:8000/student-groups/" `
-          -ContentType "application/json" `
-          -Body "{""group_name"": ""$groupName"", ""deg_id"": $($degree.d_id), ""year_level"": 1, ""semester_number"": 1, ""capacity"": 40}"
-
-        Write-Host "Created group: $groupName (Degree: $($degree.d_name))"
-        $groupsCreated++
-    } catch {
-        Write-Host "Error creating group for $($degree.d_name): $_"
+    foreach ($year in $years) {
+        foreach ($semester in $semesters) {
+            $groupName = "${abbr}_Y${year}S${semester}_${currentYear}"
+            try {
+                $null = Invoke-RestMethod -Method Post -Uri "http://localhost:8000/student-groups/" `
+                  -ContentType "application/json" `
+                  -Body "{""group_name"": ""$groupName"", ""deg_id"": $($degree.d_id), ""year_level"": $year, ""semester_number"": $semester, ""capacity"": $capacity}"
+                Write-Host "  + $groupName  (Y$year S$semester)"
+                $groupsCreated++
+            } catch {
+                Write-Host "  Error creating $groupName : $_"
+            }
+        }
     }
+    Write-Host ""
 }
 
-Write-Host ""
 Write-Host "Successfully created $groupsCreated student groups!"
-Write-Host ""
-Write-Host "Note: Each group has been set with:"
-Write-Host "  - Year Level: 1"
-Write-Host "  - Semester: 1"
-Write-Host "  - Capacity: 40"
-Write-Host ""
-Write-Host "You can add more groups manually as needed."
+Write-Host "  Degrees: $($degrees.Count)  |  Years: 1-3  |  Semesters: 1-2  |  Capacity: $capacity"
+Write-Host "  Expected total: $($degrees.Count * $years.Count * $semesters.Count)"

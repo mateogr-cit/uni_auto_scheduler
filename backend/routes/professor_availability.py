@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from models import ProfessorAvailability as DBProfessorAvailability, ProfessorUnavailability as DBProfessorUnavailability, User as DBUser
-from schemas import ProfessorAvailabilityCreate, ProfessorAvailabilityUpdate, ProfessorAvailability, ProfessorUnavailabilityCreate, ProfessorUnavailability
+from schemas import ProfessorAvailabilityCreate, ProfessorAvailabilityUpdate, ProfessorAvailability, ProfessorUnavailabilityCreate, ProfessorUnavailability, ProfessorUnavailabilityUpdate
 from typing import List, Optional
 from utils import validate_pagination
 from datetime import datetime
@@ -149,6 +149,38 @@ def read_professor_unavailability_item(unavailability_id: int, db: Session = Dep
     item = db.query(DBProfessorUnavailability).filter(DBProfessorUnavailability.id == unavailability_id).first()
     if item is None:
         raise HTTPException(status_code=404, detail="Unavailability request not found")
+    return item
+
+
+@router.patch("/professor-unavailability/{unavailability_id}", response_model=ProfessorUnavailability)
+def update_professor_unavailability_approval(unavailability_id: int, payload: ProfessorUnavailabilityUpdate, db: Session = Depends(get_db)):
+    """
+    Approve or reject an unavailability request.
+    """
+    item = db.query(DBProfessorUnavailability).filter(DBProfessorUnavailability.id == unavailability_id).first()
+    if item is None:
+        raise HTTPException(status_code=404, detail="Unavailability request not found")
+    item.approved = payload.approved
+    db.commit()
+    db.refresh(item)
+    logger.info(f"Professor unavailability {unavailability_id} approval set to {payload.approved}")
+
+    # Audit-log the decision so it appears on the /resolved page for 30 days.
+    from routes.resolutions import log_resolution
+    prof = db.query(DBUser).filter(DBUser.u_id == item.u_id).first()
+    log_resolution(
+        db,
+        kind="unavailability_approved" if payload.approved else "unavailability_rejected",
+        ref_id=item.id,
+        summary={
+            "u_id": item.u_id,
+            "professor_name": f"{prof.fname} {prof.lname}" if prof else None,
+            "date": item.date.isoformat() if item.date else None,
+            "start_time": item.start_time.strftime("%H:%M") if item.start_time else None,
+            "end_time": item.end_time.strftime("%H:%M") if item.end_time else None,
+            "reason": item.reason,
+        },
+    )
     return item
 
 

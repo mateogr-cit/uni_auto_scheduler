@@ -18,7 +18,8 @@ import {
     GraduationCap,
     Bell,
     CalendarClock,
-    Sparkles
+    Sparkles,
+    Archive
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -92,6 +93,12 @@ const adminMenuGroups = [
         label: 'AI',
         items: [
             { icon: Sparkles, label: 'AI Suggestions', href: '/ai-suggestions' },
+        ],
+    },
+    {
+        label: 'Audit',
+        items: [
+            { icon: Archive, label: 'Resolved (30d)', href: '/resolved' },
         ],
     },
 ];
@@ -273,7 +280,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                     </div>
                 )}
 
-                {user?.u_role === 'admin' && (
+                {user && (
                     <Link href="/settings">
                         <motion.div
                             whileHover={{ x: 4 }}

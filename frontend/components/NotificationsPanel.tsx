@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, CalendarX, BookOpen, Clock, Users, Calendar, Loader2 } from 'lucide-react';
+import { AlertCircle, CalendarX, BookOpen, Clock, Users, Calendar, Loader2, Check, X } from 'lucide-react';
 import { API_BASE } from "@/lib/constants";
 
 interface Complaint {
@@ -22,6 +22,7 @@ interface Unavailability {
     start_time: string;
     end_time: string;
     reason: string | null;
+    approved: boolean;
     createdAt: string;
 }
 
@@ -30,6 +31,25 @@ export default function NotificationsPanel() {
     const [unavailabilities, setUnavailabilities] = useState<Unavailability[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [decidingId, setDecidingId] = useState<number | null>(null);
+
+    const decideUnavailability = async (id: number, approved: boolean) => {
+        setDecidingId(id);
+        try {
+            const resp = await fetch(`${API_BASE}/professor-unavailability/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ approved }),
+            });
+            if (!resp.ok) throw new Error('Failed to update');
+            const updated: Unavailability = await resp.json();
+            setUnavailabilities((prev) => prev.map((u) => (u.id === id ? updated : u)));
+        } catch {
+            setError('Failed to update request');
+        } finally {
+            setDecidingId(null);
+        }
+    };
 
     const fetchNotifications = async () => {
         setLoading(true);
@@ -216,7 +236,38 @@ export default function NotificationsPanel() {
                                                         <Clock className="w-3 h-3" />
                                                         {formatDateTime(unavailability.createdAt).time}
                                                     </span>
+                                                    <span
+                                                        className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
+                                                            unavailability.approved
+                                                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                                : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                                        }`}
+                                                    >
+                                                        {unavailability.approved ? 'Approved' : 'Pending'}
+                                                    </span>
                                                 </div>
+                                            </div>
+                                            <div className="flex flex-col gap-2 shrink-0">
+                                                <button
+                                                    onClick={() => decideUnavailability(unavailability.id, true)}
+                                                    disabled={decidingId === unavailability.id || unavailability.approved}
+                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-green-600 hover:bg-green-500 text-white disabled:bg-zinc-300 dark:disabled:bg-zinc-700 disabled:cursor-not-allowed"
+                                                >
+                                                    {decidingId === unavailability.id ? (
+                                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                                    ) : (
+                                                        <Check className="w-3 h-3" />
+                                                    )}
+                                                    Approve
+                                                </button>
+                                                <button
+                                                    onClick={() => decideUnavailability(unavailability.id, false)}
+                                                    disabled={decidingId === unavailability.id || !unavailability.approved}
+                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-300 dark:hover:bg-zinc-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                                                >
+                                                    <X className="w-3 h-3" />
+                                                    Reject
+                                                </button>
                                             </div>
                                         </div>
                                     </div>

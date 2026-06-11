@@ -1,13 +1,16 @@
-# Batch API Requests for Adding Students to Groups
-# API Base URL: http://localhost:8000
+# Adds students to all groups. Supports both naming formats:
+#   New: SE_Y1S1_2026  -> abbr=SE, year=1, sem=1  -> username sey1s1u1
+#   Old: SE1_2026      -> abbr=SE1                 -> username se1gu{id}u1
+#
+# 8 students per group. With 66 groups that is 528 students total.
+# Username pattern: {abbr}y{year}s{sem}u{n}   e.g. sey1s1u1
+# Password pattern: {username}.123             e.g. sey1s1u1.123
 
-# Groups with 10 students only
-$limitedGroups = @("IFE", "FI", "RME", "TE", "EE")
+$studentsPerGroup = 8
 
-Write-Host "Adding students to student groups..."
+Write-Host "Adding students to student groups ($studentsPerGroup per group)..."
 Write-Host ""
 
-# Fetch all student groups
 $groups = Invoke-RestMethod -Method Get -Uri "http://localhost:8000/student-groups/"
 
 if ($groups.Count -eq 0) {
@@ -21,33 +24,37 @@ Write-Host ""
 $studentsCreated = 0
 
 foreach ($group in $groups) {
-    # Extract degree abbreviation from group name (format: {abbr}1_{year})
+    # Extract degree abbreviation (handles both SE1_2026 and SE_Y1S1_2026)
     $abbr = ($group.group_name -split '_')[0] -replace '\d+$', ''
 
-    # Determine number of students based on abbreviation
-    if ($limitedGroups -contains $abbr) {
-        $numStudents = 10
-    } else {
-        $numStudents = 30
+    # Extract year/semester from new-style names (SE_Y1S1_2026)
+    $yearNum = ""
+    $semNum  = ""
+    if ($group.group_name -match '_Y(\d+)S(\d+)_') {
+        $yearNum = $Matches[1]
+        $semNum  = $Matches[2]
     }
 
-    Write-Host "Group: $($group.group_name) - Adding $numStudents students..."
+    Write-Host "Group: $($group.group_name)  (abbr=$abbr)"
 
-    for ($i = 1; $i -le $numStudents; $i++) {
+    for ($i = 1; $i -le $studentsPerGroup; $i++) {
         $fname = "Student"
-        $lname = "$($abbr)$i"
-        $username = "$($lname.ToLower()).$($fname.ToLower())"
-        $email = "$username@cit.edu.al"
-        $password = "$($lname.ToLower()).123"
+        if ($yearNum -ne "") {
+            $lname    = "${abbr}Y${yearNum}S${semNum}U$i"          # e.g. SEY1S1U1
+            $username = "$($abbr.ToLower())y${yearNum}s${semNum}u$i"  # sey1s1u1
+        } else {
+            $lname    = "${abbr}G$($group.group_id)U$i"
+            $username = "$($abbr.ToLower())g$($group.group_id)u$i"
+        }
+        $email    = "$username@cit.edu.al"
+        $password = "$username.123"
 
         try {
-            # Create user
             $userResponse = Invoke-RestMethod -Method Post -Uri "http://localhost:8000/users/" `
               -ContentType "application/json" `
               -Body "{""fname"": ""$fname"", ""lname"": ""$lname"", ""email"": ""$email"", ""username"": ""$username"", ""password"": ""$password"", ""u_role"": ""student""}"
 
-            # Create student record
-            $studentResponse = Invoke-RestMethod -Method Post -Uri "http://localhost:8000/students/" `
+            $null = Invoke-RestMethod -Method Post -Uri "http://localhost:8000/students/" `
               -ContentType "application/json" `
               -Body "{""u_id"": $($userResponse.u_id), ""s_status"": ""active"", ""group_id"": $($group.group_id)}"
 
@@ -56,14 +63,11 @@ foreach ($group in $groups) {
             Write-Host "  Error creating student ${i}: $_"
         }
     }
-
-    Write-Host "  Created $numStudents students for group $($group.group_name)"
-    Write-Host ""
+    Write-Host "  Created $studentsPerGroup students."
 }
 
-Write-Host "Successfully created $studentsCreated students!"
 Write-Host ""
-Write-Host "Summary:"
-Write-Host "  - Groups with 10 students: IFE, FI, RME, TE, EE"
-Write-Host "  - All other groups: 30 students each"
-Write-Host "  - Total students created: $studentsCreated"
+Write-Host "Successfully created $studentsCreated students!"
+Write-Host "  $studentsPerGroup per group  x  $($groups.Count) groups"
+Write-Host "  Username: {abbr}y{year}s{sem}u{n}   e.g. sey1s1u1"
+Write-Host "  Password: {username}.123             e.g. sey1s1u1.123"

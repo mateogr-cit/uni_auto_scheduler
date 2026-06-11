@@ -79,9 +79,12 @@ if ($failedScripts.Count -eq 0) {
     Write-Host "All scripts completed successfully!" -ForegroundColor Green
     Write-Host ""
     Write-Host "Login credentials:" -ForegroundColor Cyan
-    Write-Host "  Admin:     username=admin       password=admin123" -ForegroundColor White
-    Write-Host "  Professor: username=johnson.robert  password=johnson.123" -ForegroundColor White
-    Write-Host "  Student:   username=se11.student    password=se11.123" -ForegroundColor White
+    Write-Host "  Admin:     username=admin            password=admin123" -ForegroundColor White
+    Write-Host "  Professor: username=johnson.robert   password=johnson.123" -ForegroundColor White
+    Write-Host "  Student:   username=sey1s1u1         password=sey1s1u1.123" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Student username pattern: {abbr}y{year}s{sem}u{n}  e.g. sey1s1u1 = SE group, Y1 S1, student 1" -ForegroundColor Gray
+    Write-Host "Student password pattern: {username}.123" -ForegroundColor Gray
 } else {
     Write-Host "Some scripts failed:" -ForegroundColor Red
     foreach ($script in $failedScripts) {

@@ -27,6 +27,8 @@ from routes.dashboard import router as dashboard_router
 from routes.benchmark import router as benchmark_router
 from routes.ai_suggestions import router as ai_suggestions_router
 from routes.auth import router as auth_router
+from routes.schedule_benchmark import router as schedule_benchmark_router
+from routes.resolutions import router as resolutions_router
 from database import engine
 from models import Base
 from logging_config import setup_logging
@@ -82,6 +84,8 @@ app.include_router(complaints_router)
 app.include_router(benchmark_router)
 app.include_router(ai_suggestions_router)
 app.include_router(auth_router)
+app.include_router(schedule_benchmark_router)
+app.include_router(resolutions_router)
 
 @app.get("/")
 def read_root():

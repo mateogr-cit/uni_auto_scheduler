@@ -173,7 +173,7 @@ export default function AutoSchedulePanel({
                     <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
-                    {[1, 2, 3, 4].map((year) => (
+                    {[1, 2, 3].map((year) => (
                       <SelectItem key={year} value={year.toString()}>
                         Year {year}
                       </SelectItem>

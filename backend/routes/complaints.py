@@ -99,15 +99,32 @@ def read_user_complaints(user_id: int, skip: int = 0, limit: int = 100, db: Sess
 @router.delete("/complaints/{complaint_id}")
 def delete_complaint(complaint_id: int, db: Session = Depends(get_db)):
     """
-    Delete a complaint (admin action).
+    Delete a complaint (admin action). Writes an entry to the resolution log so
+    the /resolved page can display it for 30 days.
     """
+    from routes.resolutions import log_resolution
+
     logger.info(f"Attempting to delete complaint: {complaint_id}")
     complaint = db.query(DBComplaints).filter(DBComplaints.comp_id == complaint_id).first()
     if complaint is None:
         logger.warning(f"Complaint not found for deletion: {complaint_id}")
         raise HTTPException(status_code=404, detail="Complaint not found")
 
+    # Capture a snapshot BEFORE delete so the audit log keeps the original context.
+    actual_text, course_name, time_slot = _parse_comp_text(complaint.comp_text)
+    user = db.query(DBUser).filter(DBUser.u_id == complaint.u_id).first()
+    snapshot = {
+        "comp_id": complaint.comp_id,
+        "u_id": complaint.u_id,
+        "student_name": f"{user.fname} {user.lname}" if user else None,
+        "text": actual_text,
+        "course_name": course_name,
+        "time_slot": time_slot,
+        "created_at": complaint.createdAt.isoformat() if complaint.createdAt else None,
+    }
+
     db.delete(complaint)
     db.commit()
+    log_resolution(db, kind="complaint_resolved", ref_id=complaint_id, summary=snapshot)
     logger.info(f"Complaint deleted successfully: {complaint_id}")
     return {"message": "Complaint deleted"}

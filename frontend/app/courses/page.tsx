@@ -474,7 +474,7 @@ export default function CoursesPage() {
                             </div>
                             {(course.degrees && course.degrees.length > 0) ? (
                                 <div className="mt-2 flex flex-wrap gap-1">
-                                    {course.degrees.map((deg) => (
+                                    {Array.from(new Map(course.degrees.map((deg) => [deg.d_id, deg])).values()).map((deg) => (
                                         <span key={deg.d_id} className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded">
                                             {deg.degree_abbr}
                                         </span>
